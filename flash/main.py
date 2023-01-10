@@ -3,6 +3,7 @@ from core import VirtualSwitch, VirtualSensor
 from mainloop import main_loop
 from humidifier import GenericHygrostat
 from commands import register as commands_register
+import config
 import logging
 
 # _LOGGER = logging.getLogger(__name__)
@@ -12,7 +13,6 @@ humidifier_switch = {x: VirtualSwitch() for x in range(3)}
 humidifier_sensor = {x: VirtualSensor() for x in range(3)}
 humidifier_available = {x: VirtualSwitch() for x in range(3)}
 
-pump = VirtualSwitch()
 
 # for debug:
 switch_unsubscribe = {}
@@ -57,6 +57,7 @@ commands_register(
     humidifier_sensor,
     humidifier_available,
     humidifier_switch,
+    config.pump,
 )
 
 import machine

@@ -7,6 +7,7 @@ class Commands:
     _tosr0x_temp_binds = {}
     _tosr0x_relay_binds = {}
     _humidifier_available_binds = {}
+    _pump_binds = {}
 
     def __init__(
         self,
@@ -16,6 +17,7 @@ class Commands:
         humidifier_sensor,
         humidifier_available,
         humidifier_switch,
+        pump,
     ):
         self._tosr_switch = tosr_switch
         self._tosr_temp = tosr_temp
@@ -23,6 +25,7 @@ class Commands:
         self._humidifier_sensor = humidifier_sensor
         self._humidifier_available = humidifier_available
         self._humidifier_switch = humidifier_switch
+        self._pump = pump
 
     def cmd_help(self, sender_eui64):
         return [cmd[4:] for cmd in dir(Commands) if cmd.startswith("cmd_")]
@@ -132,6 +135,26 @@ class Commands:
     def cmd_humidifier_override_switch(self, sender_eui64, number, value):
         self._humidifier_switch[number].state = value
 
+    def cmd_pump_turn_on(self, sender_eui64):
+        self._pump.state = True
+
+    def cmd_pump_turn_off(self, sender_eui64):
+        self._pump.state = False
+
+    def cmd_bind_pump(self, sender_eui64):
+        if sender_eui64 not in self._pump_binds:
+            self._pump_binds[sender_eui64] = self._pump.subscribe(
+                lambda x: transmit(sender_eui64, json_dumps({"pump": x}))
+            )
+
+    def cmd_unbind_pump(self, sender_eui64):
+        if sender_eui64 is None:
+            for unsubscribe in self._pump_binds.values():
+                unsubscribe()
+            self._pump_binds = {}
+        elif sender_eui64 in self._pump_binds:
+            self._pump_binds.pop(sender_eui64)()
+
     def cmd_tosr0x_get_temp(self, sender_eui64):
         return self._tosr_temp.state
 
@@ -184,6 +207,7 @@ class Commands:
 
     def cmd_bind(self, sender_eui64):
         self.cmd_bind_tosr0x_temp(sender_eui64)
+        self.cmd_bind_pump(sender_eui64)
         for x in range(5):
             self.cmd_bind_tosr0x_relay(sender_eui64, x)
         for x in range(3):
@@ -192,6 +216,7 @@ class Commands:
 
     def cmd_unbind(self, sender_eui64=None):
         self.cmd_unbind_tosr0x_temp(sender_eui64)
+        self.cmd_unbind_pump(sender_eui64)
         for x in range(5):
             self.cmd_unbind_tosr0x_relay(sender_eui64, x)
         for x in range(3):
