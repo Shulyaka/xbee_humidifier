@@ -43,25 +43,27 @@ class TosrSwitch(Entity):
 
 
 class TosrTemp(Entity):
-    _temp = None
+    _value = None
+    _threshold = 0
 
-    def __init__(self):
+    def __init__(self, period=30000, threshold=0):
         super().__init__()
+        self._threshold = threshold
         self.update()
         self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=30000
+            lambda: self.update(), period=period
         )
 
     def update(self):
         super().update()
         value = tosr.temperature
-        if self._temp != value:
-            self._temp = value
+        if self._value is None or abs(self._value - value) > self._threshold:
+            self._value = value
             self._run_triggers(value)
 
     @property
     def state(self):
-        return self._temp
+        return self._value
 
     @state.setter
     def state(self, value):
