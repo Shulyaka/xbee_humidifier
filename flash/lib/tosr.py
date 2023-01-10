@@ -1,19 +1,26 @@
-from tosr0x import Tosr0x
-from core import Entity
-from mainloop import main_loop
+"""Interface to tosr0x relays with as core.Entity classes."""
+
 import logging
 
+from core import Entity
+from mainloop import main_loop
+from tosr0x import Tosr0x
 
 try:
     tosr = Tosr0x()
 except Exception as e:
+    from sys import stdout
+
     stdout.buffer.write("n")
     logging.getLogger(__name__).error("Exception: %s", e)
     raise e
 
 
 class TosrSwitch(Entity):
+    """TOSR0X relay."""
+
     def __init__(self, switch_number):
+        """Init the class."""
         super().__init__()
         self._switch_number = switch_number
         self._state = self.state
@@ -23,10 +30,12 @@ class TosrSwitch(Entity):
 
     @property
     def state(self):
+        """Get cached relay state."""
         return tosr.get_relay_state(self._switch_number)
 
     @state.setter
     def state(self, value):
+        """Set relay state."""
         value = bool(value)
         tosr.set_relay_state(self._switch_number, value)
         if self._state != value:
@@ -34,6 +43,7 @@ class TosrSwitch(Entity):
             self._run_triggers(value)
 
     def update(self):
+        """Get relay states."""
         super().update()
         tosr.update()
         value = self.state
@@ -43,10 +53,13 @@ class TosrSwitch(Entity):
 
 
 class TosrTemp(Entity):
+    """TOSR0X-T temperature sensor."""
+
     _value = None
     _threshold = 0
 
     def __init__(self, period=30000, threshold=0):
+        """Init the class."""
         super().__init__()
         self._threshold = threshold
         self.update()
@@ -55,6 +68,7 @@ class TosrTemp(Entity):
         )
 
     def update(self):
+        """Get current temperature."""
         super().update()
         value = tosr.temperature
         if self._value is None or abs(self._value - value) > self._threshold:
@@ -63,10 +77,12 @@ class TosrTemp(Entity):
 
     @property
     def state(self):
+        """Get cached temperature."""
         return self._value
 
     @state.setter
     def state(self, value):
+        """Output is disabled."""
         pass
 
 

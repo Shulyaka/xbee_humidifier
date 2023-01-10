@@ -1,9 +1,16 @@
-from json import loads as json_loads, dumps as json_dumps
-from xbee import transmit, receive_callback
+"""Module defines remote commands."""
+
+from json import dumps as json_dumps, loads as json_loads
 import logging
+
+from xbee import receive_callback, transmit
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Commands:
+    """Define application remote commands."""
+
     _tosr0x_temp_binds = {}
     _tosr0x_relay_binds = {}
     _humidifier_available_binds = {}
@@ -20,6 +27,7 @@ class Commands:
         pump,
         pump_block,
     ):
+        """Init the module."""
         self._tosr_switch = tosr_switch
         self._tosr_temp = tosr_temp
         self._humidifier = humidifier
@@ -30,28 +38,31 @@ class Commands:
         self._pump_block = pump_block
 
     def cmd_help(self, sender_eui64):
+        """Return the list of available commands."""
         return [cmd[4:] for cmd in dir(Commands) if cmd.startswith("cmd_")]
 
     def cmd_test(self, sender_eui64, *args, **kwargs):
+        """Echo arguments."""
         return "passed, args: " + str(args) + ", kwargs: " + str(kwargs)
 
     def cmd_logger_set_target(self, sender_eui64, target=None, name=None):
+        """Set logger target."""
         if name:
             logging.getLogger(name).set_target(
                 sender_eui64 if target is None else target
             )
         else:
-            logging.getLogger("__main__").set_default_target(
-                sender_eui64 if target is None else target
-            )
+            _LOGGER.set_default_target(sender_eui64 if target is None else target)
 
     def cmd_logger_set_level(self, sender_eui64, level, name=None):
+        """Set logging level."""
         if name:
             logging.getLogger(name).set_level(level)
         else:
-            logging.getLogger("__main__").set_default_level(level)
+            _LOGGER.set_default_level(level)
 
     def cmd_humidifier_get_state(self, sender_eui64, number):
+        """Get humidifier state."""
         return {
             "name": self._humidifier[number].name,
             "available": self._humidifier[number].available,
@@ -64,21 +75,27 @@ class Commands:
         }
 
     def cmd_humidifier_turn_on(self, sender_eui64, number):
+        """Turn humidifier on."""
         self._humidifier[number].turn_on()
 
     def cmd_humidifier_turn_off(self, sender_eui64, number):
+        """Turn humidifier off."""
         self._humidifier[number].turn_off()
 
     def cmd_humidifier_set_humidity(self, sender_eui64, number, value):
+        """Set target humidity."""
         self._humidifier[number].set_humidity(value)
 
     def cmd_humidifier_set_mode(self, sender_eui64, number, mode):
+        """Set humidifier mode."""
         self._humidifier[number].set_mode(mode)
 
     def cmd_humidifier_set_current_humidity(self, sender_eui64, number, value):
+        """Update current humidity."""
         self._humidifier_sensor[number].state = value
 
     def cmd_bind_humidifier_available(self, sender_eui64, number):
+        """Subscribe to humidifier availability updates."""
         if (
             number not in self._humidifier_available_binds
             and number in self._humidifier_available
@@ -95,6 +112,7 @@ class Commands:
             )
 
     def cmd_unbind_humidifier_available(self, sender_eui64, number):
+        """Unsubscribe to humidifier availability updates."""
         if sender_eui64 is None:
             if number in self._humidifier_available_binds:
                 for unsubscribe in self._humidifier_available_binds[number]:
@@ -107,6 +125,7 @@ class Commands:
             self._humidifier_available_binds[number].pop(sender_eui64)()
 
     def cmd_bind_humidifier_working(self, sender_eui64, number):
+        """Subscribe to humidifier zone updates."""
         if (
             number not in self._humidifier_switch_binds
             and number in self._humidifier_switch
@@ -123,6 +142,7 @@ class Commands:
             )
 
     def cmd_unbind_humidifier_working(self, sender_eui64, number):
+        """Unsubscribe to humidifier zone updates."""
         if sender_eui64 is None:
             if number in self._humidifier_switch_binds:
                 for unsubscribe in self._humidifier_switch_binds[number]:
@@ -135,21 +155,26 @@ class Commands:
             self._humidifier_switch_binds[number].pop(sender_eui64)()
 
     def cmd_humidifier_override_switch(self, sender_eui64, number, value):
+        """Manually set humidifier zone state."""
         self._humidifier_switch[number].state = value
 
     def cmd_pump_turn_on(self, sender_eui64):
+        """Manually turn on the pump."""
         self._pump.state = True
 
     def cmd_pump_turn_off(self, sender_eui64):
+        """Manually turn off the pump."""
         self._pump.state = False
 
     def cmd_bind_pump(self, sender_eui64):
+        """Subscribe to humidifier pump updates."""
         if sender_eui64 not in self._pump_binds:
             self._pump_binds[sender_eui64] = self._pump.subscribe(
                 lambda x: transmit(sender_eui64, json_dumps({"pump": x}))
             )
 
     def cmd_unbind_pump(self, sender_eui64):
+        """Unsubscribe to humidifier pump updates."""
         if sender_eui64 is None:
             for unsubscribe in self._pump_binds.values():
                 unsubscribe()
@@ -158,21 +183,27 @@ class Commands:
             self._pump_binds.pop(sender_eui64)()
 
     def cmd_get_pump_block(self, sender_eui64):
+        """Get status of pump block."""
         return self._pump_block.state
 
     def cmd_set_pump_block(self, sender_eui64, value):
+        """Update state of pump block."""
         self._pump_block.state = value
 
     def cmd_tosr0x_get_temp(self, sender_eui64):
+        """Get current tosr0x-t temperature."""
         return self._tosr_temp.state
 
     def cmd_tosr0x_get_relay_state(self, sender_eui64, switch_number):
+        """Get current tosr0x relay status."""
         return self._tosr_switch[switch_number].state
 
     def cmd_tosr0x_set_relay_state(self, sender_eui64, switch_number, state):
+        """Manually update tosr0x relay status."""
         self._tosr_switch[switch_number].state = state
 
     def cmd_bind_tosr0x_relay(self, sender_eui64, switch_number):
+        """Subscribe to tosr0x relay updates."""
         if (
             switch_number not in self._tosr0x_relay_binds
             and switch_number in self._tosr_switch
@@ -188,6 +219,7 @@ class Commands:
             )
 
     def cmd_unbind_tosr0x_relay(self, sender_eui64, switch_number):
+        """Unsubscribe to tosr0x relay updates."""
         if sender_eui64 is None:
             if switch_number in self._tosr0x_relay_binds:
                 for unsubscribe in self._tosr0x_relay_binds[switch_number]:
@@ -200,12 +232,14 @@ class Commands:
             self._tosr0x_relay_binds[switch_number].pop(sender_eui64)()
 
     def cmd_bind_tosr0x_temp(self, sender_eui64):
+        """Subscribe to tosr0x temperature updates."""
         if sender_eui64 not in self._tosr0x_temp_binds:
             self._tosr0x_temp_binds[sender_eui64] = self._tosr_temp.subscribe(
                 lambda x: transmit(sender_eui64, json_dumps({"tosr0x_temp": x}))
             )
 
     def cmd_unbind_tosr0x_temp(self, sender_eui64):
+        """Unsubscribe to tosr0x temperature updates."""
         if sender_eui64 is None:
             for unsubscribe in self._tosr0x_temp_binds.values():
                 unsubscribe()
@@ -214,6 +248,7 @@ class Commands:
             self._tosr0x_temp_binds.pop(sender_eui64)()
 
     def cmd_bind(self, sender_eui64):
+        """Subscribe to all updates."""
         self.cmd_bind_tosr0x_temp(sender_eui64)
         self.cmd_bind_pump(sender_eui64)
         for x in range(5):
@@ -223,6 +258,7 @@ class Commands:
             self.cmd_bind_humidifier_working(sender_eui64, x)
 
     def cmd_unbind(self, sender_eui64=None):
+        """Unsubscribe to all updates."""
         self.cmd_unbind_tosr0x_temp(sender_eui64)
         self.cmd_unbind_pump(sender_eui64)
         for x in range(5):
@@ -236,6 +272,8 @@ _commands = None
 
 
 def register(*args, **kwargs):
+    """Register command handler."""
+    global _commands
     _commands = Commands(*args, **kwargs)
 
     def rx_callback(x):
@@ -280,6 +318,8 @@ def register(*args, **kwargs):
 
 
 def unregister():
+    """Unregister command handler."""
+    global _commands
     if _commands:
         _commands.cmd_unbind()
     receive_callback(None)

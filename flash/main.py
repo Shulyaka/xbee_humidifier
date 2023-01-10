@@ -1,13 +1,15 @@
-from tosr import tosr_switch, tosr_temp
-from core import VirtualSwitch, VirtualSensor
-from mainloop import main_loop
-from humidifier import GenericHygrostat
-from commands import register as commands_register
-from machine import WDT
-from dutycycle import DutyCycle
-import config
-import logging
+"""Main module of the humidifier."""
 
+from commands import register as commands_register
+import config
+from core import VirtualSensor, VirtualSwitch
+from dutycycle import DutyCycle
+from humidifier import GenericHygrostat
+from mainloop import main_loop
+from tosr import tosr_switch, tosr_temp
+
+# import logging
+#
 # _LOGGER = logging.getLogger(__name__)
 
 
@@ -17,7 +19,7 @@ humidifier_available = {x: VirtualSwitch() for x in range(3)}
 
 
 # for debug:
-import machine
+# import machine
 
 switch_unsubscribe = {}
 sensor_unsubscribe = {}
@@ -72,6 +74,7 @@ commands_register(
 )
 
 # definitely not for debug:
+# from machine import WDT
 # wdt = WDT(timeout=30000)
 # main_loop.schedule_task(lambda: wdt.feed(), period=1000)
 

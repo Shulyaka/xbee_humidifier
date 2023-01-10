@@ -1,9 +1,17 @@
-from mainloop import main_loop
+"""Implementation of a slow PWM for humidifiers."""
+
+import logging
 from time import ticks_ms
+
+from mainloop import main_loop
 from micropython import const
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class DutyCycle:
+    """Slow PWM for humidifiers."""
+
     _pump = None
     _humidifier_switch = {}
     _valve_switch = {}
@@ -15,6 +23,7 @@ class DutyCycle:
     _pressure_drop_time_ms = const(25 * 1000)
 
     def __init__(self, pump, humidifier, humidifier_switch, valve_switch, pump_block):
+        """Init the class."""
         self._pump = pump
         self._humidifier = humidifier
         self._humidifier_switch = humidifier_switch
@@ -33,31 +42,35 @@ class DutyCycle:
         self.start_cycle()
 
     def _humidifier_changed(self, number, value):
+        """Handle humidifier on/off."""
         if value:
             self.start_cycle()
         else:
             self.stop_cycle()
 
     def _switch_changed(self, number, value):
+        """Handle humidifier zone on/off."""
         if value:
-            if _cancel_pump_timeout is None:
+            if self._cancel_pump_timeout is None:
                 self.start_cycle()
         else:
             all_off = True
             for switch in self._humidifier_switch.items():
-                if switch.state == True:
+                if switch.state:
                     all_off = False
                     break
             if all_off:
                 self.stop_cycle()
 
     def _pump_block_changed(self, value):
+        """Handle block on/off."""
         if value:
             self.stop_cycle()
         else:
             self.start_cycle()
 
     def _pump_changed(self, value):
+        """Handle pump on/off."""
         if self._cancel_pump_timeout is not None:
             self._cancel_pump_timeout()
         if self._cancel_pressure_drop is not None:
@@ -83,6 +96,7 @@ class DutyCycle:
             )
 
     def _pressure_drop_valve_changed(self, value):
+        """Handle pressure drop valve on/off."""
         if self._cancel_pressure_drop is not None:
             self._cancel_pressure_drop()
             self._cancel_pressure_drop = None
@@ -98,42 +112,48 @@ class DutyCycle:
             self._cancel_close_valves = None
 
     def _start_pressure_drop(self):
+        """Initiate pressure drop."""
         self._valve_switch[3].state = True
 
     def _close_all_valves(self):
+        """Complete pressure drop."""
         for switch in self._valve_switch.values():
             switch.state = False
 
     def _pump_on_timeout(self):
+        """Handle pump staying on too long."""
         if self._cancel_pump_timeout is not None:
             self._cancel_pump_timeout()
             self._cancel_pump_timeout = None
         self.stop_cycle()
 
     def _pump_off_timeout(self):
+        """Handle pump staying off too long."""
         if self._cancel_pump_timeout is not None:
             self._cancel_pump_timeout()
             self._cancel_pump_timeout = None
         self.start_cycle()
 
     def stop_cycle(self):
+        """End duty cycle."""
         if not self._pump.state:
-            _LOGGING.debug("The pump is already not running")
+            _LOGGER.debug("The pump is already not running")
             return
 
         self._pump.state = False
 
     def start_cycle(self):
+        """Enter duty cycle."""
         if self._pump.state:
-            _LOGGING.debug("The pump is already running")
+            _LOGGER.debug("The pump is already running")
             return
 
         if (
-            self._humidifier_switch[0].state == False
-            and self._humidifier_switch[1].state == False
-            and self._humidifier_switch[2].state == False
+            not self._humidifier_switch[0].state
+            and not self._humidifier_switch[1].state
+            and not self._humidifier_switch[2].state
         ):
-            _LOGGING.debug("All switches are off, not starting the pump")
+            _LOGGER.debug("All switches are off, not starting the pump")
             return
 
         for x in range(3):

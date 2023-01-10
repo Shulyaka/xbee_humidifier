@@ -1,10 +1,10 @@
 """Generic hygrostat implementation."""
 
 import logging
-from micropython import const
 
-from mainloop import main_loop
 from core import Entity
+from mainloop import main_loop
+from micropython import const
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,22 +31,29 @@ MODE_AWAY = const("away")
 
 
 class HumidifierEntity(Entity):
+    """Base class for humidifier device emulating HA class."""
+
     def update_ha_state(self):
+        """Run triggers on state updates."""
         self._run_triggers(self.state)
 
     def schedule_update_ha_state(self):
+        """Run triggers on state updates."""
         self.update_ha_state()
 
     @property
     def name(self):
+        """Return entity name."""
         pass
 
     @property
     def min_humidity(self):
+        """Return default min humidity."""
         return 0
 
     @property
     def max_humidity(self):
+        """Return default max humidity."""
         return 100
 
     @property
@@ -79,10 +86,12 @@ class HumidifierEntity(Entity):
 
     @property
     def state(self):
+        """Get current state."""
         return self.is_on
 
     @state.setter
     def state(self, value):
+        """Set current state."""
         if value:
             self.turn_on()
         else:
@@ -91,6 +100,8 @@ class HumidifierEntity(Entity):
 
 
 class RestoreEntity:
+    """Dummy class for compatibility."""
+
     pass
 
 
@@ -260,7 +271,6 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
 
     def _sensor_not_responding(self, now=None):
         """Handle sensor stale event."""
-
         _LOGGER.debug(
             "Sensor has not been updated for %s",
             now - self.hass.states.get(self._sensor_entity_id).last_updated,
@@ -337,7 +347,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
     @property
     def _is_device_active(self):
         """If the toggleable device is currently active."""
-        return self._switch_entity_id.state == True
+        return self._switch_entity_id.state
 
     def _device_turn_on(self):
         """Turn humidifier toggleable device on."""
@@ -348,9 +358,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._switch_entity_id.state = False
 
     def set_mode(self, mode: str):
-        """Set new mode.
-        This method must be run in the event loop and returns a coroutine.
-        """
+        """Set new mode."""
         if self._away_humidity is None:
             return
         if mode == MODE_AWAY and not self._is_away:
