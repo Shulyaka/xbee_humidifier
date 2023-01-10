@@ -1,0 +1,7 @@
+isort
+flake8
+pylint
+pytest
+pytest-cov
+pytest-sugar
+pytest-timeout
