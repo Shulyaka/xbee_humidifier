@@ -19,14 +19,14 @@ ATTR_SAVED_HUMIDITY = const("saved_humidity")
 ATTR_MODE = const("mode")
 
 MODE_NORMAL = const("normal")
-#MODE_ECO = const("eco")
+# MODE_ECO = const("eco")
 MODE_AWAY = const("away")
-#MODE_BOOST = const("boost")
-#MODE_COMFORT = const("comfort")
-#MODE_HOME = const("home")
-#MODE_SLEEP = const("sleep")
-#MODE_AUTO = const("auto")
-#MODE_BABY = const("baby")
+# MODE_BOOST = const("boost")
+# MODE_COMFORT = const("comfort")
+# MODE_HOME = const("home")
+# MODE_SLEEP = const("sleep")
+# MODE_AUTO = const("auto")
+# MODE_BABY = const("baby")
 
 
 class HumidifierEntity:
@@ -56,10 +56,10 @@ class HumidifierEntity:
             ATTR_MIN_HUMIDITY: self.min_humidity,
             ATTR_MAX_HUMIDITY: self.max_humidity,
         }
-        
+
         if supported_features & MODES:
             data[ATTR_AVAILABLE_MODES] = self.available_modes
-    
+
         return data
 
     @property
@@ -79,6 +79,7 @@ class HumidifierEntity:
 
 class RestoreEntity:
     pass
+
 
 class GenericHygrostat(HumidifierEntity, RestoreEntity):
     """Representation of a Generic Hygrostat device."""
@@ -234,7 +235,10 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         if self._sensor_stale_duration:
             if self._remove_stale_tracking:
                 self._remove_stale_tracking()
-            self._remove_stale_tracking = main_loop.schedule_task(lambda: self._sensor_not_responding(), self._sensor_stale_duration * 1000)
+            self._remove_stale_tracking = main_loop.schedule_task(
+                lambda: self._sensor_not_responding(),
+                self._sensor_stale_duration * 1000,
+            )
 
         self._update_humidity(new_state)
         self._operate()
@@ -298,9 +302,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         too_dry = self._target_humidity - self._cur_humidity >= dry_tolerance
         too_wet = self._cur_humidity - self._target_humidity >= wet_tolerance
         if self._is_device_active:
-            if (
-                self._device_class == HUMIDIFIER and too_wet
-            ) or (
+            if (self._device_class == HUMIDIFIER and too_wet) or (
                 self._device_class == DEHUMIDIFIER and too_dry
             ):
                 _LOGGER.info("Turning off humidifier %s", self._switch_entity_id)
@@ -309,9 +311,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
                 # The time argument is passed only in keep-alive case
                 self._device_turn_on()
         else:
-            if (
-                self._device_class == HUMIDIFIER and too_dry
-            ) or (
+            if (self._device_class == HUMIDIFIER and too_dry) or (
                 self._device_class == DEHUMIDIFIER and too_wet
             ):
                 _LOGGER.info("Turning on humidifier %s", self._switch_entity_id)
@@ -357,4 +357,3 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             self._operate(force=True)
 
         self.update_ha_state()
-
