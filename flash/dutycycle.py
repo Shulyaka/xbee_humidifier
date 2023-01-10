@@ -14,19 +14,48 @@ class DutyCycle:
     _pressure_drop_delay_ms = const(5 * 1000)
     _pressure_drop_time_ms = const(25 * 1000)
 
-    def __init__(self, pump, humidifier_switch, valve_switch):
+    def __init__(self, pump, humidifier, humidifier_switch, valve_switch, pump_block):
         self._pump = pump
+        self._humidifier = humidifier
         self._humidifier_switch = humidifier_switch
         self._valve_switch = valve_switch
+        self._pump_block = pump_block
 
         self._pump.state = False
         self._pump.subscribe(lambda x: self._pump_changed(x))
         self._valve_switch[3].subscribe(lambda x: self._pressure_drop_valve_changed(x))
+        self._pump_block.subscribe(lambda x: self._pump_block_changed(x))
+        for number, humidifier in self._humidifier.items():
+            humidifier.subscribe(lambda x: self._humidifier_changed(number, x))
         for number, switch in self._humidifier_switch.items():
             switch.subscribe(lambda x: self._switch_changed(number, x))
 
+        self.start_cycle()
+
+    def _humidifier_changed(self, number, value):
+        if value:
+            self.start_cycle()
+        else:
+            self.stop_cycle()
+
     def _switch_changed(self, number, value):
-        pass
+        if value:
+            if _cancel_pump_timeout is None:
+                self.start_cycle()
+        else:
+            all_off = True
+            for switch in self._humidifier_switch.items():
+                if switch.state == True:
+                    all_off = False
+                    break
+            if all_off:
+                self.stop_cycle()
+
+    def _pump_block_changed(self, value):
+        if value:
+            self.stop_cycle()
+        else:
+            self.start_cycle()
 
     def _pump_changed(self, value):
         if self._cancel_pump_timeout is not None:

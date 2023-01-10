@@ -54,7 +54,11 @@ humidifier = {
     for x in range(3)
 }
 
-duty_cycle = DutyCycle(config.pump, humidifier_switch, config.valve_switch)
+pump_block = VirtualSwitch()
+
+duty_cycle = DutyCycle(
+    config.pump, humidifier, humidifier_switch, config.valve_switch, pump_block
+)
 
 commands_register(
     tosr_switch,
@@ -64,6 +68,7 @@ commands_register(
     humidifier_available,
     humidifier_switch,
     config.pump,
+    pump_block,
 )
 
 # definitely not for debug:

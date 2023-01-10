@@ -18,6 +18,7 @@ class Commands:
         humidifier_available,
         humidifier_switch,
         pump,
+        pump_block,
     ):
         self._tosr_switch = tosr_switch
         self._tosr_temp = tosr_temp
@@ -26,6 +27,7 @@ class Commands:
         self._humidifier_available = humidifier_available
         self._humidifier_switch = humidifier_switch
         self._pump = pump
+        self._pump_block = pump_block
 
     def cmd_help(self, sender_eui64):
         return [cmd[4:] for cmd in dir(Commands) if cmd.startswith("cmd_")]
@@ -154,6 +156,12 @@ class Commands:
             self._pump_binds = {}
         elif sender_eui64 in self._pump_binds:
             self._pump_binds.pop(sender_eui64)()
+
+    def cmd_get_pump_block(self, sender_eui64):
+        return self._pump_block.state
+
+    def cmd_set_pump_block(self, sender_eui64, value):
+        self._pump_block.state = value
 
     def cmd_tosr0x_get_temp(self, sender_eui64):
         return self._tosr_temp.state

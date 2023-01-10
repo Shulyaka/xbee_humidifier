@@ -4,6 +4,7 @@ import logging
 from micropython import const
 
 from mainloop import main_loop
+from core import Entity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,9 +30,9 @@ MODE_AWAY = const("away")
 # MODE_BABY = const("baby")
 
 
-class HumidifierEntity:
+class HumidifierEntity(Entity):
     def update_ha_state(self):
-        pass
+        self._run_triggers(self.state)
 
     def schedule_update_ha_state(self):
         self.update_ha_state()
@@ -76,6 +77,18 @@ class HumidifierEntity:
 
         return data
 
+    @property
+    def state(self):
+        return self.is_on
+
+    @state.setter
+    def state(self, value):
+        if value:
+            self.turn_on()
+        else:
+            self.turn_off()
+        self._run_triggers(value)
+
 
 class RestoreEntity:
     pass
@@ -102,6 +115,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         sensor_stale_duration,
     ):
         """Initialize the hygrostat."""
+        super().__init__()
         self._name = name
         self._switch_entity_id = switch_entity_id
         self._sensor_entity_id = sensor_entity_id
