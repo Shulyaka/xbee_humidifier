@@ -3,6 +3,8 @@ from core import VirtualSwitch, VirtualSensor
 from mainloop import main_loop
 from humidifier import GenericHygrostat
 from commands import register as commands_register
+from machine import WDT
+from dutycycle import DutyCycle
 import config
 import logging
 
@@ -15,6 +17,8 @@ humidifier_available = {x: VirtualSwitch() for x in range(3)}
 
 
 # for debug:
+import machine
+
 switch_unsubscribe = {}
 sensor_unsubscribe = {}
 available_unsubscribe = {}
@@ -50,6 +54,8 @@ humidifier = {
     for x in range(3)
 }
 
+duty_cycle = DutyCycle(config.pump, humidifier_switch, config.valve_switch)
+
 commands_register(
     tosr_switch,
     tosr_temp,
@@ -60,6 +66,8 @@ commands_register(
     config.pump,
 )
 
-import machine
+# definitely not for debug:
+# wdt = WDT(timeout=30000)
+# main_loop.schedule_task(lambda: wdt.feed(), period=1000)
 
 main_loop.run()
