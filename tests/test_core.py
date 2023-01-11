@@ -23,7 +23,7 @@ def test_entity():
     assert entity._triggers == []
 
     entity.state = 21
-    callback.assert_not_called()
+    assert callback.call_count == 0
 
     with pytest.raises(ValueError) as excinfo:
         unsubscribe()

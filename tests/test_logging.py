@@ -70,7 +70,7 @@ def test_logging():
     mock_transmit.reset_mock()
     logger.set_level(flash.lib.logging.INFO)
     logger.debug("Test debug message")
-    mock_transmit.assert_not_called()
+    assert mock_transmit.call_count == 0
 
     logger2.debug("Test debug message")
     mock_transmit.assert_called_once_with(

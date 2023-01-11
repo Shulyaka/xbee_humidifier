@@ -55,7 +55,7 @@ class Loop:
         """Add new task."""
         new_task = Task(callback, next_run, period)
         self._tasks.append(new_task)
-        return lambda: self._tasks.remove(new_task)
+        return lambda: self._tasks.remove(new_task) if new_task in self._tasks else None
 
     def reset(self):
         """Remove all tasks."""
@@ -65,19 +65,23 @@ class Loop:
         """Run one iteration and return the time of next eecution."""
         now = ticks_ms()
         next_time = None
+        remove_tasks = []
 
         for task in self._tasks:
             next_run = task.next_run
             if next_run <= now:
                 task.run()
                 if task.completed:
-                    self._tasks.remove(task)
+                    remove_tasks.append(task)
                     next_run = None
                 else:
                     next_run = task.next_run
 
             if next_run is not None and (next_time is None or next_run - next_time < 0):
                 next_time = next_run
+
+        for task in remove_tasks:
+            self._tasks.remove(task)
 
         return next_time
 
@@ -90,9 +94,10 @@ class Loop:
                 _LOGGER.warning("No tasks")
                 next_time = now + 1000
             diff = next_time - now
-            if diff > 0:
+            if diff > 0 and not self._stop:
                 sleep_ms(diff)
         self._stop = False
+        return next_time
 
     def stop(self):
         """Exit the loop after current iteration."""

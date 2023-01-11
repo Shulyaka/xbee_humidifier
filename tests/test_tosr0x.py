@@ -16,7 +16,8 @@ import flash.lib.tosr0x  # noqa: E402
 @patch("flash.lib.tosr0x.stdout.buffer.write")
 @patch("flash.lib.tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
-    """Test logging."""
+    """Test Tosr0x class."""
+    mock_ticks_ms.return_value = 0
     tosr = flash.lib.tosr0x.Tosr0x()
     mock_stdout.assert_called_once_with("n")
 
@@ -33,7 +34,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "e"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -43,7 +44,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "f"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -53,7 +54,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "g"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -63,7 +64,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "h"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -73,7 +74,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "d"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -83,7 +84,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "n"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -93,7 +94,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "o"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -103,7 +104,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "p"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -113,7 +114,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "q"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -123,7 +124,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0].args == "r"
     assert mock_stdout.call_args_list[1].args == "["
-    mock_sleep.assert_not_called()
+    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -139,10 +140,15 @@ def test_tosr0x(mock_stdin, mock_stdout):
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
-    mock_stdin.return_value = b"\x00"
+    mock_stdin.return_value = b"\x0f"
     mock_ticks_ms.reset_mock()
     mock_ticks_ms.return_value = 1000
     tosr.update()
+    assert tosr.switch0
+    assert tosr.switch1
+    assert tosr.switch2
+    assert tosr.switch3
+    assert tosr.switch4
     mock_ticks_ms.return_value = 1100
     tosr.update()
     assert mock_stdin.call_count == 2
