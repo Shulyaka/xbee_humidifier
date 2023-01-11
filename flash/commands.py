@@ -45,21 +45,13 @@ class Commands:
         """Echo arguments."""
         return "passed, args: " + str(args) + ", kwargs: " + str(kwargs)
 
-    def cmd_logger_set_target(self, sender_eui64, target=None, name=None):
+    def cmd_logger_set_target(self, sender_eui64, target=None, name="__main__"):
         """Set logger target."""
-        if name:
-            logging.getLogger(name).set_target(
-                sender_eui64 if target is None else target
-            )
-        else:
-            _LOGGER.set_default_target(sender_eui64 if target is None else target)
+        logging.getLogger(name).set_target(sender_eui64 if target is None else target)
 
     def cmd_logger_set_level(self, sender_eui64, level, name=None):
         """Set logging level."""
-        if name:
-            logging.getLogger(name).set_level(level)
-        else:
-            _LOGGER.set_default_level(level)
+        logging.getLogger(name).set_level(level)
 
     def cmd_humidifier_get_state(self, sender_eui64, number):
         """Get humidifier state."""

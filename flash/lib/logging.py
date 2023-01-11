@@ -1,4 +1,4 @@
-"""Micro python ulogging implementation for xbee sending logs remotely."""
+"""Micropython logging implementation for xbee sending logs remotely."""
 
 from micropython import const
 from xbee import ADDR_COORDINATOR, transmit
@@ -26,20 +26,12 @@ def getLogger(name):
             self._name = name
 
         def set_target(self, target=ADDR_COORDINATOR):
-            """Override default target device eui64."""
+            """Update target device eui64."""
             self._target = target
 
-        def set_default_target(self, target=ADDR_COORDINATOR):
-            """Update default target device eui64."""
-            Logger._target = target
-
         def set_level(self, level):
-            """Override default logging level."""
+            """Update logging level."""
             self._level = level
-
-        def set_default_level(self, level):
-            """Update default logging level."""
-            Logger._level = level
 
         def makeRecord(self, msg, *args, **kwargs):
             """Format the record."""
@@ -80,5 +72,7 @@ def getLogger(name):
             if self._level >= CRITICAL:
                 self._log("CRITICAL: " + str(msg), *args, **kwargs)
 
-    _loggers[name] = Logger(name=name)
+    if name not in _loggers:
+        _loggers[name] = Logger(name=name)
+
     return _loggers[name]
