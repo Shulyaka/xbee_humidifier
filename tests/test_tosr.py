@@ -7,7 +7,7 @@ sys.path.append("tests/modules")
 sys.path.append("flash/lib")
 sys.modules["time"] = __import__("mock_time")
 
-from time import ticks_ms as mock_ticks_ms  # noqa: E402
+from time import sleep_ms  # noqa: E402
 
 from mainloop import main_loop  # noqa: E402
 
@@ -24,7 +24,6 @@ with patch("flash.lib.tosr0x.stdout.buffer.write") as mock_stdout:
 @patch("flash.lib.tosr.tosr")
 def test_tosr_switch(mock_tosr):
     """Test TosrSwitch class."""
-    mock_ticks_ms.return_value = 1000
     mock_tosr.get_relay_state.return_value = True
     assert tosr_switch[0].state
 
@@ -32,7 +31,7 @@ def test_tosr_switch(mock_tosr):
     assert not tosr_switch[0].state
 
     mock_tosr.get_relay_state.reset_mock()
-    mock_ticks_ms.return_value = 31000
+    sleep_ms(30000)
     main_loop.run_once()
     assert not tosr_switch[0].state
     mock_tosr.get_relay_state.assert_called_once()
@@ -40,14 +39,14 @@ def test_tosr_switch(mock_tosr):
     mock_tosr.get_relay_state.reset_mock()
     callback = MagicMock()
     tosr_switch[1].subscribe(callback)
-    mock_ticks_ms.return_value = 61000
+    sleep_ms(30000)
     main_loop.run_once()
     mock_tosr.get_relay_state.assert_called_once()
     assert callback.call_count == 0
 
     mock_tosr.get_relay_state.reset_mock()
     mock_tosr.get_relay_state.return_value = True
-    mock_ticks_ms.return_value = 91000
+    sleep_ms(30000)
     main_loop.run_once()
     mock_tosr.get_relay_state.assert_called_once()
     callback.assert_called_once(True)
@@ -56,7 +55,6 @@ def test_tosr_switch(mock_tosr):
 @patch("flash.lib.tosr.tosr")
 def test_tosr_temp(mock_tosr):
     """Test TosrTemp class."""
-    mock_ticks_ms.return_value = 1000
     mock_temperature = PropertyMock(return_value=0)
     type(mock_tosr).temperature = mock_temperature
     mock_temperature.return_value = 42
@@ -77,7 +75,7 @@ def test_tosr_temp(mock_tosr):
     assert mock_temperature.call_count == 0
 
     # Test that sensor is read after 500 ms
-    mock_ticks_ms.return_value = 1500
+    sleep_ms(500)
     main_loop.run_once()
     callback.assert_called_once_with(10)
     assert sensor.state == 10
@@ -87,7 +85,7 @@ def test_tosr_temp(mock_tosr):
     callback.reset_mock()
     mock_temperature.reset_mock()
     mock_temperature.return_value = 15
-    mock_ticks_ms.return_value = 2000
+    sleep_ms(500)
     main_loop.run_once()
     callback.assert_called_once_with(15)
     assert sensor.state == 15
@@ -97,7 +95,7 @@ def test_tosr_temp(mock_tosr):
     callback.reset_mock()
     mock_temperature.reset_mock()
     mock_temperature.return_value = 15.0625
-    mock_ticks_ms.return_value = 2500
+    sleep_ms(500)
     main_loop.run_once()
     assert callback.call_count == 0
     assert sensor.state == 15.0625

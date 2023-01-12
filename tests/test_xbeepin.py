@@ -7,7 +7,7 @@ sys.path.append("tests/modules")
 sys.path.append("flash/lib")
 sys.modules["time"] = __import__("mock_time")
 
-from time import ticks_ms as mock_ticks_ms  # noqa: E402
+from time import sleep_ms  # noqa: E402
 
 from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin  # noqa: E402
 from mainloop import main_loop  # noqa: E402
@@ -50,7 +50,6 @@ def test_digital_output():
 def test_digital_input():
     """Test DigitalInput class."""
     mock_Pin.init.reset_mock()
-    mock_ticks_ms.return_value = 1000
 
     binary_sensor = flash.lib.xbeepin.DigitalInput("D0")
     mock_Pin.init.assert_called_once_with("D0", mock_Pin.IN, None)
@@ -67,7 +66,7 @@ def test_digital_input():
     assert binary_sensor._pin.value.call_count == 0
 
     # Test that sensor is read after 500 ms
-    mock_ticks_ms.return_value = 1500
+    sleep_ms(500)
     main_loop.run_once()
     assert callback.call_count == 0
     assert not binary_sensor.state
@@ -76,7 +75,7 @@ def test_digital_input():
     # Test repeated read
     binary_sensor._pin.value.reset_mock()
     binary_sensor._pin.value.return_value = True
-    mock_ticks_ms.return_value = 2000
+    sleep_ms(500)
     main_loop.run_once()
     callback.assert_called_once_with(True)
     assert binary_sensor.state
@@ -111,7 +110,6 @@ def test_analog_output():
 def test_analog_input():
     """Test AnalogInput class."""
     mock_ADC.init.reset_mock()
-    mock_ticks_ms.return_value = 1000
 
     sensor = flash.lib.xbeepin.AnalogInput("D0", threshold=5)
     mock_ADC.init.assert_called_once_with("D0")
@@ -128,7 +126,7 @@ def test_analog_input():
     assert sensor._pin.read.call_count == 0
 
     # Test that sensor is read after 500 ms
-    mock_ticks_ms.return_value = 1500
+    sleep_ms(500)
     main_loop.run_once()
     callback.assert_called_once_with(10)
     assert sensor.state == 10
@@ -138,7 +136,7 @@ def test_analog_input():
     callback.reset_mock()
     sensor._pin.read.reset_mock()
     sensor._pin.read.return_value = 15
-    mock_ticks_ms.return_value = 2000
+    sleep_ms(500)
     main_loop.run_once()
     callback.assert_called_once_with(15)
     assert sensor.state == 15
@@ -148,7 +146,7 @@ def test_analog_input():
     callback.reset_mock()
     sensor._pin.read.reset_mock()
     sensor._pin.read.return_value = 19
-    mock_ticks_ms.return_value = 2500
+    sleep_ms(500)
     main_loop.run_once()
     assert callback.call_count == 0
     assert sensor.state == 19
