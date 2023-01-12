@@ -19,13 +19,13 @@ except Exception as e:
 class TosrSwitch(Entity):
     """TOSR0X relay."""
 
-    def __init__(self, switch_number):
+    def __init__(self, switch_number, period=30000):
         """Init the class."""
         super().__init__()
         self._switch_number = switch_number
         self._state = self.state
         self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=30000
+            lambda: self.update(), period=period
         )
 
     @property
@@ -59,7 +59,7 @@ class TosrTemp(Entity):
     _last_callback_value = None
     _threshold = 0
 
-    def __init__(self, period=30000, threshold=0):
+    def __init__(self, period=30000, threshold=1 / 16):
         """Init the class."""
         super().__init__()
         self._threshold = threshold
@@ -73,7 +73,7 @@ class TosrTemp(Entity):
         super().update()
         value = tosr.temperature
         self._value = value
-        threshold = self._threshold if auto else 0
+        threshold = self._threshold if auto else 1 / 16
         if (
             self._last_callback_value is None
             or abs(self._last_callback_value - value) >= threshold

@@ -91,7 +91,7 @@ class AnalogInput(Entity):
     _last_callback_value = None
     _threshold = 0
 
-    def __init__(self, gpio, period=500, threshold=0):
+    def __init__(self, gpio, period=500, threshold=1):
         """Init the class."""
         super().__init__()
         self._pin = ADC(gpio)
@@ -106,7 +106,7 @@ class AnalogInput(Entity):
         super().update()
         value = self._pin.read()
         self._value = value
-        threshold = self._threshold if auto else 0
+        threshold = self._threshold if auto else 1
         if (
             self._last_callback_value is None
             or abs(self._last_callback_value - value) >= threshold
