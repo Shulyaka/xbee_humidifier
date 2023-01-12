@@ -56,6 +56,7 @@ class TosrTemp(Entity):
     """TOSR0X-T temperature sensor."""
 
     _value = None
+    _last_callback_value = None
     _threshold = 0
 
     def __init__(self, period=30000, threshold=0):
@@ -64,15 +65,20 @@ class TosrTemp(Entity):
         self._threshold = threshold
         self.update()
         self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=period
+            lambda: self.update(auto=True), period=period
         )
 
-    def update(self):
+    def update(self, auto=None):
         """Get current temperature."""
         super().update()
         value = tosr.temperature
-        if self._value is None or abs(self._value - value) > self._threshold:
-            self._value = value
+        self._value = value
+        threshold = self._threshold if auto else 0
+        if (
+            self._last_callback_value is None
+            or abs(self._last_callback_value - value) >= threshold
+        ):
+            self._last_callback_value = value
             self._run_triggers(value)
 
     @property

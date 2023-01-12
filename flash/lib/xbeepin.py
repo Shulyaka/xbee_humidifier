@@ -88,6 +88,7 @@ class AnalogInput(Entity):
 
     _pin = None
     _value = None
+    _last_callback_value = None
     _threshold = 0
 
     def __init__(self, gpio, period=500, threshold=0):
@@ -97,15 +98,20 @@ class AnalogInput(Entity):
         self._threshold = threshold
         self.update()
         self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=period
+            lambda: self.update(auto=True), period=period
         )
 
-    def update(self):
+    def update(self, auto=None):
         """Get pin state."""
         super().update()
         value = self._pin.read()
-        if self._value is None or abs(self._value - value) > self._threshold:
-            self._value = value
+        self._value = value
+        threshold = self._threshold if auto else 0
+        if (
+            self._last_callback_value is None
+            or abs(self._last_callback_value - value) >= threshold
+        ):
+            self._last_callback_value = value
             self._run_triggers(value)
 
     @property

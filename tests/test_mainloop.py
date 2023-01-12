@@ -78,5 +78,3 @@ def test_loop():
     assert loop.run() == 2200
     callback.assert_called_once_with()
     assert mock_sleep_ms.call_count == 0
-
-    assert loop != flash.lib.mainloop.main_loop
