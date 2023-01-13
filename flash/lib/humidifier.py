@@ -241,10 +241,9 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             self._device_turn_off()
         self.update_ha_state()
 
-    def set_humidity(self, humidity: int):
+    def set_humidity(self, humidity):
         """Set new target humidity."""
-        if humidity is None:
-            return
+        humidity = int(humidity)
 
         if self._is_away and self._away_fixed:
             self._saved_target_humidity = humidity
@@ -283,7 +282,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
                 self._remove_stale_tracking()
             self._remove_stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
-                self._sensor_stale_duration * 1000,
+                ticks_ms() + self._sensor_stale_duration * 1000,
             )
 
         self._update_humidity(new_state)
@@ -294,7 +293,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         """Handle sensor stale event."""
         _LOGGER.debug(
             "Sensor has not been updated for %s seconds",
-            (ticks_ms() - self._sensor_last_updated) / 1000,
+            int((ticks_ms() - self._sensor_last_updated) / 1000),
         )
         _LOGGER.warning("Sensor is stalled, call the emergency stop")
         self._update_humidity("Stalled")
