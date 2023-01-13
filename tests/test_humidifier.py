@@ -9,7 +9,7 @@ sys.modules["time"] = __import__("mock_time")
 
 from time import sleep as mock_sleep  # noqa: E402
 
-from core import VirtualSensor, VirtualSwitch  # noqa: E402
+from core import Entity, VirtualSensor, VirtualSwitch  # noqa: E402
 from mainloop import main_loop  # noqa: E402
 
 from flash.lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat  # noqa: E402
@@ -45,6 +45,8 @@ def test_heneric_hygrostat():
         away_fixed=False,
         sensor_stale_duration=30 * 60,
     )
+
+    assert isinstance(humidifier, Entity)
 
     assert not humidifier.available
 
