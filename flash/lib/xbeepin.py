@@ -42,6 +42,10 @@ class DigitalInput(Entity):
             lambda: self.update(), period=period
         )
 
+    def __del__(self):
+        """Cancel callbacks."""
+        self._stop_updates()
+
     def update(self):
         """Get pin state."""
         super().update()
@@ -100,6 +104,10 @@ class AnalogInput(Entity):
         self._stop_updates = main_loop.schedule_task(
             lambda: self.update(auto=True), period=period
         )
+
+    def __del__(self):
+        """Cancel callbacks."""
+        self._stop_updates()
 
     def update(self, auto=None):
         """Get pin state."""

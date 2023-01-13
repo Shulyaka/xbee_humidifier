@@ -37,6 +37,10 @@ class Commands:
         self._pump = pump
         self._pump_block = pump_block
 
+    def __del__(self):
+        """Cancel callbacks."""
+        self.cmd_unbind()
+
     def cmd_help(self, sender_eui64):
         """Return the list of available commands."""
         return [cmd[4:] for cmd in dir(Commands) if cmd.startswith("cmd_")]

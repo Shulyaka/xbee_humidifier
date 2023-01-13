@@ -17,10 +17,13 @@ class DutyCycle:
     _valve_switch = {}
     _cancel_pump_timeout = None
     _cancel_close_valves = None
+    _cancel_pressure_drop = None
     _pump_on_timeout_ms = const(6 * 60 * 1000)
     _pump_off_timeout_ms = const(3 * 60 * 1000)
     _pressure_drop_delay_ms = const(5 * 1000)
     _pressure_drop_time_ms = const(25 * 1000)
+    _humidifier_unsubscribe = {}
+    _switch_unsubscribe = {}
 
     def __init__(self, pump, humidifier, humidifier_switch, valve_switch, pump_block):
         """Init the class."""
@@ -31,15 +34,40 @@ class DutyCycle:
         self._pump_block = pump_block
 
         self._pump.state = False
-        self._pump.subscribe(lambda x: self._pump_changed(x))
-        self._valve_switch[3].subscribe(lambda x: self._pressure_drop_valve_changed(x))
-        self._pump_block.subscribe(lambda x: self._pump_block_changed(x))
+        self._pump_unsubscribe = self._pump.subscribe(lambda x: self._pump_changed(x))
+        self._valve_unsubscribe = self._valve_switch[3].subscribe(
+            lambda x: self._pressure_drop_valve_changed(x)
+        )
+        self._block_unsubscribe = self._pump_block.subscribe(
+            lambda x: self._pump_block_changed(x)
+        )
         for number, humidifier in self._humidifier.items():
-            humidifier.subscribe(lambda x: self._humidifier_changed(number, x))
+            self._humidifier_unsubscribe[number] = humidifier.subscribe(
+                lambda x: self._humidifier_changed(number, x)
+            )
         for number, switch in self._humidifier_switch.items():
-            switch.subscribe(lambda x: self._switch_changed(number, x))
+            self._switch_unsubscribe[number] = switch.subscribe(
+                lambda x: self._switch_changed(number, x)
+            )
 
         self.start_cycle()
+
+    def __del__(self):
+        """Cancel callbacks."""
+        if self._cancel_pump_timeout:
+            self._cancel_pump_timeout()
+        if self._cancel_close_valves:
+            self._cancel_close_valves()
+        if self._cancel_pressure_drop:
+            self._cancel_pressure_drop()
+        self._pump_unsubscribe()
+        self._valve_unsubscribe()
+        self._block_unsubscribe()
+        for humidifier_unsubscribe in self._humidifier_unsubscribe.values():
+            humidifier_unsubscribe()
+        for switch_unsubscribe in self._switch_unsubscribe.values():
+            switch_unsubscribe()
+        self._close_all_valves()
 
     def _humidifier_changed(self, number, value):
         """Handle humidifier on/off."""

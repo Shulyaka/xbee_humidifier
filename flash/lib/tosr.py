@@ -28,6 +28,10 @@ class TosrSwitch(Entity):
             lambda: self.update(), period=period
         )
 
+    def __del__(self):
+        """Cancel callbacks."""
+        self._stop_updates()
+
     @property
     def state(self):
         """Get cached relay state."""
@@ -67,6 +71,10 @@ class TosrTemp(Entity):
         self._stop_updates = main_loop.schedule_task(
             lambda: self.update(auto=True), period=period
         )
+
+    def __del__(self):
+        """Cancel callbacks."""
+        self._stop_updates()
 
     def update(self, auto=None):
         """Get current temperature."""

@@ -17,6 +17,7 @@ import flash.lib.tosr0x  # noqa: E402
 @patch("flash.lib.tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
     """Test Tosr0x class."""
+    mock_sleep.reset_mock()
     tosr = flash.lib.tosr0x.Tosr0x()
     mock_stdout.assert_called_once_with("n")
 

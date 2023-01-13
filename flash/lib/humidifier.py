@@ -1,6 +1,7 @@
 """Generic hygrostat implementation."""
 
 import logging
+from time import ticks_ms
 
 from core import Entity
 from mainloop import main_loop
@@ -110,20 +111,20 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
 
     def __init__(
         self,
-        name,
         switch_entity_id,
         sensor_entity_id,
         available_sensor_id,
-        min_humidity,
-        max_humidity,
-        target_humidity,
-        device_class,
-        dry_tolerance,
-        wet_tolerance,
-        initial_state,
-        away_humidity,
-        away_fixed,
-        sensor_stale_duration,
+        name="Generic Hygrostat",
+        min_humidity=None,
+        max_humidity=None,
+        target_humidity=None,
+        device_class=None,
+        dry_tolerance=3,
+        wet_tolerance=3,
+        initial_state=None,
+        away_humidity=None,
+        away_fixed=None,
+        sensor_stale_duration=None,
     ):
         """Initialize the hygrostat."""
         super().__init__()
@@ -150,10 +151,30 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         if not self._device_class:
             self._device_class = HUMIDIFIER
 
-        self._sensor_entity_id.subscribe(lambda x: self._sensor_changed(None, None, x))
-        self._switch_entity_id.subscribe(lambda x: self._switch_changed(None, None, x))
+        if self._target_humidity is None:
+            if self._device_class == HUMIDIFIER:
+                self._target_humidity = self.min_humidity
+            else:
+                self._target_humidity = self.max_humidity
+            _LOGGER.warning(
+                "No previously saved humidity, setting to %s", self._target_humidity
+            )
+
+        self._sensor_unsubscribe = self._sensor_entity_id.subscribe(
+            lambda x: self._sensor_changed(None, None, x)
+        )
+        self._switch_unsubscribe = self._switch_entity_id.subscribe(
+            lambda x: self._switch_changed(None, None, x)
+        )
 
         self._sensor_changed(None, None, self._sensor_entity_id.state)
+
+    def __del__(self):
+        """Cancel callbacks."""
+        self._sensor_unsubscribe()
+        self._switch_unsubscribe()
+        if self._remove_stale_tracking:
+            self._remove_stale_tracking()
 
     @property
     def available(self):
@@ -269,11 +290,11 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._operate()
         self.update_ha_state()
 
-    def _sensor_not_responding(self, now=None):
+    def _sensor_not_responding(self):
         """Handle sensor stale event."""
         _LOGGER.debug(
-            "Sensor has not been updated for %s",
-            now - self.hass.states.get(self._sensor_entity_id).last_updated,
+            "Sensor has not been updated for %s seconds",
+            (ticks_ms() - self._sensor_last_updated) / 1000,
         )
         _LOGGER.warning("Sensor is stalled, call the emergency stop")
         self._update_humidity("Stalled")
@@ -288,6 +309,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         """Update hygrostat with latest state from sensor."""
         try:
             self._cur_humidity = float(humidity)
+            self._sensor_last_updated = ticks_ms()
         except ValueError as ex:
             _LOGGER.warning("Unable to update from sensor: %s", ex)
             self._cur_humidity = None
