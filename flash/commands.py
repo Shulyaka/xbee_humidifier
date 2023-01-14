@@ -14,6 +14,7 @@ class Commands:
     _tosr0x_temp_binds = {}
     _tosr0x_relay_binds = {}
     _humidifier_available_binds = {}
+    _humidifier_switch_binds = {}
     _pump_binds = {}
 
     def __init__(
@@ -51,11 +52,12 @@ class Commands:
 
     def cmd_logger_set_target(self, sender_eui64, target=None, name="__main__"):
         """Set logger target."""
-        logging.getLogger(name).set_target(sender_eui64 if target is None else target)
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        logging.getLogger(name).setTarget(target)
 
     def cmd_logger_set_level(self, sender_eui64, level, name=None):
         """Set logging level."""
-        logging.getLogger(name).set_level(level)
+        logging.getLogger(name).setLevel(level)
 
     def cmd_humidifier_get_state(self, sender_eui64, number):
         """Get humidifier state."""
@@ -63,7 +65,7 @@ class Commands:
             "name": self._humidifier[number].name,
             "available": self._humidifier[number].available,
             "is_on": self._humidifier[number].is_on,
-            "working": self._tosr_switch.state,
+            "working": self._tosr_switch[number].state,
             "device_class": self._humidifier[number].device_class,
             "capability_attributes": self._humidifier[number].capability_attributes,
             "state_attributes": self._humidifier[number].state_attributes,
@@ -90,65 +92,69 @@ class Commands:
         """Update current humidity."""
         self._humidifier_sensor[number].state = value
 
-    def cmd_bind_humidifier_available(self, sender_eui64, number):
+    def cmd_bind_humidifier_available(self, sender_eui64, number, target=None):
         """Subscribe to humidifier availability updates."""
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if (
             number not in self._humidifier_available_binds
             and number in self._humidifier_available
         ):
             self._humidifier_available_binds[number] = {}
-        if sender_eui64 not in self._humidifier_available_binds[number]:
+        if target not in self._humidifier_available_binds[number]:
             self._humidifier_available_binds[number][
-                sender_eui64
+                target
             ] = self._humidifier_available[number].subscribe(
                 lambda x: transmit(
-                    sender_eui64,
+                    target,
                     json_dumps({"name": self._humidifier[number].name, "available": x}),
                 )
             )
 
-    def cmd_unbind_humidifier_available(self, sender_eui64, number):
+    def cmd_unbind_humidifier_available(self, sender_eui64, number, target=None):
         """Unsubscribe to humidifier availability updates."""
-        if sender_eui64 is None:
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target is None:
             if number in self._humidifier_available_binds:
                 for unsubscribe in self._humidifier_available_binds[number]:
                     unsubscribe()
                 self._humidifier_available_binds[number] = {}
         elif (
             number in self._humidifier_available_binds
-            and sender_eui64 in self._humidifier_available_binds[number]
+            and target in self._humidifier_available_binds[number]
         ):
-            self._humidifier_available_binds[number].pop(sender_eui64)()
+            self._humidifier_available_binds[number].pop(target)()
 
-    def cmd_bind_humidifier_working(self, sender_eui64, number):
+    def cmd_bind_humidifier_working(self, sender_eui64, number, target=None):
         """Subscribe to humidifier zone updates."""
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if (
             number not in self._humidifier_switch_binds
             and number in self._humidifier_switch
         ):
             self._humidifier_switch_binds[number] = {}
-        if sender_eui64 not in self._humidifier_switch_binds[number]:
-            self._humidifier_switch_binds[number][
-                sender_eui64
-            ] = self._humidifier_switch[number].subscribe(
+        if target not in self._humidifier_switch_binds[number]:
+            self._humidifier_switch_binds[number][target] = self._humidifier_switch[
+                number
+            ].subscribe(
                 lambda x: transmit(
-                    sender_eui64,
+                    target,
                     json_dumps({"name": self._humidifier[number].name, "working": x}),
                 )
             )
 
-    def cmd_unbind_humidifier_working(self, sender_eui64, number):
+    def cmd_unbind_humidifier_working(self, sender_eui64, number, target=None):
         """Unsubscribe to humidifier zone updates."""
-        if sender_eui64 is None:
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target is None:
             if number in self._humidifier_switch_binds:
                 for unsubscribe in self._humidifier_switch_binds[number]:
                     unsubscribe()
                 self._humidifier_switch_binds[number] = {}
         elif (
             number in self._humidifier_switch_binds
-            and sender_eui64 in self._humidifier_switch_binds[number]
+            and target in self._humidifier_switch_binds[number]
         ):
-            self._humidifier_switch_binds[number].pop(sender_eui64)()
+            self._humidifier_switch_binds[number].pop(target)()
 
     def cmd_humidifier_override_switch(self, sender_eui64, number, value):
         """Manually set humidifier zone state."""
@@ -162,21 +168,23 @@ class Commands:
         """Manually turn off the pump."""
         self._pump.state = False
 
-    def cmd_bind_pump(self, sender_eui64):
+    def cmd_bind_pump(self, sender_eui64, target=None):
         """Subscribe to humidifier pump updates."""
-        if sender_eui64 not in self._pump_binds:
-            self._pump_binds[sender_eui64] = self._pump.subscribe(
-                lambda x: transmit(sender_eui64, json_dumps({"pump": x}))
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target not in self._pump_binds:
+            self._pump_binds[target] = self._pump.subscribe(
+                lambda x: transmit(target, json_dumps({"pump": x}))
             )
 
-    def cmd_unbind_pump(self, sender_eui64):
+    def cmd_unbind_pump(self, sender_eui64, target=None):
         """Unsubscribe to humidifier pump updates."""
-        if sender_eui64 is None:
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target is None:
             for unsubscribe in self._pump_binds.values():
                 unsubscribe()
             self._pump_binds = {}
-        elif sender_eui64 in self._pump_binds:
-            self._pump_binds.pop(sender_eui64)()
+        elif target in self._pump_binds:
+            self._pump_binds.pop(target)()
 
     def cmd_get_pump_block(self, sender_eui64):
         """Get status of pump block."""
@@ -198,70 +206,74 @@ class Commands:
         """Manually update tosr0x relay status."""
         self._tosr_switch[switch_number].state = state
 
-    def cmd_bind_tosr0x_relay(self, sender_eui64, switch_number):
+    def cmd_bind_tosr0x_relay(self, sender_eui64, switch_number, target=None):
         """Subscribe to tosr0x relay updates."""
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if (
             switch_number not in self._tosr0x_relay_binds
             and switch_number in self._tosr_switch
         ):
             self._tosr0x_relay_binds[switch_number] = {}
-        if sender_eui64 not in self._tosr0x_relay_binds[switch_number]:
-            self._tosr0x_relay_binds[switch_number][sender_eui64] = self._tosr_switch[
+        if target not in self._tosr0x_relay_binds[switch_number]:
+            self._tosr0x_relay_binds[switch_number][target] = self._tosr_switch[
                 switch_number
             ].subscribe(
                 lambda x: transmit(
-                    sender_eui64, json_dumps({"tosr0x_relay_" + str(switch_number): x})
+                    target, json_dumps({"tosr0x_relay_" + str(switch_number): x})
                 )
             )
 
-    def cmd_unbind_tosr0x_relay(self, sender_eui64, switch_number):
+    def cmd_unbind_tosr0x_relay(self, sender_eui64, switch_number, target=None):
         """Unsubscribe to tosr0x relay updates."""
-        if sender_eui64 is None:
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target is None:
             if switch_number in self._tosr0x_relay_binds:
                 for unsubscribe in self._tosr0x_relay_binds[switch_number]:
                     unsubscribe()
                 self._tosr0x_relay_binds[switch_number] = {}
         elif (
             switch_number in self._tosr0x_relay_binds
-            and sender_eui64 in self._tosr0x_relay_binds[switch_number]
+            and target in self._tosr0x_relay_binds[switch_number]
         ):
-            self._tosr0x_relay_binds[switch_number].pop(sender_eui64)()
+            self._tosr0x_relay_binds[switch_number].pop(target)()
 
-    def cmd_bind_tosr0x_temp(self, sender_eui64):
+    def cmd_bind_tosr0x_temp(self, sender_eui64, target=None):
         """Subscribe to tosr0x temperature updates."""
-        if sender_eui64 not in self._tosr0x_temp_binds:
-            self._tosr0x_temp_binds[sender_eui64] = self._tosr_temp.subscribe(
-                lambda x: transmit(sender_eui64, json_dumps({"tosr0x_temp": x}))
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target not in self._tosr0x_temp_binds:
+            self._tosr0x_temp_binds[target] = self._tosr_temp.subscribe(
+                lambda x: transmit(target, json_dumps({"tosr0x_temp": x}))
             )
 
-    def cmd_unbind_tosr0x_temp(self, sender_eui64):
+    def cmd_unbind_tosr0x_temp(self, sender_eui64, target=None):
         """Unsubscribe to tosr0x temperature updates."""
-        if sender_eui64 is None:
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+        if target is None:
             for unsubscribe in self._tosr0x_temp_binds.values():
                 unsubscribe()
             self._tosr0x_temp_binds = {}
-        elif sender_eui64 in self._tosr0x_temp_binds:
-            self._tosr0x_temp_binds.pop(sender_eui64)()
+        elif target in self._tosr0x_temp_binds:
+            self._tosr0x_temp_binds.pop(target)()
 
-    def cmd_bind(self, sender_eui64):
+    def cmd_bind(self, sender_eui64, target=None):
         """Subscribe to all updates."""
-        self.cmd_bind_tosr0x_temp(sender_eui64)
-        self.cmd_bind_pump(sender_eui64)
+        self.cmd_bind_tosr0x_temp(sender_eui64, target)
+        self.cmd_bind_pump(sender_eui64, target)
         for x in range(5):
-            self.cmd_bind_tosr0x_relay(sender_eui64, x)
+            self.cmd_bind_tosr0x_relay(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_bind_humidifier_available(sender_eui64, x)
-            self.cmd_bind_humidifier_working(sender_eui64, x)
+            self.cmd_bind_humidifier_available(sender_eui64, x, target)
+            self.cmd_bind_humidifier_working(sender_eui64, x, target)
 
-    def cmd_unbind(self, sender_eui64=None):
+    def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to all updates."""
-        self.cmd_unbind_tosr0x_temp(sender_eui64)
-        self.cmd_unbind_pump(sender_eui64)
+        self.cmd_unbind_tosr0x_temp(sender_eui64, target)
+        self.cmd_unbind_pump(sender_eui64, target)
         for x in range(5):
-            self.cmd_unbind_tosr0x_relay(sender_eui64, x)
+            self.cmd_unbind_tosr0x_relay(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_unbind_humidifier_available(sender_eui64, x)
-            self.cmd_unbind_humidifier_working(sender_eui64, x)
+            self.cmd_unbind_humidifier_available(sender_eui64, x, target)
+            self.cmd_unbind_humidifier_working(sender_eui64, x, target)
 
 
 _commands = None
@@ -287,23 +299,21 @@ def register(*args, **kwargs):
                     )
                 elif isinstance(args, dict):
                     response = getattr(_commands, "cmd_" + cmd)(
-                        **args, sender_eui64=x["sender_eui64"]
+                        sender_eui64=x["sender_eui64"], **args
                     )
                 elif isinstance(args, list):
                     response = getattr(_commands, "cmd_" + cmd)(
-                        *args, sender_eui64=x["sender_eui64"]
+                        x["sender_eui64"], *args
                     )
                 else:
-                    response = getattr(_commands, "cmd_" + cmd)(
-                        args, sender_eui64=x["sender_eui64"]
-                    )
+                    response = getattr(_commands, "cmd_" + cmd)(x["sender_eui64"], args)
                 if response is None:
                     response = "OK"
                 response = {"cmd_" + cmd + "_resp": response}
             else:
                 raise AttributeError("No such command")
         except Exception as e:
-            response = {"errors": e}
+            response = {"errors": str(e)}
 
         try:
             transmit(x["sender_eui64"], json_dumps(response))

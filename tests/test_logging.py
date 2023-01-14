@@ -17,6 +17,7 @@ def test_logging():
 
     logger = flash.lib.logging.getLogger("__main__")
 
+    mock_transmit.reset_mock()
     logger.debug("Test debug message, %s", 123)
     mock_transmit.assert_called_once_with(
         b"\x00\x00\x00\x00\x00\x00\x00\x00",
@@ -52,7 +53,7 @@ def test_logging():
     )
 
     mock_transmit.reset_mock()
-    logger.set_target(b"\x01\x23\x45\x67\x89\xab\xcd\xef")
+    logger.setTarget(b"\x01\x23\x45\x67\x89\xab\xcd\xef")
     logger.debug("Test debug message, %s", [1, 2, 3])
     mock_transmit.assert_called_once_with(
         b"\x01\x23\x45\x67\x89\xab\xcd\xef",
@@ -68,7 +69,9 @@ def test_logging():
     )
 
     mock_transmit.reset_mock()
-    logger.set_level(flash.lib.logging.INFO)
+    assert logger.getEffectiveLevel() == flash.lib.logging.DEBUG
+    logger.setLevel(flash.lib.logging.INFO)
+    assert logger.getEffectiveLevel() == flash.lib.logging.INFO
     logger.debug("Test debug message")
     assert mock_transmit.call_count == 0
 
@@ -77,5 +80,3 @@ def test_logging():
         b"\x00\x00\x00\x00\x00\x00\x00\x00",
         "tests: DEBUG: Test debug message\n",
     )
-
-    mock_transmit.reset_mock()

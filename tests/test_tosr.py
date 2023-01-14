@@ -13,7 +13,7 @@ from mainloop import main_loop  # noqa: E402
 
 with patch("flash.lib.tosr0x.stdout.buffer.write") as mock_stdout:
     with patch("flash.lib.tosr0x.stdin.buffer.read") as mock_stdin:
-        from flash.lib.tosr import TosrTemp, tosr_switch, tosr_temp
+        from flash.lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 
         assert mock_stdout.call_count == 2
         assert mock_stdout.call_args_list[0].args == "n"
@@ -31,25 +31,34 @@ def test_tosr_switch(mock_tosr):
     assert not tosr_switch[0].state
 
     mock_tosr.get_relay_state.reset_mock()
+    mock_tosr.update.reset_mock()
+    tosr_switch_2 = TosrSwitch(2)
+    assert mock_tosr.get_relay_state.call_count == 1
     sleep_ms(30000)
     main_loop.run_once()
-    assert not tosr_switch[0].state
-    mock_tosr.get_relay_state.assert_called_once()
+    assert mock_tosr.get_relay_state.call_count == 2
+    assert not tosr_switch_2.state
+    assert mock_tosr.get_relay_state.call_count == 3
+    assert mock_tosr.update.call_count == 1
 
     mock_tosr.get_relay_state.reset_mock()
+    mock_tosr.update.reset_mock()
     callback = MagicMock()
-    tosr_switch[1].subscribe(callback)
+    tosr_switch_2.subscribe(callback)
     sleep_ms(30000)
     main_loop.run_once()
-    mock_tosr.get_relay_state.assert_called_once()
+    assert mock_tosr.update.call_count == 1
+    assert mock_tosr.get_relay_state.call_count == 1
     assert callback.call_count == 0
 
     mock_tosr.get_relay_state.reset_mock()
+    mock_tosr.update.reset_mock()
     mock_tosr.get_relay_state.return_value = True
     sleep_ms(30000)
     main_loop.run_once()
-    mock_tosr.get_relay_state.assert_called_once()
-    callback.assert_called_once(True)
+    assert mock_tosr.update.call_count == 1
+    assert mock_tosr.get_relay_state.call_count == 1
+    callback.assert_called_once_with(True)
 
 
 @patch("flash.lib.tosr.tosr")

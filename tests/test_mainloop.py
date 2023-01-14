@@ -70,11 +70,26 @@ def test_loop():
     callback.reset_mock()
     loop.schedule_task(callback, period=100)
     loop.reset()
+    mock_ticks_ms.return_value = 1300
     assert loop.run_once() is None
     assert callback.call_count == 0
 
     loop.schedule_task(callback)
     loop.schedule_task(lambda: loop.stop())
-    assert loop.run() == 2200
+    assert loop.run() == 2300
     callback.assert_called_once_with()
     assert mock_sleep_ms.call_count == 0
+
+    callback.reset_mock()
+    loop.schedule_task(callback, period=100)
+    mock_ticks_ms.return_value = 2300
+    assert loop.run_once() == 2400
+    assert callback.call_count == 1
+
+    mock_ticks_ms.return_value = 2400
+    assert loop.run_once() == 2500
+    assert callback.call_count == 2
+
+    mock_ticks_ms.return_value = 2500
+    assert loop.run_once() == 2600
+    assert callback.call_count == 3

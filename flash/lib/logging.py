@@ -3,11 +3,11 @@
 from micropython import const
 from xbee import ADDR_COORDINATOR, transmit
 
-DEBUG = const(5)
-INFO = const(4)
-WARNING = const(3)
-ERROR = const(2)
-CRITICAL = const(1)
+DEBUG = const(10)
+INFO = const(20)
+WARNING = const(30)
+ERROR = const(40)
+CRITICAL = const(50)
 
 _loggers = {}
 
@@ -25,13 +25,17 @@ def getLogger(name):
             """Init the class."""
             self._name = name
 
-        def set_target(self, target=ADDR_COORDINATOR):
+        def setTarget(self, target=ADDR_COORDINATOR):
             """Update target device eui64."""
             self._target = target
 
-        def set_level(self, level):
+        def setLevel(self, level):
             """Update logging level."""
             self._level = level
+
+        def getEffectiveLevel(self):
+            """Get logging level."""
+            return self._level
 
         def makeRecord(self, msg, *args, **kwargs):
             """Format the record."""
@@ -49,27 +53,27 @@ def getLogger(name):
 
         def debug(self, msg, *args, **kwargs):
             """Write debug logs."""
-            if self._level >= DEBUG:
+            if self._level <= DEBUG:
                 self._log("DEBUG: " + str(msg), *args, **kwargs)
 
         def info(self, msg, *args, **kwargs):
             """Write info logs."""
-            if self._level >= INFO:
+            if self._level <= INFO:
                 self._log("INFO: " + str(msg), *args, **kwargs)
 
         def warning(self, msg, *args, **kwargs):
             """Write warning logs."""
-            if self._level >= WARNING:
+            if self._level <= WARNING:
                 self._log("WARNING: " + str(msg), *args, **kwargs)
 
         def error(self, msg, *args, **kwargs):
             """Write error logs."""
-            if self._level >= ERROR:
+            if self._level <= ERROR:
                 self._log("ERROR: " + str(msg), *args, **kwargs)
 
         def critical(self, msg, *args, **kwargs):
             """Write critical logs."""
-            if self._level >= CRITICAL:
+            if self._level <= CRITICAL:
                 self._log("CRITICAL: " + str(msg), *args, **kwargs)
 
     if name not in _loggers:
