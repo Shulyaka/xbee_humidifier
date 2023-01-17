@@ -69,7 +69,7 @@ class Loop:
         tasks = self._tasks.copy()
         for task in tasks:
             next_run = task.next_run
-            if next_run <= now:
+            if next_run - now <= 0:
                 task.run()
                 if task.completed:
                     if task in self._tasks:
@@ -95,6 +95,22 @@ class Loop:
             if diff > 0 and not self._stop:
                 sleep_ms(diff)
         self._stop = False
+        return next_time
+
+    @property
+    def next_run(self):
+        """Return the time of the next scheduled execution."""
+        now = ticks_ms()
+        next_time = None
+
+        for task in self._tasks:
+            next_run = task.next_run
+            if next_run <= now:
+                return now
+
+            if next_time is None or next_run - next_time < 0:
+                next_time = next_run
+
         return next_time
 
     def stop(self):

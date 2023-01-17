@@ -44,10 +44,13 @@ def test_loop():
     mock_ticks_ms.return_value = 1000
 
     loop = mainloop.Loop()
+    assert loop.next_run is None
     assert loop.run_once() is None
 
     delete_task = loop.schedule_task(callback)
+    assert loop.next_run == 1000
     assert loop.run_once() is None
+    assert loop.next_run is None
     delete_task()
     delete_task()
     callback.assert_called_once_with()
@@ -56,14 +59,18 @@ def test_loop():
     callback2 = mock.MagicMock()
     loop.schedule_task(callback, next_run=1100)
     loop.schedule_task(callback2, next_run=1200)
+    assert loop.next_run == 1100
     assert loop.run_once() == 1100
     assert callback.call_count == 0
     assert callback2.call_count == 0
     mock_ticks_ms.return_value = 1105
+    assert loop.next_run == 1105
     assert loop.run_once() == 1200
+    assert loop.next_run == 1200
     callback.assert_called_once_with()
     assert callback2.call_count == 0
     mock_ticks_ms.return_value = 1200
+    assert loop.next_run == 1200
     assert loop.run_once() is None
     callback2.assert_called_once_with()
 
@@ -71,12 +78,14 @@ def test_loop():
     loop.schedule_task(callback, period=100)
     loop.reset()
     mock_ticks_ms.return_value = 1300
+    assert loop.next_run is None
     assert loop.run_once() is None
     assert callback.call_count == 0
 
     loop.schedule_task(callback)
     loop.schedule_task(lambda: loop.stop())
     assert loop.run() == 2300
+    assert loop.next_run is None
     callback.assert_called_once_with()
     assert mock_sleep_ms.call_count == 0
 
