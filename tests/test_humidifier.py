@@ -1,5 +1,6 @@
 """The tests for the generic_hygrostat."""
 import sys
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -48,6 +49,9 @@ def test_heneric_hygrostat():
 
     assert isinstance(humidifier, Entity)
 
+    callback = MagicMock()
+    humidifier.subscribe(callback)
+
     assert not humidifier.available
 
     humidifier_sensor.state = 40
@@ -55,10 +59,15 @@ def test_heneric_hygrostat():
     assert not humidifier.is_on
 
     humidifier.turn_on()
+    assert humidifier.state
     assert humidifier_switch.state
+    callback.assert_called_once_with(True)
 
+    callback.reset_mock()
     humidifier.turn_off()
+    assert not humidifier.state
     assert not humidifier_switch.state
+    callback.assert_called_once_with(False)
 
 
 def test_humidifier_switch():

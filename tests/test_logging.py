@@ -5,17 +5,15 @@ import sys
 sys.path.append("tests/modules")
 from xbee import transmit as mock_transmit  # noqa: E402
 
-import flash.lib.logging  # noqa: E402
+from flash.lib import logging  # noqa: E402
 
 
 def test_logging():
     """Test logging."""
 
-    assert flash.lib.logging.getLogger("test.module") == flash.lib.logging.getLogger(
-        "test.module"
-    )
+    assert logging.getLogger("test.module") == logging.getLogger("test.module")
 
-    logger = flash.lib.logging.getLogger("__main__")
+    logger = logging.getLogger("__main__")
 
     mock_transmit.reset_mock()
     logger.debug("Test debug message, %s", 123)
@@ -61,7 +59,7 @@ def test_logging():
     )
 
     mock_transmit.reset_mock()
-    logger2 = flash.lib.logging.getLogger("tests")
+    logger2 = logging.getLogger("tests")
     logger2.debug("Test debug message")
     mock_transmit.assert_called_once_with(
         b"\x00\x00\x00\x00\x00\x00\x00\x00",
@@ -69,9 +67,9 @@ def test_logging():
     )
 
     mock_transmit.reset_mock()
-    assert logger.getEffectiveLevel() == flash.lib.logging.DEBUG
-    logger.setLevel(flash.lib.logging.INFO)
-    assert logger.getEffectiveLevel() == flash.lib.logging.INFO
+    assert logger.getEffectiveLevel() == logging.DEBUG
+    logger.setLevel(logging.INFO)
+    assert logger.getEffectiveLevel() == logging.INFO
     logger.debug("Test debug message")
     assert mock_transmit.call_count == 0
 

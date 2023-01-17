@@ -12,12 +12,12 @@ from time import sleep_ms  # noqa: E402
 from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin  # noqa: E402
 from mainloop import main_loop  # noqa: E402
 
-import flash.lib.xbeepin  # noqa: E402
+from flash.lib import xbeepin  # noqa: E402
 
 
 def test_digital_output():
     """Test DigitalOutput class."""
-    switch = flash.lib.xbeepin.DigitalOutput("D0")
+    switch = xbeepin.DigitalOutput("D0")
     mock_Pin.init.assert_called_once_with("D0", mock_Pin.OUT)
 
     # Test read true value
@@ -51,7 +51,7 @@ def test_digital_input():
     """Test DigitalInput class."""
     mock_Pin.init.reset_mock()
 
-    binary_sensor = flash.lib.xbeepin.DigitalInput("D0")
+    binary_sensor = xbeepin.DigitalInput("D0")
     mock_Pin.init.assert_called_once_with("D0", mock_Pin.IN, None)
 
     # Set up the test
@@ -84,7 +84,7 @@ def test_digital_input():
 
 def test_analog_output():
     """Test AnalogOutput class."""
-    number = flash.lib.xbeepin.AnalogOutput("D0")
+    number = xbeepin.AnalogOutput("D0")
     mock_PWM.init.assert_called_once_with("D0")
 
     # Test initial write
@@ -111,7 +111,7 @@ def test_analog_input():
     """Test AnalogInput class."""
     mock_ADC.init.reset_mock()
 
-    sensor = flash.lib.xbeepin.AnalogInput("D0", threshold=5)
+    sensor = xbeepin.AnalogInput("D0", threshold=5)
     mock_ADC.init.assert_called_once_with("D0")
 
     # Set up the test

@@ -4,12 +4,12 @@ from unittest import mock
 
 import pytest
 
-import flash.lib.core
+from flash.lib import core
 
 
 def test_entity():
     """Test Entity class."""
-    entity = flash.lib.core.Entity()
+    entity = core.Entity()
     assert entity._triggers == []
 
     callback = mock.MagicMock()
@@ -34,13 +34,13 @@ def test_entity():
 def test_virtual_switch():
     """Test VirtualSwitch class."""
 
-    assert not flash.lib.core.VirtualSwitch().state
-    assert flash.lib.core.VirtualSwitch(True).state
-    assert not flash.lib.core.VirtualSwitch(False).state
-    assert flash.lib.core.VirtualSwitch(1).state
-    assert flash.lib.core.VirtualSwitch(3).state
+    assert not core.VirtualSwitch().state
+    assert core.VirtualSwitch(True).state
+    assert not core.VirtualSwitch(False).state
+    assert core.VirtualSwitch(1).state
+    assert core.VirtualSwitch(3).state
 
-    switch = flash.lib.core.VirtualSwitch(False)
+    switch = core.VirtualSwitch(False)
 
     callback = mock.MagicMock()
     switch.subscribe(callback)
@@ -53,13 +53,13 @@ def test_virtual_switch():
 def test_virtual_sensor():
     """Test VirtualSensor class."""
 
-    assert flash.lib.core.VirtualSensor().state is None
-    assert flash.lib.core.VirtualSensor(True).state
-    assert not flash.lib.core.VirtualSensor(False).state
-    assert flash.lib.core.VirtualSensor(1).state == 1
-    assert flash.lib.core.VirtualSensor(3).state == 3
+    assert core.VirtualSensor().state is None
+    assert core.VirtualSensor(True).state
+    assert not core.VirtualSensor(False).state
+    assert core.VirtualSensor(1).state == 1
+    assert core.VirtualSensor(3).state == 3
 
-    sensor = flash.lib.core.VirtualSensor(0)
+    sensor = core.VirtualSensor(0)
 
     callback = mock.MagicMock()
     sensor.subscribe(callback)

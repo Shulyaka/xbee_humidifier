@@ -10,15 +10,15 @@ sys.modules["time"] = __import__("mock_time")
 
 from time import sleep as mock_sleep, sleep_ms  # noqa: E402
 
-import flash.lib.tosr0x  # noqa: E402
+from flash.lib import tosr0x  # noqa: E402
 
 
-@patch("flash.lib.tosr0x.stdout.buffer.write")
-@patch("flash.lib.tosr0x.stdin.buffer.read")
+@patch("tosr0x.stdout.buffer.write")
+@patch("tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
     """Test Tosr0x class."""
     mock_sleep.reset_mock()
-    tosr = flash.lib.tosr0x.Tosr0x()
+    tosr = tosr0x.Tosr0x()
     mock_stdout.assert_called_once_with("n")
 
     assert not tosr.switch0

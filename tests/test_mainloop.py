@@ -8,14 +8,14 @@ sys.modules["time"] = __import__("mock_time")
 
 from time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms  # noqa: E402
 
-import flash.lib.mainloop  # noqa: E402
+from flash.lib import mainloop  # noqa: E402
 
 
 def test_task():
     """Test Task class."""
     callback = mock.MagicMock()
     mock_ticks_ms.return_value = 1000
-    task = flash.lib.mainloop.Task(callback)
+    task = mainloop.Task(callback)
     assert task.next_run == 1000
     assert not task.completed
     mock_ticks_ms.return_value = 1005
@@ -25,10 +25,10 @@ def test_task():
     callback.assert_called_once_with()
     assert task.completed
 
-    assert flash.lib.mainloop.Task(callback, next_run=1050).next_run == 1050
-    assert flash.lib.mainloop.Task(callback, period=100).next_run == 1105
+    assert mainloop.Task(callback, next_run=1050).next_run == 1050
+    assert mainloop.Task(callback, period=100).next_run == 1105
 
-    task = flash.lib.mainloop.Task(callback, next_run=1050, period=100)
+    task = mainloop.Task(callback, next_run=1050, period=100)
     task.run()
     assert not task.completed
     assert task.next_run == 1150
@@ -43,7 +43,7 @@ def test_loop():
     callback = mock.MagicMock()
     mock_ticks_ms.return_value = 1000
 
-    loop = flash.lib.mainloop.Loop()
+    loop = mainloop.Loop()
     assert loop.run_once() is None
 
     delete_task = loop.schedule_task(callback)

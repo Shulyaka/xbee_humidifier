@@ -65,23 +65,21 @@ class Loop:
         """Run one iteration and return the time of next eecution."""
         now = ticks_ms()
         next_time = None
-        remove_tasks = []
 
-        for task in self._tasks:
+        tasks = self._tasks.copy()
+        for task in tasks:
             next_run = task.next_run
             if next_run <= now:
                 task.run()
                 if task.completed:
-                    remove_tasks.append(task)
+                    if task in self._tasks:
+                        self._tasks.remove(task)
                     next_run = None
                 else:
                     next_run = task.next_run
 
             if next_run is not None and (next_time is None or next_run - next_time < 0):
                 next_time = next_run
-
-        for task in remove_tasks:
-            self._tasks.remove(task)
 
         return next_time
 

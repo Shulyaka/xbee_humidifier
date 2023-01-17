@@ -36,7 +36,6 @@ class HumidifierEntity(Entity):
 
     def update_ha_state(self):
         """Run triggers on state updates."""
-        self._run_triggers(self.state)
 
     def schedule_update_ha_state(self):
         """Run triggers on state updates."""
@@ -97,7 +96,6 @@ class HumidifierEntity(Entity):
             self.turn_on()
         else:
             self.turn_off()
-        self._run_triggers(value)
 
 
 class RestoreEntity:
@@ -231,6 +229,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._state = True
         self._operate(force=True)
         self.update_ha_state()
+        self._run_triggers(True)
 
     def turn_off(self, **kwargs):
         """Turn hygrostat off."""
@@ -240,6 +239,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         if self._is_device_active:
             self._device_turn_off()
         self.update_ha_state()
+        self._run_triggers(False)
 
     def set_humidity(self, humidity):
         """Set new target humidity."""
@@ -350,7 +350,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             if (self._device_class == HUMIDIFIER and too_wet) or (
                 self._device_class == DEHUMIDIFIER and too_dry
             ):
-                _LOGGER.info("Turning off humidifier %s", self._switch_entity_id)
+                _LOGGER.debug("Turning off humidifier switch")
                 self._device_turn_off()
             elif time is not None:
                 # The time argument is passed only in keep-alive case
@@ -359,7 +359,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             if (self._device_class == HUMIDIFIER and too_dry) or (
                 self._device_class == DEHUMIDIFIER and too_wet
             ):
-                _LOGGER.info("Turning on humidifier %s", self._switch_entity_id)
+                _LOGGER.debug("Turning on humidifier switch")
                 self._device_turn_on()
             elif time is not None:
                 # The time argument is passed only in keep-alive case
