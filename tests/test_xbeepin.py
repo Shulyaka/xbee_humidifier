@@ -52,7 +52,7 @@ def test_digital_input():
     mock_Pin.init.reset_mock()
 
     binary_sensor = xbeepin.DigitalInput("D0")
-    mock_Pin.init.assert_called_once_with("D0", mock_Pin.IN, None)
+    mock_Pin.init.assert_called_once_with("D0", mock_Pin.IN, mock_Pin.PULL_UP)
 
     # Set up the test
     binary_sensor._pin.value.reset_mock()

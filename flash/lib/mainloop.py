@@ -51,9 +51,9 @@ class Loop:
     _tasks = []
     _stop = False
 
-    def schedule_task(self, callback, next_run=None, period=None):
+    def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
-        new_task = Task(callback, next_run, period)
+        new_task = Task(callback, *args, **kwargs)
         self._tasks.append(new_task)
         return lambda: self._tasks.remove(new_task) if new_task in self._tasks else None
 

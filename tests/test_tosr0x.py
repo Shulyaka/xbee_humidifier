@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 sys.path.append("tests/modules")
+sys.path.append("flash/lib")
 sys.modules["time"] = __import__("mock_time")
 
 from time import sleep as mock_sleep, sleep_ms  # noqa: E402

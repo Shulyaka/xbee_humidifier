@@ -33,7 +33,7 @@ class DigitalInput(Entity):
     _pin = None
     _value = None
 
-    def __init__(self, gpio, pull=None, period=500):
+    def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
         """Init the class."""
         super().__init__()
         self._pin = Pin(gpio, Pin.IN, pull)

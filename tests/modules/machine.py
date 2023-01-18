@@ -8,6 +8,7 @@ class Pin:
 
     IN = 0
     OUT = 1
+    PULL_UP = 1
     value = MagicMock(return_value=False)
     init = MagicMock()
 

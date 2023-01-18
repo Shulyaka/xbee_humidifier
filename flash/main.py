@@ -7,6 +7,7 @@ import config
 from core import VirtualSensor, VirtualSwitch
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
+import machine
 from mainloop import main_loop
 from tosr import tosr_switch, tosr_temp
 
@@ -17,23 +18,29 @@ humidifier_switch = {x: VirtualSwitch() for x in range(3)}
 humidifier_sensor = {x: VirtualSensor() for x in range(3)}
 humidifier_available = {x: VirtualSwitch() for x in range(3)}
 
-
-# for debug:
-# import machine
-
-switch_unsubscribe = {}
-sensor_unsubscribe = {}
-available_unsubscribe = {}
-for x in range(3):
-    switch_unsubscribe[x] = humidifier_switch[x].subscribe(
-        (lambda x: lambda v: print("switch" + str(x) + " = " + str(v)))(x)
-    )
-    sensor_unsubscribe[x] = humidifier_sensor[x].subscribe(
-        (lambda x: lambda v: print("sensor" + str(x) + " = " + str(v)))(x)
-    )
-    available_unsubscribe[x] = humidifier_available[x].subscribe(
-        (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
-    )
+if config.debug:
+    switch_unsubscribe = {}
+    sensor_unsubscribe = {}
+    available_unsubscribe = {}
+    for x in range(3):
+        switch_unsubscribe[x] = humidifier_switch[x].subscribe(
+            (lambda x: lambda v: print("switch" + str(x) + " = " + str(v)))(x)
+        )
+        sensor_unsubscribe[x] = humidifier_sensor[x].subscribe(
+            (lambda x: lambda v: print("sensor" + str(x) + " = " + str(v)))(x)
+        )
+        available_unsubscribe[x] = humidifier_available[x].subscribe(
+            (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
+        )
+    pump_unsubscribe = config.pump.subscribe(lambda v: print("pump = " + str(v)))
+    valve_unsubscribe = {}
+    for x in range(4):
+        valve_unsubscribe[x] = config.valve_switch[x].subscribe(
+            (lambda x: lambda v: print("valve" + str(x) + " = " + str(v)))(x)
+        )
+else:
+    wdt = machine.WDT(timeout=30000)
+    main_loop.schedule_task(lambda: wdt.feed(), period=1000)
 
 
 humidifier = {
@@ -72,11 +79,6 @@ commands_register(
     config.pump,
     pump_block,
 )
-
-# definitely not for debug:
-# from machine import WDT
-# wdt = WDT(timeout=30000)
-# main_loop.schedule_task(lambda: wdt.feed(), period=1000)
 
 _LOGGER.debug("Main loop started")
 

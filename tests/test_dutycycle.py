@@ -1,4 +1,4 @@
-"""Test commands."""
+"""Test duty cycle."""
 
 import sys
 
