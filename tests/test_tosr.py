@@ -1,28 +1,15 @@
 """Test tosr lib."""
 
-import sys
-from unittest.mock import MagicMock, PropertyMock, patch
+from time import sleep_ms
+from unittest.mock import MagicMock
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
+from mainloop import main_loop
+from tosr0x import mock_temperature, mock_tosr
 
-from time import sleep_ms  # noqa: E402
-
-from mainloop import main_loop  # noqa: E402
-
-with patch("flash.lib.tosr0x.stdout.buffer.write") as mock_stdout:
-    with patch("flash.lib.tosr0x.stdin.buffer.read") as mock_stdin:
-        from flash.lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
-
-        assert mock_stdout.call_count == 2
-        assert mock_stdout.call_args_list[0].args == "n"
-        assert mock_stdout.call_args_list[1].args == "["
-        assert mock_stdin.call_count == 2
+from flash.lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 
 
-@patch("flash.lib.tosr.tosr")
-def test_tosr_switch(mock_tosr):
+def test_tosr_switch():
     """Test TosrSwitch class."""
     mock_tosr.get_relay_state.return_value = True
     assert tosr_switch[0].state
@@ -61,11 +48,8 @@ def test_tosr_switch(mock_tosr):
     callback.assert_called_once_with(True)
 
 
-@patch("flash.lib.tosr.tosr")
-def test_tosr_temp(mock_tosr):
+def test_tosr_temp():
     """Test TosrTemp class."""
-    mock_temperature = PropertyMock(return_value=0)
-    type(mock_tosr).temperature = mock_temperature
     mock_temperature.return_value = 42
     tosr_temp.update()
     assert tosr_temp.state == 42

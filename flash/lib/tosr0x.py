@@ -12,6 +12,10 @@ class Tosr0x:
 
     def __init__(self):
         """Init the class."""
+        Tosr0x.tosr0x_reset()
+
+    def tosr0x_reset():
+        """Close all switches."""
         stdout.buffer.write("n")
 
     def set_relay_state(self, switch_number, state):

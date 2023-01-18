@@ -1,14 +1,9 @@
 """Test mainloop lib."""
 
-import sys
+from time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms
 from unittest import mock
 
-sys.path.append("tests/modules")
-sys.modules["time"] = __import__("mock_time")
-
-from time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms  # noqa: E402
-
-from flash.lib import mainloop  # noqa: E402
+from flash.lib import mainloop
 
 
 def test_task():

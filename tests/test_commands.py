@@ -2,23 +2,14 @@
 
 from json import loads as json_loads
 import logging
-import sys
 from unittest.mock import patch
 
+from core import VirtualSensor, VirtualSwitch
+from humidifier import GenericHygrostat
 import pytest
+from xbee import receive_callback as mock_receive_callback, transmit as mock_transmit
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
-
-from core import VirtualSensor, VirtualSwitch  # noqa: E402
-from humidifier import GenericHygrostat  # noqa: E402
-from xbee import (  # noqa: E402
-    receive_callback as mock_receive_callback,
-    transmit as mock_transmit,
-)
-
-from flash import commands  # noqa: E402
+from flash import commands
 
 
 def test_commands():

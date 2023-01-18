@@ -1,21 +1,15 @@
 """Test tosr0x lib."""
 
-import sys
+from time import sleep as mock_sleep, sleep_ms
 from unittest.mock import patch
 
 import pytest
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
-
-from time import sleep as mock_sleep, sleep_ms  # noqa: E402
-
-from flash.lib import tosr0x  # noqa: E402
+from flash.lib import tosr0x
 
 
-@patch("tosr0x.stdout.buffer.write")
-@patch("tosr0x.stdin.buffer.read")
+@patch("flash.lib.tosr0x.stdout.buffer.write")
+@patch("flash.lib.tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
     """Test Tosr0x class."""
     mock_sleep.reset_mock()

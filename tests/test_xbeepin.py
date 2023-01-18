@@ -1,18 +1,12 @@
 """Test xbeepin lib."""
 
-import sys
+from time import sleep_ms
 from unittest import mock
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
+from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin
+from mainloop import main_loop
 
-from time import sleep_ms  # noqa: E402
-
-from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin  # noqa: E402
-from mainloop import main_loop  # noqa: E402
-
-from flash.lib import xbeepin  # noqa: E402
+from flash.lib import xbeepin
 
 
 def test_digital_output():

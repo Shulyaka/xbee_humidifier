@@ -1,19 +1,12 @@
 """The tests for the generic_hygrostat."""
-import sys
+from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
+from core import Entity, VirtualSensor, VirtualSwitch
+from mainloop import main_loop
 import pytest
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
-
-from time import sleep as mock_sleep  # noqa: E402
-
-from core import Entity, VirtualSensor, VirtualSwitch  # noqa: E402
-from mainloop import main_loop  # noqa: E402
-
-from flash.lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat  # noqa: E402
+from flash.lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat
 
 ATTR_SAVED_HUMIDITY = "saved_humidity"
 MIN_HUMIDITY = 20

@@ -1,18 +1,12 @@
 """Test duty cycle."""
 
-import sys
+from time import sleep as mock_sleep
 
-sys.path.append("tests/modules")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
+from core import VirtualSensor, VirtualSwitch
+from humidifier import GenericHygrostat
+from mainloop import main_loop
 
-from time import sleep as mock_sleep  # noqa: E402
-
-from core import VirtualSensor, VirtualSwitch  # noqa: E402
-from humidifier import GenericHygrostat  # noqa: E402
-from mainloop import main_loop  # noqa: E402
-
-from flash import dutycycle  # noqa: E402
+from flash import dutycycle
 
 
 def test_dutycycle():

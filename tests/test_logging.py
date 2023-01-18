@@ -1,11 +1,8 @@
 """Test logging lib."""
 
-import sys
+from xbee import transmit as mock_transmit
 
-sys.path.append("tests/modules")
-from xbee import transmit as mock_transmit  # noqa: E402
-
-from flash.lib import logging  # noqa: E402
+from flash.lib import logging
 
 
 def test_logging():

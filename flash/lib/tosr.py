@@ -9,9 +9,7 @@ from tosr0x import Tosr0x
 try:
     tosr = Tosr0x()
 except Exception as e:
-    from sys import stdout
-
-    stdout.buffer.write("n")
+    Tosr0x.tosr0x_reset()
     logging.getLogger(__name__).error("Exception: %s", e)
     raise e
 

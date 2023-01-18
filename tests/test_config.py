@@ -1,18 +1,8 @@
 """Test config."""
 
-import sys
-from unittest.mock import patch
+from core import Entity
 
-sys.path.append("tests/modules")
-sys.path.append("flash")
-sys.path.append("flash/lib")
-sys.modules["time"] = __import__("mock_time")
-
-from core import Entity  # noqa: E402
-
-with patch("flash.lib.tosr0x.stdout.buffer.write") as mock_stdout:
-    with patch("flash.lib.tosr0x.stdin.buffer.read") as mock_stdin:
-        from flash import config
+from flash import config
 
 
 def test_config():
