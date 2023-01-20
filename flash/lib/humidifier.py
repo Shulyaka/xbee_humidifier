@@ -16,14 +16,7 @@ ATTR_SAVED_HUMIDITY = const("sav_hum")
 ATTR_MODE = const("mode")
 
 MODE_NORMAL = const("normal")
-# MODE_ECO = const("eco")
 MODE_AWAY = const("away")
-# MODE_BOOST = const("boost")
-# MODE_COMFORT = const("comfort")
-# MODE_HOME = const("home")
-# MODE_SLEEP = const("sleep")
-# MODE_AUTO = const("auto")
-# MODE_BABY = const("baby")
 
 
 class GenericHygrostat(Entity):
@@ -41,7 +34,6 @@ class GenericHygrostat(Entity):
         wet_tolerance=3,
         initial_state=None,
         away_humidity=None,
-        away_fixed=None,
         sensor_stale_duration=None,
     ):
         """Initialize the hygrostat."""
@@ -59,7 +51,6 @@ class GenericHygrostat(Entity):
         self._max_humidity = max_humidity
         self._target_humidity = target_humidity
         self._away_humidity = away_humidity
-        self._away_fixed = away_fixed
         self._sensor_stale_duration = sensor_stale_duration
         self._remove_stale_tracking = None
         self._is_away = False
@@ -146,13 +137,7 @@ class GenericHygrostat(Entity):
 
     def set_humidity(self, humidity):
         """Set new target humidity."""
-        humidity = int(humidity)
-
-        if self._is_away and self._away_fixed:
-            self._saved_target_humidity = humidity
-            return
-
-        self._target_humidity = humidity
+        self._target_humidity = int(humidity)
         self._operate()
 
     def _sensor_changed(self, new_state):

@@ -34,7 +34,6 @@ def test_commands():
             wet_tolerance=0,
             initial_state=None,
             away_humidity=35,
-            away_fixed=False,
             sensor_stale_duration=30 * 60,
         )
         for x in range(3)

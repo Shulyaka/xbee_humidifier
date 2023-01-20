@@ -1,5 +1,6 @@
 """Main module of the humidifier."""
 
+from gc import collect
 import logging
 
 from commands import register as commands_register
@@ -10,6 +11,8 @@ from humidifier import GenericHygrostat
 import machine
 from mainloop import main_loop
 from tosr import tosr_switch, tosr_temp
+
+collect()
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,7 +58,6 @@ humidifier = {
         wet_tolerance=0,
         initial_state=None,
         away_humidity=35,
-        away_fixed=False,
         sensor_stale_duration=30 * 60,
     )
     for x in range(3)

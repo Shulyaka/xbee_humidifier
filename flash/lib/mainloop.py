@@ -62,12 +62,11 @@ class Loop:
         self._tasks.clear()
 
     def run_once(self):
-        """Run one iteration and return the time of next eecution."""
+        """Run one iteration and return the time of next execution."""
         now = ticks_ms()
         next_time = None
 
-        tasks = self._tasks.copy()
-        for task in tasks:
+        for task in self._tasks.copy():
             next_run = task.next_run
             if next_run - now <= 0:
                 task.run()

@@ -34,7 +34,6 @@ def test_heneric_hygrostat():
         wet_tolerance=0,
         initial_state=None,
         away_humidity=35,
-        away_fixed=False,
         sensor_stale_duration=30 * 60,
     )
 
@@ -419,50 +418,6 @@ def test_custom_setup_params():
     assert humidifier._min_humidity == MIN_HUMIDITY
     assert humidifier._max_humidity == MAX_HUMIDITY
     assert humidifier._target_humidity == TARGET_HUMIDITY
-
-
-def test_away_fixed_humidity_mode():
-    """Ensure retain of target humidity for normal mode."""
-    _setup_sensor(45)
-    test_hygrostat = GenericHygrostat(
-        switch_entity_id=humidifier_switch,
-        sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
-        target_humidity=40,
-        away_humidity=32,
-        away_fixed=True,
-    )
-
-    assert test_hygrostat._target_humidity == 40
-    assert test_hygrostat.mode == MODE_NORMAL
-    assert not test_hygrostat.state
-
-    # Switch to Away mode
-    test_hygrostat.set_mode(MODE_AWAY)
-
-    # Target humidity changed to away_humidity
-    assert test_hygrostat.mode == MODE_AWAY
-    assert test_hygrostat._target_humidity == 32
-    assert test_hygrostat.extra_state_attributes[ATTR_SAVED_HUMIDITY] == 40
-    assert not test_hygrostat.state
-
-    # Change target humidity
-    test_hygrostat.set_humidity(42)
-
-    # Current target humidity not changed
-    assert test_hygrostat._target_humidity == 32
-    assert test_hygrostat.extra_state_attributes[ATTR_SAVED_HUMIDITY] == 42
-    assert test_hygrostat.mode == MODE_AWAY
-    assert not test_hygrostat.state
-
-    # Return to Normal mode
-    test_hygrostat.set_mode(MODE_NORMAL)
-
-    # Target humidity changed to away_humidity
-    assert test_hygrostat._target_humidity == 42
-    assert test_hygrostat.extra_state_attributes[ATTR_SAVED_HUMIDITY] == 32
-    assert test_hygrostat.mode == MODE_NORMAL
-    assert not test_hygrostat.state
 
 
 def test_sensor_stale_duration(caplog):
