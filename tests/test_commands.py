@@ -248,14 +248,14 @@ def test_commands():
     assert command("humidifier_turn_off", 2) == "OK"
     assert not humidifier[2].state
 
-    assert logging.getLogger("__main__").getEffectiveLevel() == logging.WARNING
+    assert logging.getLogger().getEffectiveLevel() == logging.WARNING
     assert command("logger_set_level", logging.DEBUG) == "OK"
-    assert logging.getLogger("__main__").getEffectiveLevel() == logging.DEBUG
+    assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
 
     with patch("flash.commands.logging.getLogger") as mock_getLogger:
         assert command("logger_set_target") == "OK"
         assert len(mock_getLogger.mock_calls) == 2
-        assert mock_getLogger.mock_calls[0][1] == ("__main__",)
+        assert mock_getLogger.mock_calls[0][1] == ()
         assert mock_getLogger.mock_calls[1][0] == "().setTarget"
         assert mock_getLogger.mock_calls[1][1] == (b"\x00\x13\xa2\x00A\xa0n`",)
         mock_getLogger.reset_mock()
@@ -267,7 +267,7 @@ def test_commands():
             == "OK"
         )
         assert len(mock_getLogger.mock_calls) == 2
-        assert mock_getLogger.mock_calls[0][1] == ("__main__",)
+        assert mock_getLogger.mock_calls[0][1] == ()
         assert mock_getLogger.mock_calls[1][0] == "().setTarget"
         assert mock_getLogger.mock_calls[1][1] == (b"\x00\x00\x00\x00\x00\x00\x00\x00",)
 
