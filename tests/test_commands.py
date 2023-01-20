@@ -100,12 +100,10 @@ def test_commands():
         "humidifier_set_current_humidity",
         "humidifier_set_humidity",
         "humidifier_set_mode",
-        "humidifier_turn_off",
-        "humidifier_turn_on",
+        "humidifier_set_state",
         "logger_set_level",
         "logger_set_target",
-        "pump_turn_off",
-        "pump_turn_on",
+        "set_pump",
         "set_pump_block",
         "test",
         "tosr0x_get_relay_state",
@@ -205,30 +203,30 @@ def test_commands():
 
     assert command("humidifier_get_state", 2) == {
         "available": False,
-        "capability_attributes": {
+        "cap_attr": {
             "max_hum": 100,
             "min_hum": 15,
         },
-        "extra_state_attributes": {"sav_hum": 35},
+        "extra_state_attr": {"sav_hum": 35},
         "is_on": False,
         "number": 2,
-        "state_attributes": {"hum": 50, "mode": "normal"},
+        "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
     }
     assert command("humidifier_set_current_humidity", "[2, 45.5]") == "OK"
     assert command("humidifier_set_mode", '{"number": 2, "mode": "away"}') == "OK"
     assert command("humidifier_set_humidity", "[2, 51]") == "OK"
-    assert command("humidifier_turn_on", 2) == "OK"
+    assert command("humidifier_set_state", '{"number": 2, "state": true}') == "OK"
     assert command("humidifier_get_state", 2) == {
         "available": True,
-        "capability_attributes": {
+        "cap_attr": {
             "max_hum": 100,
             "min_hum": 15,
         },
-        "extra_state_attributes": {"sav_hum": 50},
+        "extra_state_attr": {"sav_hum": 50},
         "is_on": True,
         "number": 2,
-        "state_attributes": {"hum": 51, "mode": "away"},
+        "state_attr": {"hum": 51, "mode": "away"},
         "working": False,
     }
 
@@ -238,7 +236,7 @@ def test_commands():
     )
     assert not humidifier_switch[1].state
 
-    assert command("humidifier_turn_off", 2) == "OK"
+    assert command("humidifier_set_state", "[2, false]") == "OK"
     assert not humidifier[2].state
 
     assert logging.getLogger().getEffectiveLevel() == logging.WARNING
@@ -265,9 +263,9 @@ def test_commands():
         assert mock_getLogger.mock_calls[1][1] == (b"\x00\x00\x00\x00\x00\x00\x00\x00",)
 
     assert not pump.state
-    assert command("pump_turn_on") == "OK"
+    assert command("set_pump", "true") == "OK"
     assert pump.state
-    assert command("pump_turn_off") == "OK"
+    assert command("set_pump", "false") == "OK"
     assert not pump.state
 
     assert pump_block.state

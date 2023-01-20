@@ -66,18 +66,14 @@ class Commands:
             "available": self._humidifier_available[number].state,
             "is_on": self._humidifier[number].state,
             "working": self._tosr_switch[number].state,
-            "capability_attributes": self._humidifier[number].capability_attributes,
-            "state_attributes": self._humidifier[number].state_attributes,
-            "extra_state_attributes": self._humidifier[number].extra_state_attributes,
+            "cap_attr": self._humidifier[number].capability_attributes,
+            "state_attr": self._humidifier[number].state_attributes,
+            "extra_state_attr": self._humidifier[number].extra_state_attributes,
         }
 
-    def cmd_humidifier_turn_on(self, sender_eui64, number):
-        """Turn humidifier on."""
-        self._humidifier[number].state = True
-
-    def cmd_humidifier_turn_off(self, sender_eui64, number):
-        """Turn humidifier off."""
-        self._humidifier[number].state = False
+    def cmd_humidifier_set_state(self, sender_eui64, number, state):
+        """Turn humidifier on or off."""
+        self._humidifier[number].state = state
 
     def cmd_humidifier_set_humidity(self, sender_eui64, number, value):
         """Set target humidity."""
@@ -159,13 +155,9 @@ class Commands:
         """Manually set humidifier zone state."""
         self._humidifier_switch[number].state = value
 
-    def cmd_pump_turn_on(self, sender_eui64):
-        """Manually turn on the pump."""
-        self._pump.state = True
-
-    def cmd_pump_turn_off(self, sender_eui64):
-        """Manually turn off the pump."""
-        self._pump.state = False
+    def cmd_set_pump(self, sender_eui64, value):
+        """Manually turn on or off the pump."""
+        self._pump.state = value
 
     def cmd_bind_pump(self, sender_eui64, target=None):
         """Subscribe to humidifier pump updates."""
