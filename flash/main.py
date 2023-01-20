@@ -1,5 +1,10 @@
 """Main module of the humidifier."""
 
+try:
+    import bundle  # noqa: F401
+except ImportError:
+    pass
+
 from gc import collect
 import logging
 

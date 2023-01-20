@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock
 
+soft_reset = MagicMock()
+
 
 class Pin:
     """Mock Pin class."""
