@@ -105,19 +105,13 @@ class GenericHygrostat(Entity):
         """Set current state."""
         if not self._active.state:
             return
+        self._state = bool(value)
         if value:
-            self._state = True
             self._operate(force=True)
         else:
-            self._state = False
             if self._switch_entity_id.state:
                 self._switch_entity_id.state = False
-        self._run_triggers(value)
-
-    @property
-    def available(self):
-        """Return True if entity is available."""
-        return self._active.state
+        self._run_triggers(bool(value))
 
     @property
     def extra_state_attributes(self):

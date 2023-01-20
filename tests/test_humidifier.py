@@ -42,7 +42,7 @@ def test_heneric_hygrostat():
     callback = MagicMock()
     humidifier.subscribe(callback)
 
-    assert not humidifier.available
+    assert not humidifier_available.state
 
     humidifier_sensor.state = 40
     assert humidifier_available.state
@@ -128,11 +128,11 @@ def test_unavailable_state():
         away_humidity=35,
     )
     # The target sensor is unavailable, that should propagate to the humidifier entity:
-    assert not humidifier.available
+    assert not humidifier_available.state
 
     # Sensor online
     _setup_sensor(30)
-    assert humidifier.available
+    assert humidifier_available.state
     assert not humidifier.state
 
 

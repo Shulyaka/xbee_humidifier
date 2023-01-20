@@ -63,7 +63,7 @@ class Commands:
         """Get humidifier state."""
         return {
             "number": number,
-            "available": self._humidifier[number].available,
+            "available": self._humidifier_available[number].state,
             "is_on": self._humidifier[number].state,
             "working": self._tosr_switch[number].state,
             "capability_attributes": self._humidifier[number].capability_attributes,
