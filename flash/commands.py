@@ -62,11 +62,10 @@ class Commands:
     def cmd_humidifier_get_state(self, sender_eui64, number):
         """Get humidifier state."""
         return {
-            "name": self._humidifier[number].name,
+            "number": number,
             "available": self._humidifier[number].available,
-            "is_on": self._humidifier[number].is_on,
+            "is_on": self._humidifier[number].state,
             "working": self._tosr_switch[number].state,
-            "device_class": self._humidifier[number].device_class,
             "capability_attributes": self._humidifier[number].capability_attributes,
             "state_attributes": self._humidifier[number].state_attributes,
             "extra_state_attributes": self._humidifier[number].extra_state_attributes,
@@ -74,11 +73,11 @@ class Commands:
 
     def cmd_humidifier_turn_on(self, sender_eui64, number):
         """Turn humidifier on."""
-        self._humidifier[number].turn_on()
+        self._humidifier[number].state = True
 
     def cmd_humidifier_turn_off(self, sender_eui64, number):
         """Turn humidifier off."""
-        self._humidifier[number].turn_off()
+        self._humidifier[number].state = False
 
     def cmd_humidifier_set_humidity(self, sender_eui64, number, value):
         """Set target humidity."""
@@ -106,7 +105,7 @@ class Commands:
             ] = self._humidifier_available[number].subscribe(
                 lambda x: transmit(
                     target,
-                    json_dumps({"name": self._humidifier[number].name, "available": x}),
+                    json_dumps({"number": number, "available": x}),
                 )
             )
 
@@ -138,7 +137,7 @@ class Commands:
             ].subscribe(
                 lambda x: transmit(
                     target,
-                    json_dumps({"name": self._humidifier[number].name, "working": x}),
+                    json_dumps({"number": number, "working": x}),
                 )
             )
 

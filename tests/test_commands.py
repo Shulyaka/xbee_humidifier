@@ -24,14 +24,12 @@ def test_commands():
 
     humidifier = {
         x: GenericHygrostat(
-            name="humidifier" + str(x),
             switch_entity_id=humidifier_switch[x],
             sensor_entity_id=humidifier_sensor[x],
             available_sensor_id=humidifier_available[x],
             min_humidity=15,
             max_humidity=100,
             target_humidity=50,
-            device_class="humidifier",
             dry_tolerance=3,
             wet_tolerance=0,
             initial_state=None,
@@ -153,7 +151,7 @@ def test_commands():
     humidifier_sensor[0].state = 51.2
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "name": "humidifier0",
+        "number": 0,
         "available": True,
     }
     mock_transmit.reset_mock()
@@ -161,10 +159,10 @@ def test_commands():
 
     assert command("bind_humidifier_working", 1) == "OK"
     humidifier_sensor[1].state = 35.7
-    humidifier[1].turn_on()
+    humidifier[1].state = True
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "name": "humidifier1",
+        "number": 1,
         "working": True,
     }
     mock_transmit.reset_mock()
@@ -209,15 +207,13 @@ def test_commands():
     assert command("humidifier_get_state", 2) == {
         "available": False,
         "capability_attributes": {
-            "available_modes": ["normal", "away"],
-            "max_humidity": 100,
-            "min_humidity": 15,
+            "max_hum": 100,
+            "min_hum": 15,
         },
-        "device_class": "humidifier",
-        "extra_state_attributes": {"saved_humidity": 35},
+        "extra_state_attributes": {"sav_hum": 35},
         "is_on": False,
-        "name": "humidifier2",
-        "state_attributes": {"humidity": 50, "mode": "normal"},
+        "number": 2,
+        "state_attributes": {"hum": 50, "mode": "normal"},
         "working": False,
     }
     assert command("humidifier_set_current_humidity", "[2, 45.5]") == "OK"
@@ -227,15 +223,13 @@ def test_commands():
     assert command("humidifier_get_state", 2) == {
         "available": True,
         "capability_attributes": {
-            "available_modes": ["normal", "away"],
-            "max_humidity": 100,
-            "min_humidity": 15,
+            "max_hum": 100,
+            "min_hum": 15,
         },
-        "device_class": "humidifier",
-        "extra_state_attributes": {"saved_humidity": 50},
+        "extra_state_attributes": {"sav_hum": 50},
         "is_on": True,
-        "name": "humidifier2",
-        "state_attributes": {"humidity": 51, "mode": "away"},
+        "number": 2,
+        "state_attributes": {"hum": 51, "mode": "away"},
         "working": False,
     }
 

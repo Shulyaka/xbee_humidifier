@@ -20,14 +20,12 @@ def test_dutycycle():
 
     humidifier = {
         x: GenericHygrostat(
-            name="humidifier" + str(x),
             switch_entity_id=humidifier_switch[x],
             sensor_entity_id=humidifier_sensor[x],
             available_sensor_id=humidifier_available[x],
             min_humidity=15,
             max_humidity=100,
             target_humidity=50,
-            device_class="humidifier",
             dry_tolerance=3,
             wet_tolerance=0,
             initial_state=None,
@@ -52,8 +50,8 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    humidifier[0].turn_on()
-    humidifier[2].turn_on()
+    humidifier[0].state = True
+    humidifier[2].state = True
 
     # Make sure the cycle is not started until next loop
     assert not pump.state
@@ -131,7 +129,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    humidifier[2].turn_off()
+    humidifier[2].state = False
 
     # Check that duty cyucle is not stopped until next loop run
     assert pump.state
@@ -149,7 +147,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    humidifier[2].turn_on()
+    humidifier[2].state = True
     main_loop.run_once()
 
     # Check that duty cycle hasn't started because the humidifier switch is off
@@ -159,7 +157,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    humidifier[1].turn_on()
+    humidifier[1].state = True
     main_loop.run_once()
 
     # Check that duty cycle has started
@@ -180,7 +178,7 @@ def test_dutycycle():
     assert not tosr_switch[3].state
 
     mock_sleep(5)
-    humidifier[1].turn_off()
+    humidifier[1].state = False
     main_loop.run_once()
 
     # Check that the pressure drop valve has opened
@@ -190,7 +188,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert tosr_switch[3].state
 
-    humidifier[1].turn_on()
+    humidifier[1].state = True
     main_loop.run_once()
 
     # Check that duty cycle has started
