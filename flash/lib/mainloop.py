@@ -1,7 +1,8 @@
 """Simple main loop implementation."""
 
-import logging
 from time import sleep_ms, ticks_ms
+
+from lib import logging
 
 _LOGGER = logging.getLogger(__name__)
 

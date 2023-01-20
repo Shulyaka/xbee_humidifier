@@ -2,14 +2,14 @@
 
 from unittest.mock import patch
 
-from core import Entity
 from dutycycle import DutyCycle
-from humidifier import GenericHygrostat
+from lib.core import Entity
+from lib.humidifier import GenericHygrostat
 
 
 def test_main():
     """Test the main code."""
-    with patch("mainloop.main_loop.run") as mock_mainloop_run:
+    with patch("lib.mainloop.main_loop.run") as mock_mainloop_run:
         from flash import main
     assert mock_mainloop_run.call_count == 1
 

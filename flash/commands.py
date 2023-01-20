@@ -1,8 +1,8 @@
 """Module defines remote commands."""
 
 from json import dumps as json_dumps, loads as json_loads
-import logging
 
+from lib import logging
 from xbee import receive_callback, transmit
 
 _LOGGER = logging.getLogger(__name__)

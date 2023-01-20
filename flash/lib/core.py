@@ -1,6 +1,6 @@
 """Implementation of Entity classes with subscription support."""
 
-import logging
+from lib import logging
 
 _LOGGER = logging.getLogger(__name__)
 

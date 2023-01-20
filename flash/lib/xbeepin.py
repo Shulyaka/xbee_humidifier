@@ -1,8 +1,8 @@
 """Interface to the XBee pins with as core.Entity classes."""
 
-from core import Entity
+from lib.core import Entity
+from lib.mainloop import main_loop
 from machine import ADC, PWM, Pin
-from mainloop import main_loop
 
 
 class DigitalOutput(Entity):

@@ -1,10 +1,10 @@
 """Generic hygrostat implementation."""
 
-import logging
 from time import ticks_ms
 
-from core import Entity
-from mainloop import main_loop
+from lib import logging
+from lib.core import Entity
+from lib.mainloop import main_loop
 from micropython import const
 
 _LOGGER = logging.getLogger(__name__)

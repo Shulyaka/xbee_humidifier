@@ -1,6 +1,6 @@
 """Test config."""
 
-from core import Entity
+from lib.core import Entity
 
 from flash import config
 

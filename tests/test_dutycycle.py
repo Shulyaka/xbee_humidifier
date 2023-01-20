@@ -2,9 +2,9 @@
 
 from time import sleep as mock_sleep
 
-from core import VirtualSensor, VirtualSwitch
-from humidifier import GenericHygrostat
-from mainloop import main_loop
+from lib.core import VirtualSensor, VirtualSwitch
+from lib.humidifier import GenericHygrostat
+from lib.mainloop import main_loop
 
 from flash import dutycycle
 

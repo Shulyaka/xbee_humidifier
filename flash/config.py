@@ -1,9 +1,9 @@
 """Humidifier config."""
 
-from core import VirtualSensor, VirtualSwitch
+from lib.core import VirtualSensor, VirtualSwitch
+from lib.tosr import tosr_switch
+from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
 from machine import Pin
-from tosr import tosr_switch
-from xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
 
 debug = True
 

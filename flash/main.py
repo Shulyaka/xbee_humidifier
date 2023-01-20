@@ -6,16 +6,16 @@ except ImportError:
     pass
 
 from gc import collect
-import logging
 
 from commands import register as commands_register
 import config
-from core import VirtualSensor, VirtualSwitch
 from dutycycle import DutyCycle
-from humidifier import GenericHygrostat
+from lib import logging
+from lib.core import VirtualSensor, VirtualSwitch
+from lib.humidifier import GenericHygrostat
+from lib.mainloop import main_loop
+from lib.tosr import tosr_switch, tosr_temp
 import machine
-from mainloop import main_loop
-from tosr import tosr_switch, tosr_temp
 
 collect()
 

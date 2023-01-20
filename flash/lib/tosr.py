@@ -1,10 +1,9 @@
 """Interface to tosr0x relays with as core.Entity classes."""
 
-import logging
-
-from core import Entity
-from mainloop import main_loop
-from tosr0x import Tosr0x
+from lib import logging
+from lib.core import Entity
+from lib.mainloop import main_loop
+from lib.tosr0x import Tosr0x
 
 try:
     tosr = Tosr0x()

@@ -1,9 +1,9 @@
 """Implementation of a slow PWM for humidifiers."""
 
-import logging
 from time import ticks_ms
 
-from mainloop import main_loop
+from lib import logging
+from lib.mainloop import main_loop
 from micropython import const
 
 _LOGGER = logging.getLogger(__name__)

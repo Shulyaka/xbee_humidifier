@@ -4,8 +4,8 @@ from json import loads as json_loads
 import logging
 from unittest.mock import patch
 
-from core import VirtualSensor, VirtualSwitch
-from humidifier import GenericHygrostat
+from lib.core import VirtualSensor, VirtualSwitch
+from lib.humidifier import GenericHygrostat
 import pytest
 from xbee import receive_callback as mock_receive_callback, transmit as mock_transmit
 
