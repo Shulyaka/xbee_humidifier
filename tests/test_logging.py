@@ -7,7 +7,6 @@ from flash.lib import logging
 
 def test_logging():
     """Test logging."""
-
     assert logging.getLogger("test.module") == logging.getLogger("test.module")
 
     logger = logging.getLogger("__main__")

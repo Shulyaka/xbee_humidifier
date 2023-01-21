@@ -9,7 +9,7 @@ try:
     tosr = Tosr0x()
 except Exception as e:
     Tosr0x.tosr0x_reset()
-    logging.getLogger(__name__).error("Exception: %s", e)
+    logging.getLogger(__name__).error("Exception: %s: %s", type(e).__name__, e)
     raise e
 
 
@@ -57,12 +57,11 @@ class TosrTemp(Entity):
     """TOSR0X-T temperature sensor."""
 
     _value = None
-    _last_callback_value = None
-    _threshold = 0
 
     def __init__(self, period=30000, threshold=1 / 16):
         """Init the class."""
         super().__init__()
+        self._last_callback_value = None
         self._threshold = threshold
         self.update()
         self._stop_updates = main_loop.schedule_task(

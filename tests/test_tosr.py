@@ -5,8 +5,7 @@ from unittest.mock import MagicMock
 
 from lib.mainloop import main_loop
 from lib.tosr0x import mock_temperature, mock_tosr
-
-from flash.lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
+from lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 
 
 def test_tosr_switch():

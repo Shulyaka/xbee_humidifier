@@ -3,10 +3,9 @@
 from time import sleep_ms
 from unittest import mock
 
+from lib import xbeepin
 from lib.mainloop import main_loop
 from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin
-
-from flash.lib import xbeepin
 
 
 def test_digital_output():

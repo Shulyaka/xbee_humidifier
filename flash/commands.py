@@ -11,12 +11,6 @@ _LOGGER = logging.getLogger(__name__)
 class Commands:
     """Define application remote commands."""
 
-    _tosr0x_temp_binds = {}
-    _tosr0x_relay_binds = {}
-    _humidifier_available_binds = {}
-    _humidifier_switch_binds = {}
-    _pump_binds = {}
-
     def __init__(
         self,
         tosr_switch,
@@ -37,6 +31,12 @@ class Commands:
         self._humidifier_switch = humidifier_switch
         self._pump = pump
         self._pump_block = pump_block
+
+        self._tosr0x_temp_binds = {}
+        self._tosr0x_relay_binds = {}
+        self._humidifier_available_binds = {}
+        self._humidifier_switch_binds = {}
+        self._pump_binds = {}
 
     def __del__(self):
         """Cancel callbacks."""
@@ -304,12 +304,12 @@ def register(*args, **kwargs):
             else:
                 raise AttributeError("No such command")
         except Exception as e:
-            response = {"errors": str(e)}
+            response = {"errors": type(e).__name__ + ": " + str(e)}
 
         try:
             transmit(x["sender_eui64"], json_dumps(response))
         except Exception as e:
-            _LOGGER.error("Exception: %s", e)
+            _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
 
     receive_callback(rx_callback)
 

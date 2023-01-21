@@ -13,11 +13,10 @@ CRITICAL = const(50)
 class Logger:
     """XBee remote logger."""
 
-    _target = ADDR_COORDINATOR
-    _level = DEBUG
-
     def __init__(self, name=None):
         """Init the class."""
+        self._target = ADDR_COORDINATOR
+        self._level = DEBUG
 
     def setTarget(self, target=ADDR_COORDINATOR):
         """Update target device eui64."""

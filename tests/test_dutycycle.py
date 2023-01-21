@@ -2,11 +2,10 @@
 
 from time import sleep as mock_sleep
 
+import dutycycle
 from lib.core import VirtualSensor, VirtualSwitch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
-
-from flash import dutycycle
 
 
 def test_dutycycle():

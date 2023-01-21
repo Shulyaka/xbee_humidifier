@@ -1,8 +1,7 @@
 """Test config."""
 
+import config
 from lib.core import Entity
-
-from flash import config
 
 
 def test_config():

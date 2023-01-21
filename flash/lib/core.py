@@ -18,7 +18,7 @@ class Entity:
             try:
                 callback(value)
             except Exception as e:
-                _LOGGER.error(e)
+                _LOGGER.error(type(e).__name__ + ": " + str(e))
 
     def subscribe(self, callback):
         """Add new callback."""

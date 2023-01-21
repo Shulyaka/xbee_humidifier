@@ -3,7 +3,7 @@
 from time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms
 from unittest import mock
 
-from flash.lib import mainloop
+from lib import mainloop
 
 
 def test_task():

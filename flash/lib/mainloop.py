@@ -1,5 +1,6 @@
 """Simple main loop implementation."""
 
+from gc import collect
 from time import sleep_ms, ticks_ms
 
 from lib import logging
@@ -24,7 +25,7 @@ class Task:
         try:
             self._callback()
         except Exception as e:
-            _LOGGER.error(e)
+            _LOGGER.error(type(e).__name__ + ": " + str(e))
 
         if self._period:
             self._next_run += self._period
@@ -48,9 +49,11 @@ class Task:
 class Loop:
     """Event loop."""
 
-    _last_run = None
-    _tasks = []
-    _stop = False
+    def __init__(self):
+        """Init the class."""
+        self._last_run = None
+        self._tasks = []
+        self._stop = False
 
     def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
@@ -81,6 +84,7 @@ class Loop:
             if next_run is not None and (next_time is None or next_run - next_time < 0):
                 next_time = next_run
 
+        collect()
         return next_time
 
     def run(self):

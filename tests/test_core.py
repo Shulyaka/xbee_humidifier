@@ -2,9 +2,8 @@
 
 from unittest import mock
 
+from lib import core
 import pytest
-
-from flash.lib import core
 
 
 def test_entity():

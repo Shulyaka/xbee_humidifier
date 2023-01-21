@@ -4,16 +4,17 @@ from json import loads as json_loads
 import logging
 from unittest.mock import patch
 
+import commands
 from lib.core import VirtualSensor, VirtualSwitch
 from lib.humidifier import GenericHygrostat
 import pytest
 from xbee import receive_callback as mock_receive_callback, transmit as mock_transmit
 
-from flash import commands
-
 
 def test_commands():
     """Test Commands class."""
+
+    mock_receive_callback.reset_mock()
 
     tosr_switch = {x: VirtualSwitch() for x in range(5)}
     tosr_temp = VirtualSensor(34.2)
@@ -243,7 +244,7 @@ def test_commands():
     assert command("logger_set_level", logging.DEBUG) == "OK"
     assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
 
-    with patch("flash.commands.logging.getLogger") as mock_getLogger:
+    with patch("commands.logging.getLogger") as mock_getLogger:
         assert command("logger_set_target") == "OK"
         assert len(mock_getLogger.mock_calls) == 2
         assert mock_getLogger.mock_calls[0][1] == ()

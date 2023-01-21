@@ -3,10 +3,9 @@ from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
 from lib.core import Entity, VirtualSensor, VirtualSwitch
+from lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat
 from lib.mainloop import main_loop
 import pytest
-
-from flash.lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat
 
 ATTR_SAVED_HUMIDITY = "sav_hum"
 MIN_HUMIDITY = 20
