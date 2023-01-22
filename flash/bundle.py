@@ -68,9 +68,7 @@ else:
     # Third stage: delete bundled files
     uos.chdir("/flash")
     if len(uos.bundle()) == 0:
-        # print("Error: bundle was not successful! Retrying with reduced list.")
-        # uos.bundle(*bundle_list[:-1])
-        uos.bundle(*bundle_list)
+        uos.bundle(*bundle_list)  # Retry the bundle
 
     for file in uos.bundle():
         uos.remove(file + ".mpy")

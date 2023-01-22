@@ -13,8 +13,8 @@ class Commands:
 
     def __init__(
         self,
-        tosr_switch,
-        tosr_temp,
+        valve,
+        pump_temp,
         humidifier,
         humidifier_sensor,
         humidifier_available,
@@ -23,8 +23,8 @@ class Commands:
         pump_block,
     ):
         """Init the module."""
-        self._tosr_switch = tosr_switch
-        self._tosr_temp = tosr_temp
+        self._valve = valve
+        self._pump_temp = pump_temp
         self._humidifier = humidifier
         self._humidifier_sensor = humidifier_sensor
         self._humidifier_available = humidifier_available
@@ -32,8 +32,8 @@ class Commands:
         self._pump = pump
         self._pump_block = pump_block
 
-        self._tosr0x_temp_binds = {}
-        self._tosr0x_relay_binds = {}
+        self._pump_temp_binds = {}
+        self._valve_binds = {}
         self._humidifier_available_binds = {}
         self._humidifier_switch_binds = {}
         self._pump_binds = {}
@@ -65,7 +65,7 @@ class Commands:
             "number": number,
             "available": self._humidifier_available[number].state,
             "is_on": self._humidifier[number].state,
-            "working": self._tosr_switch[number].state,
+            "working": self._humidifier_switch[number].state,
             "cap_attr": self._humidifier[number].capability_attributes,
             "state_attr": self._humidifier[number].state_attributes,
             "extra_state_attr": self._humidifier[number].extra_state_attributes,
@@ -185,83 +185,80 @@ class Commands:
         """Update state of pump block."""
         self._pump_block.state = value
 
-    def cmd_tosr0x_get_temp(self, sender_eui64):
-        """Get current tosr0x-t temperature."""
-        return self._tosr_temp.state
+    def cmd_get_pump_temp(self, sender_eui64):
+        """Get current pump temperature."""
+        return self._pump_temp.state
 
-    def cmd_tosr0x_get_relay_state(self, sender_eui64, switch_number):
-        """Get current tosr0x relay status."""
-        return self._tosr_switch[switch_number].state
+    def cmd_get_valve_state(self, sender_eui64, switch_number):
+        """Get current valve status."""
+        return self._valve[switch_number].state
 
-    def cmd_tosr0x_set_relay_state(self, sender_eui64, switch_number, state):
-        """Manually update tosr0x relay status."""
-        self._tosr_switch[switch_number].state = state
+    def cmd_set_valve_state(self, sender_eui64, switch_number, state):
+        """Manually update valve status."""
+        self._valve[switch_number].state = state
 
-    def cmd_bind_tosr0x_relay(self, sender_eui64, switch_number, target=None):
-        """Subscribe to tosr0x relay updates."""
+    def cmd_bind_valve(self, sender_eui64, switch_number, target=None):
+        """Subscribe to valve updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        if (
-            switch_number not in self._tosr0x_relay_binds
-            and switch_number in self._tosr_switch
-        ):
-            self._tosr0x_relay_binds[switch_number] = {}
-        if target not in self._tosr0x_relay_binds[switch_number]:
-            self._tosr0x_relay_binds[switch_number][target] = self._tosr_switch[
+        if switch_number not in self._valve_binds and switch_number in self._valve:
+            self._valve_binds[switch_number] = {}
+        if target not in self._valve_binds[switch_number]:
+            self._valve_binds[switch_number][target] = self._valve[
                 switch_number
             ].subscribe(
                 lambda x: transmit(
-                    target, json_dumps({"tosr0x_relay_" + str(switch_number): x})
+                    target, json_dumps({"valve_" + str(switch_number): x})
                 )
             )
 
-    def cmd_unbind_tosr0x_relay(self, sender_eui64, switch_number, target=None):
-        """Unsubscribe to tosr0x relay updates."""
+    def cmd_unbind_valve(self, sender_eui64, switch_number, target=None):
+        """Unsubscribe to valve updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
-            if switch_number in self._tosr0x_relay_binds:
-                for unsubscribe in self._tosr0x_relay_binds[switch_number]:
+            if switch_number in self._valve_binds:
+                for unsubscribe in self._valve_binds[switch_number]:
                     unsubscribe()
-                self._tosr0x_relay_binds[switch_number] = {}
+                self._valve_binds[switch_number] = {}
         elif (
-            switch_number in self._tosr0x_relay_binds
-            and target in self._tosr0x_relay_binds[switch_number]
+            switch_number in self._valve_binds
+            and target in self._valve_binds[switch_number]
         ):
-            self._tosr0x_relay_binds[switch_number].pop(target)()
+            self._valve_binds[switch_number].pop(target)()
 
-    def cmd_bind_tosr0x_temp(self, sender_eui64, target=None):
-        """Subscribe to tosr0x temperature updates."""
+    def cmd_bind_pump_temp(self, sender_eui64, target=None):
+        """Subscribe to pump temperature updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        if target not in self._tosr0x_temp_binds:
-            self._tosr0x_temp_binds[target] = self._tosr_temp.subscribe(
-                lambda x: transmit(target, json_dumps({"tosr0x_temp": x}))
+        if target not in self._pump_temp_binds:
+            self._pump_temp_binds[target] = self._pump_temp.subscribe(
+                lambda x: transmit(target, json_dumps({"pump_temp": x}))
             )
 
-    def cmd_unbind_tosr0x_temp(self, sender_eui64, target=None):
-        """Unsubscribe to tosr0x temperature updates."""
+    def cmd_unbind_pump_temp(self, sender_eui64, target=None):
+        """Unsubscribe to pump temperature updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
-            for unsubscribe in self._tosr0x_temp_binds.values():
+            for unsubscribe in self._pump_temp_binds.values():
                 unsubscribe()
-            self._tosr0x_temp_binds = {}
-        elif target in self._tosr0x_temp_binds:
-            self._tosr0x_temp_binds.pop(target)()
+            self._pump_temp_binds = {}
+        elif target in self._pump_temp_binds:
+            self._pump_temp_binds.pop(target)()
 
     def cmd_bind(self, sender_eui64, target=None):
         """Subscribe to all updates."""
-        self.cmd_bind_tosr0x_temp(sender_eui64, target)
+        self.cmd_bind_pump_temp(sender_eui64, target)
         self.cmd_bind_pump(sender_eui64, target)
         for x in range(5):
-            self.cmd_bind_tosr0x_relay(sender_eui64, x, target)
+            self.cmd_bind_valve(sender_eui64, x, target)
         for x in range(3):
             self.cmd_bind_humidifier_available(sender_eui64, x, target)
             self.cmd_bind_humidifier_working(sender_eui64, x, target)
 
     def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to all updates."""
-        self.cmd_unbind_tosr0x_temp(sender_eui64, target)
+        self.cmd_unbind_pump_temp(sender_eui64, target)
         self.cmd_unbind_pump(sender_eui64, target)
         for x in range(5):
-            self.cmd_unbind_tosr0x_relay(sender_eui64, x, target)
+            self.cmd_unbind_valve(sender_eui64, x, target)
         for x in range(3):
             self.cmd_unbind_humidifier_available(sender_eui64, x, target)
             self.cmd_unbind_humidifier_working(sender_eui64, x, target)

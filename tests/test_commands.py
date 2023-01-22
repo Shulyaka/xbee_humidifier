@@ -16,8 +16,8 @@ def test_commands():
 
     mock_receive_callback.reset_mock()
 
-    tosr_switch = {x: VirtualSwitch() for x in range(5)}
-    tosr_temp = VirtualSensor(34.2)
+    valve = {x: VirtualSwitch() for x in range(5)}
+    pump_temp = VirtualSensor(34.2)
 
     humidifier_switch = {x: VirtualSwitch() for x in range(3)}
     humidifier_sensor = {x: VirtualSensor() for x in range(3)}
@@ -44,8 +44,8 @@ def test_commands():
     pump_block = VirtualSwitch()
 
     commands.register(
-        tosr_switch=tosr_switch,
-        tosr_temp=tosr_temp,
+        valve=valve,
+        pump_temp=pump_temp,
         humidifier=humidifier,
         humidifier_sensor=humidifier_sensor,
         humidifier_available=humidifier_available,
@@ -92,9 +92,11 @@ def test_commands():
         "bind_humidifier_available",
         "bind_humidifier_working",
         "bind_pump",
-        "bind_tosr0x_relay",
-        "bind_tosr0x_temp",
+        "bind_pump_temp",
+        "bind_valve",
         "get_pump_block",
+        "get_pump_temp",
+        "get_valve_state",
         "help",
         "humidifier_get_state",
         "humidifier_override_switch",
@@ -106,26 +108,24 @@ def test_commands():
         "logger_set_target",
         "set_pump",
         "set_pump_block",
+        "set_valve_state",
         "test",
-        "tosr0x_get_relay_state",
-        "tosr0x_get_temp",
-        "tosr0x_set_relay_state",
         "unbind",
         "unbind_humidifier_available",
         "unbind_humidifier_working",
         "unbind_pump",
-        "unbind_tosr0x_relay",
-        "unbind_tosr0x_temp",
+        "unbind_pump_temp",
+        "unbind_valve",
     ]
 
     assert command("bind") == "OK"
-    tosr_temp.state = 34.3
+    pump_temp.state = 34.3
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
-    assert mock_transmit.call_args[0][1] == '{"tosr0x_temp": 34.3}'
+    assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.3}'
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
-    tosr_temp.state = 34.4
+    pump_temp.state = 34.4
     assert mock_transmit.call_count == 0
     assert command("unbind") == "OK"
 
@@ -133,16 +133,16 @@ def test_commands():
         command("bind", '"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"')
         == "OK"
     )
-    tosr_temp.state = 34.5
+    pump_temp.state = 34.5
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
-    assert mock_transmit.call_args[0][1] == '{"tosr0x_temp": 34.5}'
+    assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.5}'
     mock_transmit.reset_mock()
     assert (
         command("unbind", '"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"')
         == "OK"
     )
-    tosr_temp.state = 34.6
+    pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
 
     assert command("bind_humidifier_available", 0) == "OK"
@@ -176,27 +176,27 @@ def test_commands():
     pump.state = False
     assert mock_transmit.call_count == 0
 
-    assert command("bind_tosr0x_relay", 3) == "OK"
-    tosr_switch[3].state = True
+    assert command("bind_valve", 3) == "OK"
+    valve[3].state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
-    assert mock_transmit.call_args[0][1] == '{"tosr0x_relay_3": true}'
+    assert mock_transmit.call_args[0][1] == '{"valve_3": true}'
     mock_transmit.reset_mock()
-    assert command("unbind_tosr0x_relay", 3) == "OK"
-    tosr_switch[3].state = False
+    assert command("unbind_valve", 3) == "OK"
+    valve[3].state = False
     assert mock_transmit.call_count == 0
 
-    assert command("bind_tosr0x_temp") == "OK"
-    tosr_temp.state = 34.7
+    assert command("bind_pump_temp") == "OK"
+    pump_temp.state = 34.7
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
-    assert mock_transmit.call_args[0][1] == '{"tosr0x_temp": 34.7}'
+    assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.7}'
     mock_transmit.reset_mock()
-    assert command("unbind_tosr0x_temp") == "OK"
-    tosr_temp.state = 34.8
+    assert command("unbind_pump_temp") == "OK"
+    pump_temp.state = 34.8
     assert mock_transmit.call_count == 0
 
-    assert command("tosr0x_get_temp") == 34.8
+    assert command("get_pump_temp") == 34.8
 
     assert not command("get_pump_block")
     pump_block.state = True
@@ -228,7 +228,7 @@ def test_commands():
         "is_on": True,
         "number": 2,
         "state_attr": {"hum": 51, "mode": "away"},
-        "working": False,
+        "working": True,
     }
 
     assert humidifier_switch[1].state
@@ -275,9 +275,9 @@ def test_commands():
     assert command("set_pump_block", "true") == "OK"
     assert pump_block.state
 
-    assert not command("tosr0x_get_relay_state", "0")
-    assert command("tosr0x_set_relay_state", "[0, true]") == "OK"
-    assert command("tosr0x_get_relay_state", "0")
+    assert not command("get_valve_state", "0")
+    assert command("set_valve_state", "[0, true]") == "OK"
+    assert command("get_valve_state", "0")
 
     with pytest.raises(RuntimeError) as excinfo:
         command("set_pump_block")

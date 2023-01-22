@@ -8,6 +8,7 @@ def test_config():
     """Test config."""
     assert isinstance(config.debug, bool)
     assert isinstance(config.pump, Entity)
+    assert isinstance(config.pump_temp, Entity)
     assert isinstance(config.pressure_in, Entity)
     assert isinstance(config.pressure_out, Entity)
     assert isinstance(config.valve_switch, dict)

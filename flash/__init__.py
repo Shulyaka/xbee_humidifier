@@ -9,7 +9,6 @@ from lib import logging
 from lib.core import VirtualSensor, VirtualSwitch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
-from lib.tosr import tosr_switch, tosr_temp
 import machine
 from micropython import kbd_intr
 
@@ -72,8 +71,8 @@ duty_cycle = DutyCycle(
 )
 
 commands_register(
-    tosr_switch,
-    tosr_temp,
+    config.valve_switch,
+    config.pump_temp,
     humidifier,
     humidifier_sensor,
     humidifier_available,
