@@ -11,11 +11,13 @@ if debug:
     pressure_in = VirtualSensor(7)
     pressure_out = VirtualSensor(59)
 else:
-    from lib.tosr import tosr_switch, tosr_temp
+    from lib.tosr import (  # noqa: F401
+        tosr_switch as valve_switch,
+        tosr_temp as pump_temp,
+    )
     from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
     from machine import Pin
 
-    valve_switch = {x: tosr_switch[x + 1] for x in range(4)}
     Pin("D0", mode=Pin.ALT, alt=Pin.AF0_COMMISSION)
     pressure_in = AnalogInput("D1")
     pressure_out = AnalogInput("D2")
@@ -28,4 +30,3 @@ else:
     Pin("D10", mode=Pin.ALT, alt=Pin.AF10_RSSI)
     pump_speed = AnalogOutput("D11")
     fan = DigitalOutput("D12")
-    pump_temp = tosr_temp

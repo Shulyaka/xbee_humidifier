@@ -1,5 +1,7 @@
 """Implementation of Entity classes with subscription support."""
 
+from gc import collect
+
 from lib import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,6 +19,7 @@ class Entity:
         for callback in self._triggers:
             try:
                 callback(value)
+                collect()
             except Exception as e:
                 _LOGGER.error(type(e).__name__ + ": " + str(e))
 

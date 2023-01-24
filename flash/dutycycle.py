@@ -17,11 +17,11 @@ class DutyCycle:
     _pressure_drop_delay_ms = const(5 * 1000)
     _pressure_drop_time_ms = const(25 * 1000)
 
-    def __init__(self, pump, humidifier, humidifier_switch, valve_switch, pump_block):
+    def __init__(self, pump, humidifier, humidifier_zone, valve_switch, pump_block):
         """Init the class."""
         self._pump = pump
         self._humidifier = humidifier
-        self._humidifier_switch = humidifier_switch
+        self._humidifier_zone = humidifier_zone
         self._valve_switch = valve_switch
         self._pump_block = pump_block
 
@@ -46,10 +46,10 @@ class DutyCycle:
                 (lambda number: lambda x: self._humidifier_changed(number, x))(number)
             )
 
-        self._switch_unsubscribe = {}
-        for number, switch in self._humidifier_switch.items():
-            self._switch_unsubscribe[number] = switch.subscribe(
-                (lambda number: lambda x: self._switch_changed(number, x))(number)
+        self._zone_unsubscribe = {}
+        for number, zone in self._humidifier_zone.items():
+            self._zone_unsubscribe[number] = zone.subscribe(
+                (lambda number: lambda x: self._zone_changed(number, x))(number)
             )
 
         self.start_cycle()
@@ -69,14 +69,14 @@ class DutyCycle:
         self._block_unsubscribe()
         for humidifier_unsubscribe in self._humidifier_unsubscribe.values():
             humidifier_unsubscribe()
-        for switch_unsubscribe in self._switch_unsubscribe.values():
-            switch_unsubscribe()
+        for zone_unsubscribe in self._zone_unsubscribe.values():
+            zone_unsubscribe()
         self._close_all_valves()
 
     def _humidifier_changed(self, number, value):
         """Handle humidifier on/off."""
         if value:
-            if self._humidifier_switch[number].state:
+            if self._humidifier_zone[number].state:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
                     self._loop_unschedule()
@@ -97,7 +97,7 @@ class DutyCycle:
             )
             self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
 
-    def _switch_changed(self, number, value):
+    def _zone_changed(self, number, value):
         """Handle humidifier zone on/off."""
         if value:
             if self._cancel_pump_timeout is None:
@@ -110,8 +110,8 @@ class DutyCycle:
                 )
         else:
             all_off = True
-            for switch in self._humidifier_switch.values():
-                if switch.state:
+            for zone in self._humidifier_zone.values():
+                if zone.state:
                     all_off = False
                     break
             if all_off:
@@ -235,16 +235,16 @@ class DutyCycle:
             return
 
         if (
-            not self._humidifier_switch[0].state
-            and not self._humidifier_switch[1].state
-            and not self._humidifier_switch[2].state
+            not self._humidifier_zone[0].state
+            and not self._humidifier_zone[1].state
+            and not self._humidifier_zone[2].state
         ):
-            _LOGGER.debug("All switches are off, not starting the pump")
+            _LOGGER.debug("All zones are off, not starting the pump")
             return
 
         _LOGGER.debug("Setting up switches")
         for x in range(3):
-            self._valve_switch[x].state = self._humidifier_switch[x].state
+            self._valve_switch[x].state = self._humidifier_zone[x].state
         self._valve_switch[3].state = False
 
         _LOGGER.debug("Starting the pump")

@@ -9,3 +9,4 @@ def const(x):
 
 
 kbd_intr = MagicMock()
+mem_info = MagicMock()

@@ -96,5 +96,5 @@ class TosrTemp(Entity):
         pass
 
 
-tosr_switch = {x: TosrSwitch(x) for x in range(5)}
+tosr_switch = {x: TosrSwitch(x + 1) for x in range(4)}
 tosr_temp = TosrTemp()

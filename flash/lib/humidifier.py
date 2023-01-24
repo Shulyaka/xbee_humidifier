@@ -165,7 +165,7 @@ class GenericHygrostat(Entity):
             self._cur_humidity = float(humidity)
             self._sensor_last_updated = ticks_ms()
         except ValueError as ex:
-            _LOGGER.warning("Unable to update from sensor: %s", ex)
+            _LOGGER.warning("%s: %s", type(ex).__name__, ex)
             self._cur_humidity = None
             self._active.state = False
             if self._switch_entity_id.state:
@@ -203,11 +203,9 @@ class GenericHygrostat(Entity):
         too_wet = self._cur_humidity - self._target_humidity >= wet_tolerance
         if self._switch_entity_id.state:
             if too_wet:
-                _LOGGER.debug("Turning off humidifier switch")
                 self._switch_entity_id.state = False
         else:
             if too_dry:
-                _LOGGER.debug("Turning on humidifier switch")
                 self._switch_entity_id.state = True
 
     def set_mode(self, mode: str):

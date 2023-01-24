@@ -19,13 +19,13 @@ def test_commands():
     valve = {x: VirtualSwitch() for x in range(5)}
     pump_temp = VirtualSensor(34.2)
 
-    humidifier_switch = {x: VirtualSwitch() for x in range(3)}
+    humidifier_zone = {x: VirtualSwitch() for x in range(3)}
     humidifier_sensor = {x: VirtualSensor() for x in range(3)}
     humidifier_available = {x: VirtualSwitch() for x in range(3)}
 
     humidifier = {
         x: GenericHygrostat(
-            switch_entity_id=humidifier_switch[x],
+            switch_entity_id=humidifier_zone[x],
             sensor_entity_id=humidifier_sensor[x],
             available_sensor_id=humidifier_available[x],
             min_humidity=15,
@@ -49,7 +49,7 @@ def test_commands():
         humidifier=humidifier,
         humidifier_sensor=humidifier_sensor,
         humidifier_available=humidifier_available,
-        humidifier_switch=humidifier_switch,
+        humidifier_zone=humidifier_zone,
         pump=pump,
         pump_block=pump_block,
     )
@@ -76,17 +76,14 @@ def test_commands():
         assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
         resp = json_loads(mock_transmit.call_args[0][1])
         mock_transmit.reset_mock()
-        if "errors" in resp:
-            raise RuntimeError(resp["errors"])
+        if "error" in resp:
+            raise RuntimeError(resp["error"])
         return resp["cmd_" + cmd + "_resp"]
 
-    assert command("test") == "passed, args: (), kwargs: {}"
-    assert command("test", "true") == "passed, args: (True,), kwargs: {}"
-    assert (
-        command("test", '{"test": "123"}')
-        == "passed, args: (), kwargs: {'test': '123'}"
-    )
-    assert command("test", "[1, 2, 3]") == "passed, args: (1, 2, 3), kwargs: {}"
+    assert command("test") == "args: (), kwargs: {}"
+    assert command("test", "true") == "args: (True,), kwargs: {}"
+    assert command("test", '{"test": "123"}') == "args: (), kwargs: {'test': '123'}"
+    assert command("test", "[1, 2, 3]") == "args: (1, 2, 3), kwargs: {}"
     assert command("help") == [
         "bind",
         "bind_humidifier_available",
@@ -99,7 +96,7 @@ def test_commands():
         "get_valve_state",
         "help",
         "humidifier_get_state",
-        "humidifier_override_switch",
+        "humidifier_override_zone",
         "humidifier_set_current_humidity",
         "humidifier_set_humidity",
         "humidifier_set_mode",
@@ -231,11 +228,9 @@ def test_commands():
         "working": True,
     }
 
-    assert humidifier_switch[1].state
-    assert (
-        command("humidifier_override_switch", '{"number": 1, "value": false}') == "OK"
-    )
-    assert not humidifier_switch[1].state
+    assert humidifier_zone[1].state
+    assert command("humidifier_override_zone", '{"number": 1, "value": false}') == "OK"
+    assert not humidifier_zone[1].state
 
     assert command("humidifier_set_state", "[2, false]") == "OK"
     assert not humidifier[2].state

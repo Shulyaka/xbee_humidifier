@@ -15,6 +15,7 @@ bundle_list = [
     "lib/humidifier.mpy",
     "dutycycle.mpy",
     "__init__.mpy",
+    "config.mpy",
 ]
 
 all_compiled = True
@@ -68,6 +69,7 @@ else:
     # Third stage: delete bundled files
     uos.chdir("/flash")
     if len(uos.bundle()) == 0:
+        collect()
         uos.bundle(*bundle_list)  # Retry the bundle
 
     for file in uos.bundle():

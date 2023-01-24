@@ -35,6 +35,8 @@ class Task:
         else:
             self._callback = None
 
+        collect()
+
     @property
     def next_run(self):
         """Return the time of the next scheduled execution."""
@@ -89,6 +91,7 @@ class Loop:
 
     def run(self):
         """Run the loop continuously."""
+        self._stop = False
         while not self._stop:
             next_time = self.run_once()
             now = ticks_ms()
@@ -98,7 +101,7 @@ class Loop:
             diff = next_time - now
             if diff > 0 and not self._stop:
                 sleep_ms(diff)
-        self._stop = False
+        collect()
         return next_time
 
     @property
