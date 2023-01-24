@@ -34,8 +34,7 @@ class Commands:
 
         self._pump_temp_binds = {}
         self._valve_binds = {}
-        self._humidifier_available_binds = {}
-        self._humidifier_zone_binds = {}
+        self._humidifier_binds = {}
         self._pump_binds = {}
 
     def __del__(self):
@@ -50,116 +49,106 @@ class Commands:
         """Echo arguments."""
         return "args: " + str(args) + ", kwargs: " + str(kwargs)
 
-    def cmd_logger_set_target(self, sender_eui64, target=None):
-        """Set logger target."""
-        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        logging.getLogger().setTarget(target)
+    def cmd_logger(self, sender_eui64, level=None, target=None):
+        """Set logging level and target."""
+        if level is not None:
+            logging.getLogger().setLevel(level)
+        if target is not None or level is None:
+            target = (
+                bytes(target, encoding="utf-8") if target is not None else sender_eui64
+            )
+            logging.getLogger().setTarget(target)
 
-    def cmd_logger_set_level(self, sender_eui64, level):
-        """Set logging level."""
-        logging.getLogger().setLevel(level)
-
-    def cmd_humidifier_get_state(self, sender_eui64, number):
-        """Get humidifier state."""
-        return {
-            "number": number,
-            "available": self._humidifier_available[number].state,
-            "is_on": self._humidifier[number].state,
-            "working": self._humidifier_zone[number].state,
-            "cap_attr": self._humidifier[number].capability_attributes,
-            "state_attr": self._humidifier[number].state_attributes,
-            "extra_state_attr": self._humidifier[number].extra_state_attributes,
-        }
-
-    def cmd_humidifier_set_state(self, sender_eui64, number, state):
-        """Turn humidifier on or off."""
-        self._humidifier[number].state = state
-
-    def cmd_humidifier_set_humidity(self, sender_eui64, number, value):
-        """Set target humidity."""
-        self._humidifier[number].set_humidity(value)
-
-    def cmd_humidifier_set_mode(self, sender_eui64, number, mode):
-        """Set humidifier mode."""
-        self._humidifier[number].set_mode(mode)
-
-    def cmd_humidifier_set_current_humidity(self, sender_eui64, number, value):
-        """Update current humidity."""
-        self._humidifier_sensor[number].state = value
-
-    def cmd_bind_humidifier_available(self, sender_eui64, number, target=None):
-        """Subscribe to humidifier availability updates."""
-        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+    def cmd_humidifier(
+        self,
+        sender_eui64,
+        number,
+        is_on=None,
+        working=None,
+        mode=None,
+        humidity=None,
+        current_humidity=None,
+    ):
+        """Get or set the humidifier state."""
         if (
-            number not in self._humidifier_available_binds
-            and number in self._humidifier_available
+            is_on is None
+            and working is None
+            and mode is None
+            and humidity is None
+            and current_humidity is None
         ):
-            self._humidifier_available_binds[number] = {}
-        if target not in self._humidifier_available_binds[number]:
-            self._humidifier_available_binds[number][
-                target
-            ] = self._humidifier_available[number].subscribe(
-                lambda x: transmit(
-                    target,
-                    json_dumps({"number": number, "available": x}),
-                )
+            return {
+                "number": number,
+                "available": self._humidifier_available[number].state,
+                "is_on": self._humidifier[number].state,
+                "working": self._humidifier_zone[number].state,
+                "cap_attr": self._humidifier[number].capability_attributes,
+                "state_attr": self._humidifier[number].state_attributes,
+                "extra_state_attr": self._humidifier[number].extra_state_attributes,
+            }
+
+        if is_on is not None:
+            self._humidifier[number].state = is_on
+        if working is not None:
+            self._humidifier_zone[number].state = working
+        if mode is not None:
+            self._humidifier[number].set_mode(mode)
+        if humidity is not None:
+            self._humidifier[number].set_humidity(humidity)
+        if current_humidity is not None:
+            self._humidifier_sensor[number].state = current_humidity
+
+    def cmd_humidifier_bind(self, sender_eui64, number, target=None):
+        """Subscribe to humidifier updates."""
+        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
+
+        if number not in self._humidifier_binds and number in self._humidifier:
+            self._humidifier_binds[number] = {}
+        if target not in self._humidifier_binds[number]:
+            self._humidifier_binds[number][target] = (
+                self._humidifier_available[number].subscribe(
+                    lambda x: transmit(
+                        target,
+                        json_dumps({"number": number, "available": x}),
+                    )
+                ),
+                self._humidifier_zone[number].subscribe(
+                    lambda x: transmit(
+                        target,
+                        json_dumps({"number": number, "working": x}),
+                    )
+                ),
             )
 
-    def cmd_unbind_humidifier_available(self, sender_eui64, number, target=None):
-        """Unsubscribe to humidifier availability updates."""
+    def cmd_humidifier_unbind(self, sender_eui64, number, target=None):
+        """Unsubscribe to humidifier updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
-            if number in self._humidifier_available_binds:
-                for unsubscribe in self._humidifier_available_binds[number]:
-                    unsubscribe()
-                self._humidifier_available_binds[number] = {}
+            if number in self._humidifier_binds:
+                for unsubscribe_available, unsubscribe_zone in self._humidifier_binds[
+                    number
+                ].values():
+                    unsubscribe_available()
+                    unsubscribe_zone()
+                self._humidifier_binds[number] = {}
         elif (
-            number in self._humidifier_available_binds
-            and target in self._humidifier_available_binds[number]
+            number in self._humidifier_binds
+            and target in self._humidifier_binds[number]
         ):
-            self._humidifier_available_binds[number].pop(target)()
-
-    def cmd_bind_humidifier_working(self, sender_eui64, number, target=None):
-        """Subscribe to humidifier zone updates."""
-        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        if (
-            number not in self._humidifier_zone_binds
-            and number in self._humidifier_zone
-        ):
-            self._humidifier_zone_binds[number] = {}
-        if target not in self._humidifier_zone_binds[number]:
-            self._humidifier_zone_binds[number][target] = self._humidifier_zone[
+            unsubscribe_available, unsubscribe_zone = self._humidifier_binds[
                 number
-            ].subscribe(
-                lambda x: transmit(
-                    target,
-                    json_dumps({"number": number, "working": x}),
-                )
-            )
+            ].pop(target)
+            unsubscribe_available()
+            unsubscribe_zone()
 
-    def cmd_unbind_humidifier_working(self, sender_eui64, number, target=None):
-        """Unsubscribe to humidifier zone updates."""
-        target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        if target is None:
-            if number in self._humidifier_zone_binds:
-                for unsubscribe in self._humidifier_zone_binds[number]:
-                    unsubscribe()
-                self._humidifier_zone_binds[number] = {}
-        elif (
-            number in self._humidifier_zone_binds
-            and target in self._humidifier_zone_binds[number]
-        ):
-            self._humidifier_zone_binds[number].pop(target)()
+    def cmd_pump(self, sender_eui64, state=None):
+        """Get or set the pump state."""
+        if state is None:
+            return self._pump.state
+        else:
+            self._pump.state = state
 
-    def cmd_humidifier_override_zone(self, sender_eui64, number, value):
-        """Manually set humidifier zone state."""
-        self._humidifier_zone[number].state = value
-
-    def cmd_set_pump(self, sender_eui64, value):
-        """Manually turn on or off the pump."""
-        self._pump.state = value
-
-    def cmd_bind_pump(self, sender_eui64, target=None):
+    def cmd_pump_bind(self, sender_eui64, target=None):
         """Subscribe to humidifier pump updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target not in self._pump_binds:
@@ -167,7 +156,7 @@ class Commands:
                 lambda x: transmit(target, json_dumps({"pump": x}))
             )
 
-    def cmd_unbind_pump(self, sender_eui64, target=None):
+    def cmd_pump_unbind(self, sender_eui64, target=None):
         """Unsubscribe to humidifier pump updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
@@ -177,55 +166,46 @@ class Commands:
         elif target in self._pump_binds:
             self._pump_binds.pop(target)()
 
-    def cmd_get_pump_block(self, sender_eui64):
-        """Get status of pump block."""
-        return self._pump_block.state
+    def cmd_pump_block(self, sender_eui64, state=None):
+        """Get or set the status of pump block."""
+        if state is None:
+            return self._pump_block.state
+        else:
+            self._pump_block.state = state
 
-    def cmd_set_pump_block(self, sender_eui64, value):
-        """Update state of pump block."""
-        self._pump_block.state = value
-
-    def cmd_get_pump_temp(self, sender_eui64):
+    def cmd_pump_temp(self, sender_eui64):
         """Get current pump temperature."""
         return self._pump_temp.state
 
-    def cmd_get_valve_state(self, sender_eui64, switch_number):
-        """Get current valve status."""
-        return self._valve[switch_number].state
+    def cmd_valve(self, sender_eui64, number, state=None):
+        """Get or set the current valve status."""
+        if state is None:
+            return self._valve[number].state
+        else:
+            self._valve[number].state = state
 
-    def cmd_set_valve_state(self, sender_eui64, switch_number, state):
-        """Manually update valve status."""
-        self._valve[switch_number].state = state
-
-    def cmd_bind_valve(self, sender_eui64, switch_number, target=None):
+    def cmd_valve_bind(self, sender_eui64, number, target=None):
         """Subscribe to valve updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
-        if switch_number not in self._valve_binds and switch_number in self._valve:
-            self._valve_binds[switch_number] = {}
-        if target not in self._valve_binds[switch_number]:
-            self._valve_binds[switch_number][target] = self._valve[
-                switch_number
-            ].subscribe(
-                lambda x: transmit(
-                    target, json_dumps({"valve_" + str(switch_number): x})
-                )
+        if number not in self._valve_binds and number in self._valve:
+            self._valve_binds[number] = {}
+        if target not in self._valve_binds[number]:
+            self._valve_binds[number][target] = self._valve[number].subscribe(
+                lambda x: transmit(target, json_dumps({"valve_" + str(number): x}))
             )
 
-    def cmd_unbind_valve(self, sender_eui64, switch_number, target=None):
+    def cmd_valve_unbind(self, sender_eui64, number, target=None):
         """Unsubscribe to valve updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
-            if switch_number in self._valve_binds:
-                for unsubscribe in self._valve_binds[switch_number]:
+            if number in self._valve_binds:
+                for unsubscribe in self._valve_binds[number].values():
                     unsubscribe()
-                self._valve_binds[switch_number] = {}
-        elif (
-            switch_number in self._valve_binds
-            and target in self._valve_binds[switch_number]
-        ):
-            self._valve_binds[switch_number].pop(target)()
+                self._valve_binds[number] = {}
+        elif number in self._valve_binds and target in self._valve_binds[number]:
+            self._valve_binds[number].pop(target)()
 
-    def cmd_bind_pump_temp(self, sender_eui64, target=None):
+    def cmd_pump_temp_bind(self, sender_eui64, target=None):
         """Subscribe to pump temperature updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target not in self._pump_temp_binds:
@@ -233,7 +213,7 @@ class Commands:
                 lambda x: transmit(target, json_dumps({"pump_temp": x}))
             )
 
-    def cmd_unbind_pump_temp(self, sender_eui64, target=None):
+    def cmd_pump_temp_unbind(self, sender_eui64, target=None):
         """Unsubscribe to pump temperature updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
@@ -245,23 +225,21 @@ class Commands:
 
     def cmd_bind(self, sender_eui64, target=None):
         """Subscribe to all updates."""
-        self.cmd_bind_pump_temp(sender_eui64, target)
-        self.cmd_bind_pump(sender_eui64, target)
+        self.cmd_pump_temp_bind(sender_eui64, target)
+        self.cmd_pump_bind(sender_eui64, target)
         for x in range(4):
-            self.cmd_bind_valve(sender_eui64, x, target)
+            self.cmd_valve_bind(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_bind_humidifier_available(sender_eui64, x, target)
-            self.cmd_bind_humidifier_working(sender_eui64, x, target)
+            self.cmd_humidifier_bind(sender_eui64, x, target)
 
     def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to all updates."""
-        self.cmd_unbind_pump_temp(sender_eui64, target)
-        self.cmd_unbind_pump(sender_eui64, target)
+        self.cmd_pump_temp_unbind(sender_eui64, target)
+        self.cmd_pump_unbind(sender_eui64, target)
         for x in range(4):
-            self.cmd_unbind_valve(sender_eui64, x, target)
+            self.cmd_valve_unbind(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_unbind_humidifier_available(sender_eui64, x, target)
-            self.cmd_unbind_humidifier_working(sender_eui64, x, target)
+            self.cmd_humidifier_unbind(sender_eui64, x, target)
 
 
 _commands = None

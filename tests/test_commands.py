@@ -86,33 +86,23 @@ def test_commands():
     assert command("test", "[1, 2, 3]") == "args: (1, 2, 3), kwargs: {}"
     assert command("help") == [
         "bind",
-        "bind_humidifier_available",
-        "bind_humidifier_working",
-        "bind_pump",
-        "bind_pump_temp",
-        "bind_valve",
-        "get_pump_block",
-        "get_pump_temp",
-        "get_valve_state",
         "help",
-        "humidifier_get_state",
-        "humidifier_override_zone",
-        "humidifier_set_current_humidity",
-        "humidifier_set_humidity",
-        "humidifier_set_mode",
-        "humidifier_set_state",
-        "logger_set_level",
-        "logger_set_target",
-        "set_pump",
-        "set_pump_block",
-        "set_valve_state",
+        "humidifier",
+        "humidifier_bind",
+        "humidifier_unbind",
+        "logger",
+        "pump",
+        "pump_bind",
+        "pump_block",
+        "pump_temp",
+        "pump_temp_bind",
+        "pump_temp_unbind",
+        "pump_unbind",
         "test",
         "unbind",
-        "unbind_humidifier_available",
-        "unbind_humidifier_working",
-        "unbind_pump",
-        "unbind_pump_temp",
-        "unbind_valve",
+        "valve",
+        "valve_bind",
+        "valve_unbind",
     ]
 
     assert command("bind") == "OK"
@@ -142,64 +132,67 @@ def test_commands():
     pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
 
-    assert command("bind_humidifier_available", 0) == "OK"
+    assert command("humidifier_bind", 0) == "OK"
+    assert command("humidifier_bind", 1) == "OK"
     humidifier_sensor[0].state = 51.2
+    assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
         "number": 0,
         "available": True,
     }
-    mock_transmit.reset_mock()
-    assert command("unbind_humidifier_available", 0) == "OK"
 
-    assert command("bind_humidifier_working", 1) == "OK"
+    mock_transmit.reset_mock()
     humidifier_sensor[1].state = 35.7
+    assert not humidifier_zone[1].state
     humidifier[1].state = True
+    assert humidifier_zone[1].state
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
         "number": 1,
         "working": True,
     }
     mock_transmit.reset_mock()
-    assert command("unbind_humidifier_working", 1) == "OK"
+    assert command("humidifier_unbind", 1) == "OK"
+    assert command("humidifier_unbind", 0) == "OK"
 
-    assert command("bind_pump") == "OK"
+    assert command("pump_bind") == "OK"
     pump.state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump": true}'
     mock_transmit.reset_mock()
-    assert command("unbind_pump") == "OK"
+    assert command("pump_unbind") == "OK"
     pump.state = False
     assert mock_transmit.call_count == 0
 
-    assert command("bind_valve", 3) == "OK"
+    assert command("valve_bind", 3) == "OK"
     valve[3].state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"valve_3": true}'
     mock_transmit.reset_mock()
-    assert command("unbind_valve", 3) == "OK"
+    assert command("valve_unbind", 3) == "OK"
     valve[3].state = False
     assert mock_transmit.call_count == 0
 
-    assert command("bind_pump_temp") == "OK"
+    assert command("pump_temp_bind") == "OK"
     pump_temp.state = 34.7
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.7}'
     mock_transmit.reset_mock()
-    assert command("unbind_pump_temp") == "OK"
+    assert command("pump_temp_unbind") == "OK"
     pump_temp.state = 34.8
     assert mock_transmit.call_count == 0
 
-    assert command("get_pump_temp") == 34.8
+    assert command("pump_temp") == 34.8
 
-    assert not command("get_pump_block")
+    assert not command("pump_block")
     pump_block.state = True
-    assert command("get_pump_block")
+    assert command("pump_block")
 
-    assert command("humidifier_get_state", 2) == {
+    assert command("humidifier", 2) == {
         "available": False,
         "cap_attr": {
             "max_hum": 100,
@@ -211,11 +204,11 @@ def test_commands():
         "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
     }
-    assert command("humidifier_set_current_humidity", "[2, 45.5]") == "OK"
-    assert command("humidifier_set_mode", '{"number": 2, "mode": "away"}') == "OK"
-    assert command("humidifier_set_humidity", "[2, 51]") == "OK"
-    assert command("humidifier_set_state", '{"number": 2, "state": true}') == "OK"
-    assert command("humidifier_get_state", 2) == {
+    assert command("humidifier", '{"number": 2, "current_humidity": 45.5}') == "OK"
+    assert command("humidifier", '{"number": 2, "mode": "away"}') == "OK"
+    assert command("humidifier", '{"number": 2, "humidity": 51}') == "OK"
+    assert command("humidifier", '{"number": 2, "is_on": true}') == "OK"
+    assert command("humidifier", 2) == {
         "available": True,
         "cap_attr": {
             "max_hum": 100,
@@ -229,18 +222,24 @@ def test_commands():
     }
 
     assert humidifier_zone[1].state
-    assert command("humidifier_override_zone", '{"number": 1, "value": false}') == "OK"
+    assert command("humidifier", '{"number": 1, "working": false}') == "OK"
     assert not humidifier_zone[1].state
 
-    assert command("humidifier_set_state", "[2, false]") == "OK"
+    assert (
+        command(
+            "humidifier",
+            '{"number": 2, "is_on": false, "current_humidity": 45.5, "mode": "away", "humidity": 51}',
+        )
+        == "OK"
+    )
     assert not humidifier[2].state
 
     assert logging.getLogger().getEffectiveLevel() == logging.WARNING
-    assert command("logger_set_level", logging.DEBUG) == "OK"
+    assert command("logger", logging.DEBUG) == "OK"
     assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
 
     with patch("commands.logging.getLogger") as mock_getLogger:
-        assert command("logger_set_target") == "OK"
+        assert command("logger") == "OK"
         assert len(mock_getLogger.mock_calls) == 2
         assert mock_getLogger.mock_calls[0][1] == ()
         assert mock_getLogger.mock_calls[1][0] == "().setTarget"
@@ -248,8 +247,8 @@ def test_commands():
         mock_getLogger.reset_mock()
         assert (
             command(
-                "logger_set_target",
-                '"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"',
+                "logger",
+                '{"target": "\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"}',
             )
             == "OK"
         )
@@ -259,36 +258,38 @@ def test_commands():
         assert mock_getLogger.mock_calls[1][1] == (b"\x00\x00\x00\x00\x00\x00\x00\x00",)
 
     assert not pump.state
-    assert command("set_pump", "true") == "OK"
+    assert command("pump", "true") == "OK"
+    assert command("pump")
     assert pump.state
-    assert command("set_pump", "false") == "OK"
+    assert command("pump", "false") == "OK"
+    assert not command("pump")
     assert not pump.state
 
     assert pump_block.state
-    assert command("set_pump_block", "false") == "OK"
+    assert command("pump_block", "false") == "OK"
     assert not pump_block.state
-    assert command("set_pump_block", "true") == "OK"
+    assert command("pump_block", "true") == "OK"
     assert pump_block.state
 
-    assert not command("get_valve_state", "0")
-    assert command("set_valve_state", "[0, true]") == "OK"
-    assert command("get_valve_state", "0")
+    assert not command("valve", "0")
+    assert command("valve", "[0, true]") == "OK"
+    assert command("valve", "0")
 
     with pytest.raises(RuntimeError) as excinfo:
-        command("set_pump_block")
+        command("valve")
+    assert "cmd_valve() missing 1 required positional argument: 'number'" in str(
+        excinfo.value
+    )
+
+    with pytest.raises(RuntimeError) as excinfo:
+        command("pump_block", '{"number": 2}')
+    assert "cmd_pump_block() got an unexpected keyword argument 'number'" in str(
+        excinfo.value
+    )
+
+    with pytest.raises(RuntimeError) as excinfo:
+        command("pump_block", "[1, 2, 3]")
     assert (
-        "cmd_set_pump_block() missing 1 required positional argument: 'value'"
+        "cmd_pump_block() takes from 2 to 3 positional arguments but 5 were given"
         in str(excinfo.value)
-    )
-
-    with pytest.raises(RuntimeError) as excinfo:
-        command("set_pump_block", '{"number": 2}')
-    assert "cmd_set_pump_block() got an unexpected keyword argument 'number'" in str(
-        excinfo.value
-    )
-
-    with pytest.raises(RuntimeError) as excinfo:
-        command("set_pump_block", "[1, 2, 3]")
-    assert "cmd_set_pump_block() takes 3 positional arguments but 5 were given" in str(
-        excinfo.value
     )
