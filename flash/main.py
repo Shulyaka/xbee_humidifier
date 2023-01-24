@@ -5,4 +5,6 @@ try:
 except ImportError:
     pass
 
-from __init__ import *  # noqa: F401, F403
+from __init__ import *  # noqa: F403
+
+main_loop.run()  # noqa: F405

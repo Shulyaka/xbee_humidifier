@@ -8,13 +8,11 @@ import commands
 from lib.core import VirtualSensor, VirtualSwitch
 from lib.humidifier import GenericHygrostat
 import pytest
-from xbee import receive_callback as mock_receive_callback, transmit as mock_transmit
+from xbee import receive as mock_receive, transmit as mock_transmit
 
 
 def test_commands():
     """Test Commands class."""
-
-    mock_receive_callback.reset_mock()
 
     valve = {x: VirtualSwitch() for x in range(5)}
     pump_temp = VirtualSensor(34.2)
@@ -43,7 +41,7 @@ def test_commands():
     pump = VirtualSwitch()
     pump_block = VirtualSwitch()
 
-    commands.register(
+    cmnds = commands.Commands(
         valve=valve,
         pump_temp=pump_temp,
         humidifier=humidifier,
@@ -54,24 +52,28 @@ def test_commands():
         pump_block=pump_block,
     )
 
-    assert mock_receive_callback.call_count == 1
-    rx_callback = mock_receive_callback.call_args[0][0]
+    mock_receive.reset_mock()
+    mock_receive.return_value = None
+    cmnds.update()
+    assert mock_receive.call_count == 1
+    assert mock_transmit.call_count == 0
 
     def command(cmd, args=None):
-        rx_callback(
-            {
-                "broadcast": False,
-                "dest_ep": 232,
-                "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
-                "payload": '{"command": "' + cmd + '"}'
-                if args is None
-                else '{"command": "' + cmd + '", "args": ' + str(args) + "}",
-                "sender_nwk": 0,
-                "source_ep": 232,
-                "profile": 49413,
-                "cluster": 17,
-            }
-        )
+        mock_receive.reset_mock()
+        mock_receive.return_value = {
+            "broadcast": False,
+            "dest_ep": 232,
+            "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
+            "payload": '{"command": "' + cmd + '"}'
+            if args is None
+            else '{"command": "' + cmd + '", "args": ' + str(args) + "}",
+            "sender_nwk": 0,
+            "source_ep": 232,
+            "profile": 49413,
+            "cluster": 17,
+        }
+        cmnds.update()
+        assert mock_receive.call_count == 1
         assert mock_transmit.call_count == 1
         assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
         resp = json_loads(mock_transmit.call_args[0][1])
@@ -204,9 +206,9 @@ def test_commands():
         "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
     }
-    assert command("humidifier", '{"number": 2, "current_humidity": 45.5}') == "OK"
+    assert command("humidifier", '{"number": 2, "cur_hum": 45.5}') == "OK"
     assert command("humidifier", '{"number": 2, "mode": "away"}') == "OK"
-    assert command("humidifier", '{"number": 2, "humidity": 51}') == "OK"
+    assert command("humidifier", '{"number": 2, "hum": 51}') == "OK"
     assert command("humidifier", '{"number": 2, "is_on": true}') == "OK"
     assert command("humidifier", 2) == {
         "available": True,
@@ -228,7 +230,7 @@ def test_commands():
     assert (
         command(
             "humidifier",
-            '{"number": 2, "is_on": false, "current_humidity": 45.5, "mode": "away", "humidity": 51}',
+            '{"number": 2, "is_on": false, "cur_hum": 45.5, "mode": "away", "hum": 51}',
         )
         == "OK"
     )

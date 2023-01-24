@@ -3,7 +3,8 @@
 from json import dumps as json_dumps, loads as json_loads
 
 from lib import logging
-from xbee import receive_callback, transmit
+from lib.mainloop import main_loop
+from xbee import receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,9 +38,52 @@ class Commands:
         self._humidifier_binds = {}
         self._pump_binds = {}
 
+        self._unschedule = main_loop.schedule_task(lambda: self.update(), period=500)
+
     def __del__(self):
         """Cancel callbacks."""
+        self._unschedule()
         self.cmd_unbind()
+
+    def update(self):
+        """Receive commands."""
+        x = receive()
+        if x is None:
+            return
+
+        # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
+        try:
+            d = x["payload"]
+            if d is None or d in (b"", b"\n", b"\r"):
+                return
+            d = json_loads(d)
+            cmd = d["command"]
+            args = d.get("args")
+            if hasattr(self, "cmd_" + cmd):
+                if args is None:
+                    response = getattr(self, "cmd_" + cmd)(
+                        sender_eui64=x["sender_eui64"]
+                    )
+                elif isinstance(args, dict):
+                    response = getattr(self, "cmd_" + cmd)(
+                        sender_eui64=x["sender_eui64"], **args
+                    )
+                elif isinstance(args, list):
+                    response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], *args)
+                else:
+                    response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], args)
+                if response is None:
+                    response = "OK"
+                response = {"cmd_" + cmd + "_resp": response}
+            else:
+                raise AttributeError("No such command")
+        except Exception as e:
+            response = {"error": type(e).__name__ + ": " + str(e)}
+
+        try:
+            transmit(x["sender_eui64"], json_dumps(response))
+        except Exception as e:
+            _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
 
     def cmd_help(self, sender_eui64):
         """Return the list of available commands."""
@@ -66,16 +110,16 @@ class Commands:
         is_on=None,
         working=None,
         mode=None,
-        humidity=None,
-        current_humidity=None,
+        hum=None,
+        cur_hum=None,
     ):
         """Get or set the humidifier state."""
         if (
             is_on is None
             and working is None
             and mode is None
-            and humidity is None
-            and current_humidity is None
+            and hum is None
+            and cur_hum is None
         ):
             return {
                 "number": number,
@@ -93,10 +137,10 @@ class Commands:
             self._humidifier_zone[number].state = working
         if mode is not None:
             self._humidifier[number].set_mode(mode)
-        if humidity is not None:
-            self._humidifier[number].set_humidity(humidity)
-        if current_humidity is not None:
-            self._humidifier_sensor[number].state = current_humidity
+        if hum is not None:
+            self._humidifier[number].set_humidity(hum)
+        if cur_hum is not None:
+            self._humidifier_sensor[number].state = cur_hum
 
     def cmd_humidifier_bind(self, sender_eui64, number, target=None):
         """Subscribe to humidifier updates."""
@@ -240,59 +284,3 @@ class Commands:
             self.cmd_valve_unbind(sender_eui64, x, target)
         for x in range(3):
             self.cmd_humidifier_unbind(sender_eui64, x, target)
-
-
-_commands = None
-
-
-def register(*args, **kwargs):
-    """Register command handler."""
-    global _commands
-    _commands = Commands(*args, **kwargs)
-
-    def rx_callback(x):
-        # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
-        try:
-            if x["payload"] is None:
-                return
-            d = json_loads(x["payload"])
-            cmd = d["command"]
-            args = d.get("args")
-            if hasattr(_commands, "cmd_" + cmd):
-                if args is None:
-                    response = getattr(_commands, "cmd_" + cmd)(
-                        sender_eui64=x["sender_eui64"]
-                    )
-                elif isinstance(args, dict):
-                    response = getattr(_commands, "cmd_" + cmd)(
-                        sender_eui64=x["sender_eui64"], **args
-                    )
-                elif isinstance(args, list):
-                    response = getattr(_commands, "cmd_" + cmd)(
-                        x["sender_eui64"], *args
-                    )
-                else:
-                    response = getattr(_commands, "cmd_" + cmd)(x["sender_eui64"], args)
-                if response is None:
-                    response = "OK"
-                response = {"cmd_" + cmd + "_resp": response}
-            else:
-                raise AttributeError("No such command")
-        except Exception as e:
-            response = {"error": type(e).__name__ + ": " + str(e)}
-
-        try:
-            transmit(x["sender_eui64"], json_dumps(response))
-        except Exception as e:
-            _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
-
-    receive_callback(rx_callback)
-
-
-def unregister():
-    """Unregister command handler."""
-    global _commands
-    if _commands:
-        _commands.cmd_unbind()
-    receive_callback(None)
-    _commands = None

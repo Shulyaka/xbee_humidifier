@@ -2,7 +2,7 @@
 
 from gc import collect
 
-from commands import register as commands_register
+from commands import Commands
 import config
 from dutycycle import DutyCycle
 from lib import logging
@@ -41,7 +41,7 @@ if config.debug:
             (lambda x: lambda v: print("valve" + str(x) + " = " + str(v)))(x)
         )
 
-    main_loop.schedule_task(mem_info, period=3000)
+    main_loop.schedule_task(mem_info, period=30000)
 else:
     from machine import WDT
 
@@ -73,7 +73,7 @@ duty_cycle = DutyCycle(
     config.pump, humidifier, humidifier_zone, config.valve_switch, pump_block
 )
 
-commands_register(
+commands = Commands(
     config.valve_switch,
     config.pump_temp,
     humidifier,
@@ -85,5 +85,3 @@ commands_register(
 )
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
-
-main_loop.run()

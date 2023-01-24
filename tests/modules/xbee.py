@@ -5,4 +5,4 @@ from unittest.mock import MagicMock
 ADDR_COORDINATOR = b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
 transmit = MagicMock()
-receive_callback = MagicMock()
+receive = MagicMock()
