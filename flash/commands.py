@@ -4,6 +4,7 @@ from json import dumps as json_dumps, loads as json_loads
 
 from lib import logging
 from lib.mainloop import main_loop
+from machine import soft_reset
 from xbee import receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,11 +75,11 @@ class Commands:
                     response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], args)
                 if response is None:
                     response = "OK"
-                response = {"cmd_" + cmd + "_resp": response}
+                response = {cmd + "_resp": response}
             else:
                 raise AttributeError("No such command")
         except Exception as e:
-            response = {"error": type(e).__name__ + ": " + str(e)}
+            response = {"err": type(e).__name__ + ": " + str(e)}
 
         try:
             transmit(x["sender_eui64"], json_dumps(response))
@@ -103,7 +104,7 @@ class Commands:
             )
             logging.getLogger().setTarget(target)
 
-    def cmd_humidifier(
+    def cmd_hum(
         self,
         sender_eui64,
         number,
@@ -142,7 +143,7 @@ class Commands:
         if cur_hum is not None:
             self._humidifier_sensor[number].state = cur_hum
 
-    def cmd_humidifier_bind(self, sender_eui64, number, target=None):
+    def cmd_hum_bind(self, sender_eui64, number, target=None):
         """Subscribe to humidifier updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
@@ -164,7 +165,7 @@ class Commands:
                 ),
             )
 
-    def cmd_humidifier_unbind(self, sender_eui64, number, target=None):
+    def cmd_hum_unbind(self, sender_eui64, number, target=None):
         """Unsubscribe to humidifier updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target is None:
@@ -274,7 +275,7 @@ class Commands:
         for x in range(4):
             self.cmd_valve_bind(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_humidifier_bind(sender_eui64, x, target)
+            self.cmd_hum_bind(sender_eui64, x, target)
 
     def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to all updates."""
@@ -283,4 +284,8 @@ class Commands:
         for x in range(4):
             self.cmd_valve_unbind(sender_eui64, x, target)
         for x in range(3):
-            self.cmd_humidifier_unbind(sender_eui64, x, target)
+            self.cmd_hum_unbind(sender_eui64, x, target)
+
+    def cmd_soft_reset(self, sender_eui64=None):
+        """Schedule soft reset."""
+        main_loop.schedule_task(soft_reset)

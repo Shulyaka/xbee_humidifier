@@ -1,7 +1,7 @@
 """Micropython TOSR04 interface implementation."""
 
 from sys import stdin, stdout
-from time import sleep, ticks_ms
+from time import ticks_ms
 
 
 class Tosr0x:
@@ -26,8 +26,6 @@ class Tosr0x:
         while current_state != state:
             if iteration >= 10:
                 raise RuntimeError("Failed to update relay state")
-            elif iteration:
-                sleep(1)
             iteration = iteration + 1
             stdout.buffer.write(
                 ("defghijkl" if state else "nopqrstuv")[
@@ -60,17 +58,35 @@ class Tosr0x:
         """Update the switch states, ratelimited."""
         now = ticks_ms()
         if self._lastupdate is None or now - self._lastupdate >= 300:
-            _ = stdin.buffer.read()
+            stdin.buffer.read()
             stdout.buffer.write("[")
-            self._states = int.from_bytes(stdin.buffer.read(1), "big")
-            self._lastupdate = now
+            char = None
+            while char is None or len(char) != 1:
+                if ticks_ms() - now > 1000:
+                    raise RuntimeError("Failed to get relay state")
+                char = stdin.buffer.read()
+                if char is not None and len(char) > 1:
+                    raise RuntimeError("Unexpected data received")
+            self._states = int.from_bytes(char, "big")
+            self._lastupdate = ticks_ms()
 
     @property
     def temperature(self):
         """Read TOSR0-T temperature."""
-        _ = stdin.buffer.read()
+        stdin.buffer.read()
         stdout.buffer.write("a")
-        temp = int.from_bytes(stdin.buffer.read(2), "big")
+        now = ticks_ms()
+        char = b""
+        while char is None or len(char) != 2:
+            if ticks_ms() - now > 1000:
+                raise RuntimeError("Failed to get temperature")
+            newchar = stdin.buffer.read()
+            if newchar is not None:
+                char += newchar
+            if char is not None and len(char) > 2:
+                raise RuntimeError("Unexpected data received")
+
+        temp = int.from_bytes(char, "big")
         return (temp / 16 - 4096) if temp > 32767 else (temp / 16)
 
     @property

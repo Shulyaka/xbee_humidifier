@@ -7,6 +7,8 @@ from unittest.mock import patch
 import commands
 from lib.core import VirtualSensor, VirtualSwitch
 from lib.humidifier import GenericHygrostat
+from lib.mainloop import main_loop
+from machine import soft_reset as mock_soft_reset
 import pytest
 from xbee import receive as mock_receive, transmit as mock_transmit
 
@@ -78,9 +80,9 @@ def test_commands():
         assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
         resp = json_loads(mock_transmit.call_args[0][1])
         mock_transmit.reset_mock()
-        if "error" in resp:
-            raise RuntimeError(resp["error"])
-        return resp["cmd_" + cmd + "_resp"]
+        if "err" in resp:
+            raise RuntimeError(resp["err"])
+        return resp[cmd + "_resp"]
 
     assert command("test") == "args: (), kwargs: {}"
     assert command("test", "true") == "args: (True,), kwargs: {}"
@@ -89,9 +91,9 @@ def test_commands():
     assert command("help") == [
         "bind",
         "help",
-        "humidifier",
-        "humidifier_bind",
-        "humidifier_unbind",
+        "hum",
+        "hum_bind",
+        "hum_unbind",
         "logger",
         "pump",
         "pump_bind",
@@ -100,6 +102,7 @@ def test_commands():
         "pump_temp_bind",
         "pump_temp_unbind",
         "pump_unbind",
+        "soft_reset",
         "test",
         "unbind",
         "valve",
@@ -134,8 +137,8 @@ def test_commands():
     pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
 
-    assert command("humidifier_bind", 0) == "OK"
-    assert command("humidifier_bind", 1) == "OK"
+    assert command("hum_bind", 0) == "OK"
+    assert command("hum_bind", 1) == "OK"
     humidifier_sensor[0].state = 51.2
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
@@ -155,8 +158,8 @@ def test_commands():
         "working": True,
     }
     mock_transmit.reset_mock()
-    assert command("humidifier_unbind", 1) == "OK"
-    assert command("humidifier_unbind", 0) == "OK"
+    assert command("hum_unbind", 1) == "OK"
+    assert command("hum_unbind", 0) == "OK"
 
     assert command("pump_bind") == "OK"
     pump.state = True
@@ -194,7 +197,7 @@ def test_commands():
     pump_block.state = True
     assert command("pump_block")
 
-    assert command("humidifier", 2) == {
+    assert command("hum", 2) == {
         "available": False,
         "cap_attr": {
             "max_hum": 100,
@@ -206,11 +209,11 @@ def test_commands():
         "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
     }
-    assert command("humidifier", '{"number": 2, "cur_hum": 45.5}') == "OK"
-    assert command("humidifier", '{"number": 2, "mode": "away"}') == "OK"
-    assert command("humidifier", '{"number": 2, "hum": 51}') == "OK"
-    assert command("humidifier", '{"number": 2, "is_on": true}') == "OK"
-    assert command("humidifier", 2) == {
+    assert command("hum", '{"number": 2, "cur_hum": 45.5}') == "OK"
+    assert command("hum", '{"number": 2, "mode": "away"}') == "OK"
+    assert command("hum", '{"number": 2, "hum": 51}') == "OK"
+    assert command("hum", '{"number": 2, "is_on": true}') == "OK"
+    assert command("hum", 2) == {
         "available": True,
         "cap_attr": {
             "max_hum": 100,
@@ -224,12 +227,12 @@ def test_commands():
     }
 
     assert humidifier_zone[1].state
-    assert command("humidifier", '{"number": 1, "working": false}') == "OK"
+    assert command("hum", '{"number": 1, "working": false}') == "OK"
     assert not humidifier_zone[1].state
 
     assert (
         command(
-            "humidifier",
+            "hum",
             '{"number": 2, "is_on": false, "cur_hum": 45.5, "mode": "away", "hum": 51}',
         )
         == "OK"
@@ -295,3 +298,7 @@ def test_commands():
         "cmd_pump_block() takes from 2 to 3 positional arguments but 5 were given"
         in str(excinfo.value)
     )
+
+    assert command("soft_reset") == "OK"
+    main_loop.run_once()
+    mock_soft_reset.assert_called_once_with()

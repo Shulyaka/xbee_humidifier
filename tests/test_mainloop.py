@@ -97,3 +97,10 @@ def test_loop():
     mock_ticks_ms.return_value = 2500
     assert loop.run_once() == 2600
     assert callback.call_count == 3
+
+    callback.reset_mock()
+    loop.schedule_task(lambda: loop.schedule_task(callback))
+    loop.run_once()
+    assert callback.call_count == 0
+    loop.run_once()
+    assert callback.call_count == 1

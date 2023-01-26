@@ -165,7 +165,7 @@ class GenericHygrostat(Entity):
             self._cur_humidity = float(humidity)
             self._sensor_last_updated = ticks_ms()
         except ValueError as ex:
-            _LOGGER.warning("%s: %s", type(ex).__name__, ex)
+            _LOGGER.warning("%s: %s: %s", type(ex).__name__, ex, humidity)
             self._cur_humidity = None
             self._active.state = False
             if self._switch_entity_id.state:
