@@ -2,7 +2,7 @@
 
 from gc import collect
 
-from commands import Commands
+from commands import HumidifierCommands
 import config
 from dutycycle import DutyCycle
 from lib import logging
@@ -34,6 +34,7 @@ if config.debug:
         available_unsubscribe[x] = humidifier_available[x].subscribe(
             (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
         )
+
     pump_unsubscribe = config.pump.subscribe(lambda v: print("pump = " + str(v)))
     valve_unsubscribe = {}
     for x in range(4):
@@ -69,11 +70,22 @@ humidifier = {
 
 pump_block = VirtualSwitch()
 
+if config.debug:
+    humidifier_unsubscribe = {}
+    for x in range(3):
+        humidifier_unsubscribe[x] = humidifier[x].subscribe(
+            (lambda x: lambda v: print("humidifier" + str(x) + " = " + str(v)))(x)
+        )
+
+    pump_block_unsubscribe = pump_block.subscribe(
+        lambda v: print("pump_block = " + str(v))
+    )
+
 duty_cycle = DutyCycle(
     config.pump, humidifier, humidifier_zone, config.valve_switch, pump_block
 )
 
-commands = Commands(
+commands = HumidifierCommands(
     config.valve_switch,
     config.pump_temp,
     humidifier,
@@ -83,12 +95,5 @@ commands = Commands(
     config.pump,
     pump_block,
 )
-
-if config.debug:
-    humidifier_unsubscribe = {}
-    for x in range(3):
-        humidifier_unsubscribe[x] = humidifier[x].subscribe(
-            (lambda x: lambda v: print("humidifier" + str(x) + " = " + str(v)))(x)
-        )
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))

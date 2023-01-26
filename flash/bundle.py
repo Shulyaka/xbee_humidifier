@@ -14,7 +14,6 @@ bundle_list = [
     "lib/xbeepin.mpy",
     "lib/humidifier.mpy",
     "dutycycle.mpy",
-    "__init__.mpy",
     "config.mpy",
 ]
 

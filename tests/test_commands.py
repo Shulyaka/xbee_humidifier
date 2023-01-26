@@ -43,7 +43,7 @@ def test_commands():
     pump = VirtualSwitch()
     pump_block = VirtualSwitch()
 
-    cmnds = commands.Commands(
+    cmnds = commands.HumidifierCommands(
         valve=valve,
         pump_temp=pump_temp,
         humidifier=humidifier,
@@ -243,7 +243,7 @@ def test_commands():
     assert command("logger", logging.DEBUG) == "OK"
     assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
 
-    with patch("commands.logging.getLogger") as mock_getLogger:
+    with patch("lib.core.logging.getLogger") as mock_getLogger:
         assert command("logger") == "OK"
         assert len(mock_getLogger.mock_calls) == 2
         assert mock_getLogger.mock_calls[0][1] == ()
