@@ -54,11 +54,8 @@ class Commands:
 
         # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
         try:
-            d = x["payload"]
-            if d is None or d in (b"", b"\n", b"\r"):
-                return
-            d = json_loads(d)
-            cmd = d["command"]
+            d = json_loads(x["payload"])
+            cmd = d["cmd"]
             args = d.get("args")
             if hasattr(self, "cmd_" + cmd):
                 if args is None:
