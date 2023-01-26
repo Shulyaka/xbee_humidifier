@@ -84,4 +84,11 @@ commands = Commands(
     pump_block,
 )
 
+if config.debug:
+    humidifier_unsubscribe = {}
+    for x in range(3):
+        humidifier_unsubscribe[x] = humidifier[x].subscribe(
+            (lambda x: lambda v: print("humidifier" + str(x) + " = " + str(v)))(x)
+        )
+
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
