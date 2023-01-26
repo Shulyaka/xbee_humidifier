@@ -1,5 +1,7 @@
 """Micropython logging implementation for xbee sending logs remotely."""
 
+from json import dumps as json_dumps
+
 from micropython import const
 from xbee import ADDR_COORDINATOR, transmit
 
@@ -30,22 +32,19 @@ class Logger:
         """Get logging level."""
         return self._level
 
-    def makeRecord(self, msg, *args, **kwargs):
+    def makeRecord(self, level, msg, *args, **kwargs):
         """Format the record."""
         if args:
             msg = msg % args
-        return msg + "\n"
-
-    def _log(self, msg, *args, **kwargs):
-        try:
-            transmit(self._target, self.makeRecord(msg, *args, **kwargs))
-        except Exception:
-            pass
+        return json_dumps({"log": {"sev": level, "msg": msg}})
 
     def log(self, level, msg, *args, **kwargs):
         """Write logs."""
         if self._level <= level:
-            self._log(str(level) + ": " + str(msg), *args, **kwargs)
+            try:
+                transmit(self._target, self.makeRecord(level, msg, *args, **kwargs))
+            except Exception:
+                pass
 
     def debug(self, msg, *args, **kwargs):
         """Write debug logs."""
