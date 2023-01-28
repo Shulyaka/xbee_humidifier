@@ -10,10 +10,13 @@ from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin
 
 def test_digital_output():
     """Test DigitalOutput class."""
+    mock_Pin.init.reset_mock()
+
     switch = xbeepin.DigitalOutput("D0")
     mock_Pin.init.assert_called_once_with("D0", mock_Pin.OUT)
 
     # Test read true value
+    switch._pin.value.reset_mock()
     switch._pin.value.return_value = True
     assert switch.state
     switch._pin.value.assert_called_once_with()
@@ -77,10 +80,13 @@ def test_digital_input():
 
 def test_analog_output():
     """Test AnalogOutput class."""
+    mock_PWM.init.reset_mock()
+
     number = xbeepin.AnalogOutput("D0")
     mock_PWM.init.assert_called_once_with("D0")
 
     # Test initial write
+    number._pin.duty.reset_mock()
     number._pin.duty.return_value = 10
     assert number.state == 10
     number._pin.duty.assert_called_once_with()

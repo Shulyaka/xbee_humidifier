@@ -101,39 +101,39 @@ class Commands:
     def update(self):
         """Receive commands."""
         x = receive()
-        if x is None:
-            return
-
-        # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
-        try:
-            d = json_loads(x["payload"])
-            cmd = d["cmd"]
-            args = d.get("args")
-            if hasattr(self, "cmd_" + cmd):
-                if args is None:
-                    response = getattr(self, "cmd_" + cmd)(
-                        sender_eui64=x["sender_eui64"]
-                    )
-                elif isinstance(args, dict):
-                    response = getattr(self, "cmd_" + cmd)(
-                        sender_eui64=x["sender_eui64"], **args
-                    )
-                elif isinstance(args, list):
-                    response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], *args)
+        while x is not None:
+            # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
+            try:
+                d = json_loads(x["payload"])
+                cmd = d["cmd"]
+                args = d.get("args")
+                if hasattr(self, "cmd_" + cmd):
+                    if args is None:
+                        response = getattr(self, "cmd_" + cmd)(
+                            sender_eui64=x["sender_eui64"]
+                        )
+                    elif isinstance(args, dict):
+                        response = getattr(self, "cmd_" + cmd)(
+                            sender_eui64=x["sender_eui64"], **args
+                        )
+                    elif isinstance(args, list):
+                        response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], *args)
+                    else:
+                        response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], args)
+                    if response is None:
+                        response = "OK"
+                    response = {cmd + "_resp": response}
                 else:
-                    response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], args)
-                if response is None:
-                    response = "OK"
-                response = {cmd + "_resp": response}
-            else:
-                raise AttributeError("No such command")
-        except Exception as e:
-            response = {"err": type(e).__name__ + ": " + str(e)}
+                    raise AttributeError("No such command")
+            except Exception as e:
+                response = {"err": type(e).__name__ + ": " + str(e)}
 
-        try:
-            transmit(x["sender_eui64"], json_dumps(response))
-        except Exception as e:
-            _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
+            try:
+                transmit(x["sender_eui64"], json_dumps(response))
+            except Exception as e:
+                _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
+
+            x = receive()
 
     def cmd_help(self, sender_eui64):
         """Return the list of available commands."""

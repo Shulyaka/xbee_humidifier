@@ -50,6 +50,8 @@ else:
     main_loop.schedule_task(lambda: wdt.feed(), period=1000)
     kbd_intr(-1)
 
+    # main_loop.schedule_task(mem_info, period=30000)
+
 
 humidifier = {
     x: GenericHygrostat(

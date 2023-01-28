@@ -75,7 +75,7 @@ def test_commands():
             "cluster": 17,
         }
         cmnds.update()
-        assert mock_receive.call_count == 1
+        assert mock_receive.call_count == 2
         assert mock_transmit.call_count == 1
         assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
         resp = json_loads(mock_transmit.call_args[0][1])
