@@ -147,8 +147,7 @@ def test_commands():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "number": 0,
-        "available": True,
+        "available_0": True,
     }
 
     mock_transmit.reset_mock()
@@ -158,8 +157,7 @@ def test_commands():
     assert humidifier_zone[1].state
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "number": 1,
-        "working": True,
+        "working_1": True,
     }
     mock_transmit.reset_mock()
     assert command("hum_unbind", 1) == "OK"

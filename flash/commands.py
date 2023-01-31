@@ -91,13 +91,13 @@ class HumidifierCommands(Commands):
                 self._humidifier_available[number].subscribe(
                     lambda x: transmit(
                         target,
-                        json_dumps({"number": number, "available": x}),
+                        json_dumps({"available_" + str(number): x}),
                     )
                 ),
                 self._humidifier_zone[number].subscribe(
                     lambda x: transmit(
                         target,
-                        json_dumps({"number": number, "working": x}),
+                        json_dumps({"working_" + str(number): x}),
                     )
                 ),
             )
