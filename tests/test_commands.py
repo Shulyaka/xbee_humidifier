@@ -88,6 +88,9 @@ def test_commands():
     assert command("test", "true") == "args: (True,), kwargs: {}"
     assert command("test", '{"test": "123"}') == "args: (), kwargs: {'test': '123'}"
     assert command("test", "[1, 2, 3]") == "args: (1, 2, 3), kwargs: {}"
+    assert (
+        command("test", '[[1], {"test": "23"}]') == "args: (1,), kwargs: {'test': '23'}"
+    )
     assert command("help") == [
         "bind",
         "help",

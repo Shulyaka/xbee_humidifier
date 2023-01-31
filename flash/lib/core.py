@@ -116,6 +116,15 @@ class Commands:
                         response = getattr(self, "cmd_" + cmd)(
                             sender_eui64=x["sender_eui64"], **args
                         )
+                    elif (
+                        isinstance(args, list)
+                        and len(args) == 2
+                        and isinstance(args[0], list)
+                        and isinstance(args[1], dict)
+                    ):
+                        response = getattr(self, "cmd_" + cmd)(
+                            x["sender_eui64"], *args[0], **args[1]
+                        )
                     elif isinstance(args, list):
                         response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], *args)
                     else:
