@@ -135,7 +135,7 @@ class Commands:
                 else:
                     raise AttributeError("No such command")
             except Exception as e:
-                response = {"err": type(e).__name__ + ": " + str(e)}
+                response = {cmd + "_resp": {"err": type(e).__name__ + ": " + str(e)}}
 
             try:
                 transmit(x["sender_eui64"], json_dumps(response))
