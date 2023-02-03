@@ -2,22 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import json
-
-from homeassistant.components.zha.core.const import (
-    ZHA_EVENT,
-    ATTR_CLUSTER_ID,
-    ATTR_CLUSTER_TYPE,
-    CLUSTER_TYPE_IN,
-    ATTR_COMMAND_TYPE,
-    CLUSTER_COMMAND_SERVER,
-    ATTR_ENDPOINT_ID,
-    ATTR_IEEE,
-    ATTR_PARAMS,
-)
-from homeassistant.components.zha.api import SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND
-from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
+import logging
 
 from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
@@ -28,33 +14,37 @@ from homeassistant.components.humidifier import (
     HumidifierEntity,
     HumidifierEntityFeature,
 )
+from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
+from homeassistant.components.zha.api import SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND
+from homeassistant.components.zha.core.const import (
+    ATTR_CLUSTER_ID,
+    ATTR_CLUSTER_TYPE,
+    ATTR_COMMAND_TYPE,
+    ATTR_ENDPOINT_ID,
+    ATTR_IEEE,
+    ATTR_PARAMS,
+    CLUSTER_COMMAND_SERVER,
+    CLUSTER_TYPE_IN,
+    ZHA_EVENT,
+)
 from homeassistant.const import (
     ATTR_COMMAND,
-    ATTR_ENTITY_ID,
     ATTR_MODE,
     CONF_NAME,
     EVENT_HOMEASSISTANT_START,
-    SERVICE_TURN_OFF,
-    SERVICE_TURN_ON,
-    STATE_OFF,
     STATE_ON,
 )
-from homeassistant.core import DOMAIN as HA_DOMAIN, HomeAssistant, callback
-from homeassistant.helpers import condition
+from homeassistant.core import DOMAIN as HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import (
-    async_track_state_change,
-    async_track_time_interval,
-)
+from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import (
-    CONF_NUMBER,
     CONF_AWAY_HUMIDITY,
-    CONF_INITIAL_STATE,
-    CONF_SENSOR,
     CONF_DEVICE_IEEE,
+    CONF_NUMBER,
+    CONF_SENSOR,
     CONF_TARGET_HUMIDITY,
     XBEE_HUMIDIFIER_SCHEMA,
 )
@@ -68,6 +58,8 @@ ATTR_DATA = "data"
 XBEE_DATA_CLUSTER = 0x11
 SERIAL_DATA_CMD = 0x0000
 XBEE_DATA_ENDPOINT = 0xE8
+
+REMOTE_COMMAND_TIMEOUT = 30
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(XBEE_HUMIDIFIER_SCHEMA.schema)
 
@@ -159,13 +151,13 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             """Init on startup."""
             resp = self._command("bind")
             if resp != "OK":
-                _LOGGER.debug("Bind responce: %s", resp)
+                _LOGGER.debug("Bind response: %s", resp)
 
             resp = self._command("hum", self._number)
 
             if resp["cur_hum"] is not None:
                 self._state = resp["is_on"]
-                self._is_away = True if resp["state_attr"]["mode"] == "away" else False
+                self._is_away = resp["state_attr"]["mode"] == "away"
                 self._target_humidity = resp["state_attr"]["hum"]
                 self._min_humidity = resp["cap_attr"]["min_hum"]
                 self._max_humidity = resp["cap_attr"]["max_hum"]
@@ -235,7 +227,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             try:
                 return await asyncio.wait_for(
                     await self._cmd(command, data),
-                    timeout=REMOTE_AT_COMMAND_TIMEOUT,
+                    timeout=REMOTE_COMMAND_TIMEOUT,
                 )
             except asyncio.TimeoutError:
                 _LOGGER.warning("No response to %s command", command)
@@ -400,5 +392,5 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             return
 
         if self._command("hum", self._number, mode=mode) == "OK":
-            self._is_away = True if mode == MODE_AWAY else False
+            self._is_away = mode == MODE_AWAY
         await self.async_update_ha_state()

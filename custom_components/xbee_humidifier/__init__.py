@@ -1,10 +1,9 @@
 """The xbee_humidifier custom component."""
-import voluptuous as vol
-
 from homeassistant.const import CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.helpers.typing import ConfigType
+import voluptuous as vol
 
 DOMAIN = "xbee_humidifier"
 
