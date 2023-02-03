@@ -210,6 +210,7 @@ def test_commands():
         "number": 2,
         "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
+        "cur_hum": None,
     }
     assert command("hum", '{"number": 2, "cur_hum": 45.5}') == "OK"
     assert command("hum", '{"number": 2, "mode": "away"}') == "OK"
@@ -226,6 +227,7 @@ def test_commands():
         "number": 2,
         "state_attr": {"hum": 51, "mode": "away"},
         "working": True,
+        "cur_hum": 45.5,
     }
 
     assert humidifier_zone[1].state

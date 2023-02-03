@@ -67,6 +67,7 @@ class HumidifierCommands(Commands):
                 "cap_attr": self._humidifier[number].capability_attributes,
                 "state_attr": self._humidifier[number].state_attributes,
                 "extra_state_attr": self._humidifier[number].extra_state_attributes,
+                "cur_hum": self._humidifier_sensor[number].state,
             }
 
         if is_on is not None:
