@@ -1,6 +1,8 @@
 """Humidifier config."""
 
-debug = True
+from micropython import const
+
+debug = const(True)
 
 if debug:
     from lib.core import VirtualSensor, VirtualSwitch

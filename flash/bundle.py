@@ -25,22 +25,22 @@ for file in uos.listdir("/flash") + uos.listdir("/flash/lib"):
 
 if not all_compiled:
     # First stage: compile files
-    def compile_file(file):
+    def compile_file(name):
         """Compile a single file."""
         try:
-            uos.remove(file[:-3] + ".mpy")
+            uos.remove(name[:-3] + ".mpy")
         except OSError:
             pass
         collect()
-        uos.compile(file)
-        uos.remove(file)
+        uos.compile(name)
+        uos.remove(name)
 
     def compile_dir(name):
         """Compile the files in directory (non-recursive)."""
         uos.chdir(name)
-        for file in uos.listdir():
-            if file[-3:] == ".py":
-                compile_file(file)
+        for filename in uos.listdir():
+            if filename[-3:] == ".py":
+                compile_file(filename)
 
     try:
         # First compile main.py and bundle.py

@@ -128,8 +128,7 @@ class HumidifierCommands(Commands):
         """Get or set the pump state."""
         if state is None:
             return self._pump.state
-        else:
-            self._pump.state = state
+        self._pump.state = state
 
     def cmd_pump_bind(self, sender_eui64, target=None):
         """Subscribe to humidifier pump updates."""
@@ -164,8 +163,7 @@ class HumidifierCommands(Commands):
         """Get or set the current valve status."""
         if state is None:
             return self._valve[number].state
-        else:
-            self._valve[number].state = state
+        self._valve[number].state = state
 
     def cmd_valve_bind(self, sender_eui64, number, target=None):
         """Subscribe to valve updates."""

@@ -125,6 +125,9 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         self._away_humidity = away_humidity
         self._is_away = False
         self._awaiting = {}
+        self._state = None
+        self._min_humidity = None
+        self._max_humidity = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -177,7 +180,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 else:
                     self._command("hum", self._number, mode=MODE_NORMAL)
                     self._command("hum", self._number, hum=self._target_humidity)
-                self._command("hum", self._is_on, hum=self._state)
+                self._command("hum", self._number, is_on=self._state)
 
             sensor_state = self.hass.states.get(self._sensor_entity_id)
             await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)

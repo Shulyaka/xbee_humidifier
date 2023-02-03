@@ -5,3 +5,10 @@ pytest
 pytest-cov
 pytest-sugar
 pytest-timeout
+pytest-homeassistant-custom-component
+zha-quirks
+bellows
+zigpy_znp
+zigpy_xbee
+zigpy_deconz
+zigpy_zigate

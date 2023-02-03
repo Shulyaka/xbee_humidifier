@@ -17,10 +17,10 @@ class DutyCycle:
     _pressure_drop_delay_ms = const(5 * 1000)
     _pressure_drop_time_ms = const(25 * 1000)
 
-    def __init__(self, pump, humidifier, humidifier_zone, valve_switch, pump_block):
+    def __init__(self, pump, humidifiers, humidifier_zone, valve_switch, pump_block):
         """Init the class."""
         self._pump = pump
-        self._humidifier = humidifier
+        self._humidifier = humidifiers
         self._humidifier_zone = humidifier_zone
         self._valve_switch = valve_switch
         self._pump_block = pump_block
