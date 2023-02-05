@@ -34,7 +34,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_START,
     STATE_ON,
 )
-from homeassistant.core import DOMAIN as HomeAssistant
+from homeassistant.core import DOMAIN as HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -129,21 +129,22 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         self._min_humidity = None
         self._max_humidity = None
 
+    @callback
+    def _event_filter(self, event):
+        _LOGGER.debug("Event received: %s", event)
+        return (
+            event.data["command"] == "receive_data"
+            and event.data["device_ieee"] == self._device_ieee
+        )
+
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        async def _async_event_filter(event):
-            _LOGGER.debug("Event received: %s", event)
-            return (
-                event.command == "receive_data"
-                and event.device_ieee == self._device_ieee
-            )
-
         async def _async_zha_event(event):
-            await self._async_data_received(event.data.args.data)
+            await self._async_data_received(event.data["args"]["data"])
 
-        self.hass.bus.async_listen(ZHA_EVENT, _async_zha_event, _async_event_filter)
+        self.hass.bus.async_listen(ZHA_EVENT, _async_zha_event, self._event_filter)
 
         # Add listener
         async_track_state_change(
@@ -152,11 +153,11 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         async def _async_startup(event):
             """Init on startup."""
-            resp = self._command("bind")
+            resp = await self._command("bind")
             if resp != "OK":
                 _LOGGER.debug("Bind response: %s", resp)
 
-            resp = self._command("hum", self._number)
+            resp = await self._command("hum", self._number)
 
             if resp["cur_hum"] is not None:
                 self._state = resp["is_on"]
@@ -168,19 +169,23 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 self._active = resp["available"]
             elif self._target_humidity is not None:
                 if self._is_away:
-                    self._command("hum", self._number, mode=MODE_NORMAL)
-                    self._command("hum", self._number, hum=self._saved_target_humidity)
-                    self._command("hum", self._number, mode=MODE_AWAY)
-                    self._command("hum", self._number, hum=self._target_humidity)
+                    await self._command("hum", self._number, mode=MODE_NORMAL)
+                    await self._command(
+                        "hum", self._number, hum=self._saved_target_humidity
+                    )
+                    await self._command("hum", self._number, mode=MODE_AWAY)
+                    await self._command("hum", self._number, hum=self._target_humidity)
                 elif self._saved_target_humidity is not None:
-                    self._command("hum", self._number, mode=MODE_AWAY)
-                    self._command("hum", self._number, hum=self._saved_target_humidity)
-                    self._command("hum", self._number, mode=MODE_NORMAL)
-                    self._command("hum", self._number, hum=self._target_humidity)
+                    await self._command("hum", self._number, mode=MODE_AWAY)
+                    await self._command(
+                        "hum", self._number, hum=self._saved_target_humidity
+                    )
+                    await self._command("hum", self._number, mode=MODE_NORMAL)
+                    await self._command("hum", self._number, hum=self._target_humidity)
                 else:
-                    self._command("hum", self._number, mode=MODE_NORMAL)
-                    self._command("hum", self._number, hum=self._target_humidity)
-                self._command("hum", self._number, is_on=self._state)
+                    await self._command("hum", self._number, mode=MODE_NORMAL)
+                    await self._command("hum", self._number, hum=self._target_humidity)
+                await self._command("hum", self._number, is_on=self._state)
 
             sensor_state = self.hass.states.get(self._sensor_entity_id)
             await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
@@ -207,15 +212,15 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
     async def _command(self, command, *args, **kwargs):
         if len(args) > 0 and len(kwargs) > 0:
-            data = {"cmd": "cmd_" + command, "args": (args, kwargs)}
+            data = {"cmd": command, "args": (args, kwargs)}
         elif len(args) > 1:
-            data = {"cmd": "cmd_" + command, "args": args}
+            data = {"cmd": command, "args": args}
         elif len(args) == 1:
-            data = {"cmd": "cmd_" + command, "args": args[0]}
+            data = {"cmd": command, "args": args[0]}
         elif len(kwargs) > 0:
-            data = {"cmd": "cmd_" + command, "args": kwargs}
+            data = {"cmd": command, "args": kwargs}
         else:
-            data = {"cmd": "cmd_" + command}
+            data = {"cmd": command}
 
         _LOGGER.debug("data: %s", data)
 
@@ -226,7 +231,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         if command not in self._cmd_lock:
             self._cmd_lock[command] = asyncio.Lock()
 
-        with self._cmd_lock[command]:
+        async with self._cmd_lock[command]:
             try:
                 return await asyncio.wait_for(
                     await self._cmd(command, data),
@@ -263,11 +268,11 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         return future
 
-    def _async_data_received(self, data):
+    async def _async_data_received(self, data):
         data = json.loads(data)
         for key, value in data.items():
             if key[-5:] == "_resp":
-                with self._cmd_resp_lock:
+                async with self._cmd_resp_lock:
                     command = key[:-5]
                     if command not in self._awaiting:
                         _LOGGER.debug("unmatched command response received")
@@ -347,13 +352,13 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn hygrostat on."""
-        if self._command("hum", self._number, is_on=True) == "OK":
+        if await self._command("hum", self._number, is_on=True) == "OK":
             self._state = True
         await self.async_update_ha_state()
 
     async def async_turn_off(self, **kwargs):
         """Turn hygrostat off."""
-        if self._command("hum", self._number, is_on=False) == "OK":
+        if await self._command("hum", self._number, is_on=False) == "OK":
             self._state = False
         await self.async_update_ha_state()
 
@@ -361,7 +366,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         """Set new target humidity."""
         if humidity is None:
             return
-        if self._command("hum", self._number, hum=humidity) == "OK":
+        if await self._command("hum", self._number, hum=humidity) == "OK":
             self._saved_target_humidity = humidity
         await self.async_update_ha_state()
 
@@ -386,7 +391,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         if new_state is None:
             return
 
-        self._command("hum", self._number, cur_hum=new_state.state)
+        await self._command("hum", self._number, cur_hum=new_state.state)
         await self.async_update_ha_state()
 
     async def async_set_mode(self, mode: str):
@@ -394,6 +399,6 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         if self._away_humidity is None:
             return
 
-        if self._command("hum", self._number, mode=mode) == "OK":
+        if await self._command("hum", self._number, mode=mode) == "OK":
             self._is_away = mode == MODE_AWAY
         await self.async_update_ha_state()
