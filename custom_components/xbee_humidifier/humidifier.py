@@ -146,10 +146,21 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         self.hass.bus.async_listen(ZHA_EVENT, _async_zha_event, self._event_filter)
 
-        # Add listener
-        async_track_state_change(
-            self.hass, self._sensor_entity_id, self._async_sensor_changed
-        )
+        if (old_state := await self.async_get_last_state()) is not None:
+            if old_state.attributes.get(ATTR_MODE) == MODE_AWAY:
+                self._is_away = True
+                self._saved_target_humidity = self._target_humidity
+                self._target_humidity = self._away_humidity or self._target_humidity
+            if old_state.attributes.get(ATTR_HUMIDITY):
+                self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
+            if old_state.attributes.get(ATTR_SAVED_HUMIDITY):
+                self._saved_target_humidity = int(
+                    old_state.attributes[ATTR_SAVED_HUMIDITY]
+                )
+            if old_state.state:
+                self._state = old_state.state == STATE_ON
+        if self._state is None:
+            self._state = False
 
         async def _async_startup(event):
             """Init on startup."""
@@ -159,12 +170,13 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
             resp = await self._command("hum", self._number)
 
+            self._min_humidity = resp["cap_attr"]["min_hum"]
+            self._max_humidity = resp["cap_attr"]["max_hum"]
+
             if resp["cur_hum"] is not None:
                 self._state = resp["is_on"]
                 self._is_away = resp["state_attr"]["mode"] == "away"
                 self._target_humidity = resp["state_attr"]["hum"]
-                self._min_humidity = resp["cap_attr"]["min_hum"]
-                self._max_humidity = resp["cap_attr"]["max_hum"]
                 self._saved_target_humidity = resp["extra_state_attr"]["sav_hum"]
                 self._active = resp["available"]
             elif self._target_humidity is not None:
@@ -190,23 +202,12 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             sensor_state = self.hass.states.get(self._sensor_entity_id)
             await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
 
-        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup)
+            # Add listener
+            async_track_state_change(
+                self.hass, self._sensor_entity_id, self._async_sensor_changed
+            )
 
-        if (old_state := await self.async_get_last_state()) is not None:
-            if old_state.attributes.get(ATTR_MODE) == MODE_AWAY:
-                self._is_away = True
-                self._saved_target_humidity = self._target_humidity
-                self._target_humidity = self._away_humidity or self._target_humidity
-            if old_state.attributes.get(ATTR_HUMIDITY):
-                self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
-            if old_state.attributes.get(ATTR_SAVED_HUMIDITY):
-                self._saved_target_humidity = int(
-                    old_state.attributes[ATTR_SAVED_HUMIDITY]
-                )
-            if old_state.state:
-                self._state = old_state.state == STATE_ON
-        if self._state is None:
-            self._state = False
+        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup)
 
         await _async_startup(None)  # init the sensor
 
@@ -221,8 +222,6 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             data = {"cmd": command, "args": kwargs}
         else:
             data = {"cmd": command}
-
-        _LOGGER.debug("data: %s", data)
 
         data = json.dumps(data)
 
@@ -297,6 +296,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 _LOGGER.debug("%s = %s", key, value)
                 if int(key[10:]) == self._number:
                     self._active = value
+                    await self.async_update_ha_state()
             elif key[:8] == "working_":
                 _LOGGER.debug("%s = %s", key, value)
             else:
@@ -367,7 +367,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         if humidity is None:
             return
         if await self._command("hum", self._number, hum=humidity) == "OK":
-            self._saved_target_humidity = humidity
+            self._target_humidity = humidity
         await self.async_update_ha_state()
 
     @property
@@ -400,5 +400,10 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             return
 
         if await self._command("hum", self._number, mode=mode) == "OK":
+            if self._is_away != mode == MODE_AWAY:
+                self._target_humidity, self._saved_target_humidity = (
+                    self._saved_target_humidity,
+                    self._target_humidity,
+                )
             self._is_away = mode == MODE_AWAY
         await self.async_update_ha_state()
