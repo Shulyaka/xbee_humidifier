@@ -60,6 +60,25 @@ def test_commands():
     assert mock_receive.call_count == 1
     assert mock_transmit.call_count == 0
 
+    mock_receive.reset_mock()
+    mock_receive.return_value = {
+        "broadcast": False,
+        "dest_ep": 232,
+        "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
+        "payload": "invalid_json",
+        "sender_nwk": 0,
+        "source_ep": 232,
+        "profile": 49413,
+        "cluster": 17,
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        cmnds.update()
+    assert "invalid json" in str(excinfo.value)
+
+    assert mock_receive.call_count == 1
+    assert mock_transmit.call_count == 0
+
     def command(cmd, args=None):
         mock_receive.reset_mock()
         mock_receive.return_value = {

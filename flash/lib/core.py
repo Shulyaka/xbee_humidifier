@@ -104,6 +104,7 @@ class Commands:
         while x is not None:
             # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
             try:
+                cmd = None
                 d = json_loads(x["payload"])
                 cmd = d["cmd"]
                 args = d.get("args")
@@ -135,7 +136,12 @@ class Commands:
                 else:
                     raise AttributeError("No such command")
             except Exception as e:
-                response = {cmd + "_resp": {"err": type(e).__name__ + ": " + str(e)}}
+                if cmd is not None:
+                    response = {
+                        cmd + "_resp": {"err": type(e).__name__ + ": " + str(e)}
+                    }
+                else:
+                    raise ValueError("invalid json")
 
             try:
                 transmit(x["sender_eui64"], json_dumps(response))
