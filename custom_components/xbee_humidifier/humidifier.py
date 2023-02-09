@@ -95,6 +95,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
     _cmd_lock = {}
     _cmd_resp_lock = asyncio.Lock()
+    _log_handler = None
 
     def __init__(
         self,
@@ -122,6 +123,8 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         self._state = None
         self._min_humidity = None
         self._max_humidity = None
+        if XBeeHumidifier._log_handler is None:
+            XBeeHumidifier._log_handler = self._number
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -132,7 +135,6 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         @callback
         def ieee_event_filter(event):
-            _LOGGER.debug("Event received: %s", event)
             return (
                 event.data["command"] == "receive_data"
                 and event.data["device_ieee"] == self._device_ieee
@@ -227,10 +229,10 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         _LOGGER.debug("data: %s", data)
 
-        if command not in self._cmd_lock:
-            self._cmd_lock[command] = asyncio.Lock()
+        if command not in XBeeHumidifier._cmd_lock:
+            XBeeHumidifier._cmd_lock[command] = asyncio.Lock()
 
-        async with self._cmd_lock[command]:
+        async with XBeeHumidifier._cmd_lock[command]:
             try:
                 return await asyncio.wait_for(
                     await self._cmd(command, data),
@@ -273,10 +275,9 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         data = json.loads(data)
         for key, value in data.items():
             if key[-5:] == "_resp":
-                async with self._cmd_resp_lock:
+                async with XBeeHumidifier._cmd_resp_lock:
                     command = key[:-5]
                     if command not in self._awaiting:
-                        _LOGGER.debug("unmatched command response received")
                         continue
                     future = self._awaiting.pop(command)
                     if isinstance(value, dict) and "err" in value:
@@ -287,7 +288,8 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                     _LOGGER.debug("%s response: %s", command, value)
                     future.set_result(value)
             elif key == "log":
-                _XBEE_LOGGER.log(value["sev"], value["msg"])
+                if XBeeHumidifier._log_handler == self._number:
+                    _XBEE_LOGGER.log(value["sev"], value["msg"])
             elif key == "pump":
                 _LOGGER.debug("pump = %s", value)
             elif key == "pump_temp":
