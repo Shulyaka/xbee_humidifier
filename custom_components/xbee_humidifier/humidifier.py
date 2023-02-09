@@ -27,16 +27,10 @@ from homeassistant.components.zha.core.const import (
     CLUSTER_TYPE_IN,
     ZHA_EVENT,
 )
-from homeassistant.const import (
-    ATTR_COMMAND,
-    ATTR_MODE,
-    CONF_NAME,
-    EVENT_HOMEASSISTANT_START,
-    STATE_ON,
-)
+from homeassistant.const import ATTR_COMMAND, ATTR_MODE, CONF_NAME, STATE_ON
 from homeassistant.core import DOMAIN as HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_call_later, async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
@@ -129,22 +123,22 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         self._min_humidity = None
         self._max_humidity = None
 
-    @callback
-    def _event_filter(self, event):
-        _LOGGER.debug("Event received: %s", event)
-        return (
-            event.data["command"] == "receive_data"
-            and event.data["device_ieee"] == self._device_ieee
-        )
-
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        async def _async_zha_event(event):
+        async def async_zha_event(event):
             await self._async_data_received(event.data["args"]["data"])
 
-        self.hass.bus.async_listen(ZHA_EVENT, _async_zha_event, self._event_filter)
+        @callback
+        def ieee_event_filter(event):
+            _LOGGER.debug("Event received: %s", event)
+            return (
+                event.data["command"] == "receive_data"
+                and event.data["device_ieee"] == self._device_ieee
+            )
+
+        self.hass.bus.async_listen(ZHA_EVENT, async_zha_event, ieee_event_filter)
 
         if (old_state := await self.async_get_last_state()) is not None:
             if old_state.attributes.get(ATTR_MODE) == MODE_AWAY:
@@ -162,54 +156,60 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         if self._state is None:
             self._state = False
 
-        async def _async_startup(event):
-            """Init on startup."""
+        await self._async_startup(None)  # init the sensor
+
+    @callback
+    async def _async_startup(self, _now):
+        """Init on startup."""
+        try:
             resp = await self._command("bind")
             if resp != "OK":
-                _LOGGER.debug("Bind response: %s", resp)
+                _LOGGER.error("Bind response: %s", resp)
+                raise RuntimeError("Could not bind")
+        except Exception as e:
+            _LOGGER.error(type(e).__name__ + ": " + str(e))
+            _LOGGER.debug("Will retry after 30 sec")
+            async_call_later(self.hass, 30, self._async_startup)
+            return
 
-            resp = await self._command("hum", self._number)
+        resp = await self._command("hum", self._number)
 
-            self._min_humidity = resp["cap_attr"]["min_hum"]
-            self._max_humidity = resp["cap_attr"]["max_hum"]
+        self._min_humidity = resp["cap_attr"]["min_hum"]
+        self._max_humidity = resp["cap_attr"]["max_hum"]
 
-            if resp["cur_hum"] is not None:
-                self._state = resp["is_on"]
-                self._is_away = resp["state_attr"]["mode"] == "away"
-                self._target_humidity = resp["state_attr"]["hum"]
-                self._saved_target_humidity = resp["extra_state_attr"]["sav_hum"]
-                self._active = resp["available"]
-            elif self._target_humidity is not None:
-                if self._is_away:
-                    await self._command("hum", self._number, mode=MODE_NORMAL)
-                    await self._command(
-                        "hum", self._number, hum=self._saved_target_humidity
-                    )
-                    await self._command("hum", self._number, mode=MODE_AWAY)
-                    await self._command("hum", self._number, hum=self._target_humidity)
-                elif self._saved_target_humidity is not None:
-                    await self._command("hum", self._number, mode=MODE_AWAY)
-                    await self._command(
-                        "hum", self._number, hum=self._saved_target_humidity
-                    )
-                    await self._command("hum", self._number, mode=MODE_NORMAL)
-                    await self._command("hum", self._number, hum=self._target_humidity)
-                else:
-                    await self._command("hum", self._number, mode=MODE_NORMAL)
-                    await self._command("hum", self._number, hum=self._target_humidity)
-                await self._command("hum", self._number, is_on=self._state)
+        if resp["cur_hum"] is not None:
+            self._state = resp["is_on"]
+            self._is_away = resp["state_attr"]["mode"] == "away"
+            self._target_humidity = resp["state_attr"]["hum"]
+            self._saved_target_humidity = resp["extra_state_attr"]["sav_hum"]
+            self._active = resp["available"]
+        elif self._target_humidity is not None:
+            if self._is_away:
+                await self._command("hum", self._number, mode=MODE_NORMAL)
+                await self._command(
+                    "hum", self._number, hum=self._saved_target_humidity
+                )
+                await self._command("hum", self._number, mode=MODE_AWAY)
+                await self._command("hum", self._number, hum=self._target_humidity)
+            elif self._saved_target_humidity is not None:
+                await self._command("hum", self._number, mode=MODE_AWAY)
+                await self._command(
+                    "hum", self._number, hum=self._saved_target_humidity
+                )
+                await self._command("hum", self._number, mode=MODE_NORMAL)
+                await self._command("hum", self._number, hum=self._target_humidity)
+            else:
+                await self._command("hum", self._number, mode=MODE_NORMAL)
+                await self._command("hum", self._number, hum=self._target_humidity)
+            await self._command("hum", self._number, is_on=self._state)
 
-            sensor_state = self.hass.states.get(self._sensor_entity_id)
-            await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
+        sensor_state = self.hass.states.get(self._sensor_entity_id)
+        await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
 
-            # Add listener
-            async_track_state_change(
-                self.hass, self._sensor_entity_id, self._async_sensor_changed
-            )
-
-        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup)
-
-        await _async_startup(None)  # init the sensor
+        # Add listener
+        async_track_state_change(
+            self.hass, self._sensor_entity_id, self._async_sensor_changed
+        )
 
     async def _command(self, command, *args, **kwargs):
         if len(args) > 0 and len(kwargs) > 0:
@@ -238,6 +238,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 )
             except asyncio.TimeoutError:
                 _LOGGER.warning("No response to %s command", command)
+                del self._awaiting[command]
                 raise
 
     async def _cmd(self, command, data):
@@ -264,6 +265,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             )
         except Exception as e:
             future.set_exception(e)
+            del self._awaiting[command]
 
         return future
 
