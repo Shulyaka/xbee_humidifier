@@ -93,7 +93,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
     _attr_should_poll = False
 
-    _cmd_lock = {}
+    _cmd_lock = asyncio.Lock()
     _cmd_resp_lock = asyncio.Lock()
     _log_handler = None
 
@@ -229,10 +229,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
 
         _LOGGER.debug("data: %s", data)
 
-        if command not in XBeeHumidifier._cmd_lock:
-            XBeeHumidifier._cmd_lock[command] = asyncio.Lock()
-
-        async with XBeeHumidifier._cmd_lock[command]:
+        async with XBeeHumidifier._cmd_lock:
             try:
                 return await asyncio.wait_for(
                     await self._cmd(command, data),
