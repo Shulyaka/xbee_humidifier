@@ -43,6 +43,20 @@ if config.debug:
         )
 
     main_loop.schedule_task(mem_info, period=30000)
+
+    prev_run_time = main_loop._run_time
+    prev_idle_time = main_loop._idle_time
+
+    def cpu_stats():
+        """Print cpu stats."""
+        global prev_run_time, prev_idle_time
+        run_time = main_loop._run_time - prev_run_time
+        idle_time = main_loop._idle_time - prev_idle_time
+        prev_run_time = main_loop._run_time
+        prev_idle_time = main_loop._idle_time
+        print("CPU " + str(round(run_time * 100 / (run_time + idle_time)), 2) + "%")
+
+    main_loop.schedule_task(cpu_stats, period=1000)
 else:
     from machine import WDT
 

@@ -56,6 +56,8 @@ class Loop:
         self._last_run = None
         self._tasks = []
         self._stop = False
+        self._run_time = 0
+        self._idle_time = 0
 
     def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
@@ -92,13 +94,16 @@ class Loop:
         """Run the loop continuously."""
         self._stop = False
         while not self._stop:
+            start = ticks_ms()
             next_time = self.run_once()
             now = ticks_ms()
+            self._run_time += now - start
             if next_time is None:
                 _LOGGER.warning("No tasks")
                 next_time = now + 1000
             diff = next_time - now
             if diff > 0 and not self._stop:
+                self._idle_time += diff
                 sleep_ms(diff)
         collect()
         return next_time
