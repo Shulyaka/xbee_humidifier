@@ -54,9 +54,9 @@ if config.debug:
         idle_time = main_loop._idle_time - prev_idle_time
         prev_run_time = main_loop._run_time
         prev_idle_time = main_loop._idle_time
-        print("CPU " + str(round(run_time * 100 / (run_time + idle_time)), 2) + "%")
+        print("CPU " + str(round(run_time * 100 / (run_time + idle_time), 2)) + "%")
 
-    main_loop.schedule_task(cpu_stats, period=1000)
+    cpu_stats_cancel = main_loop.schedule_task(cpu_stats, period=1000)
 else:
     from machine import WDT
 
@@ -111,5 +111,24 @@ commands = HumidifierCommands(
     config.pump,
     pump_block,
 )
+
+_cancel_warning_cb = main_loop.schedule_task(
+    lambda: _LOGGER.warning("Not initialized"), period=5000
+)
+_unsubscribe_warning = {}
+
+
+def _cancel_warning(confirm):
+    if not confirm:
+        return
+
+    for unsub in _unsubscribe_warning.values():
+        unsub()
+
+    _cancel_warning_cb()
+
+
+for x in range(3):
+    _unsubscribe_warning[x] = humidifier_available[x].subscribe(_cancel_warning)
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))

@@ -287,19 +287,27 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             elif key == "log":
                 if XBeeHumidifier._log_handler == self._number:
                     _XBEE_LOGGER.log(value["sev"], value["msg"])
+                if value["msg"] == "Not initialized":
+                    await self._async_startup(None)
             elif key == "pump":
-                _LOGGER.debug("pump = %s", value)
+                if XBeeHumidifier._log_handler == self._number:
+                    _LOGGER.debug("pump = %s", value)
             elif key == "pump_temp":
-                _LOGGER.debug("pump_temp = %s", value)
+                if XBeeHumidifier._log_handler == self._number:
+                    _LOGGER.debug("pump_temp = %s", value)
             elif key[:6] == "valve_":
-                _LOGGER.debug("%s = %s", key, value)
+                if XBeeHumidifier._log_handler == self._number:
+                    _LOGGER.debug("%s = %s", key, value)
             elif key[:10] == "available_":
                 _LOGGER.debug("%s = %s", key, value)
                 if int(key[10:]) == self._number:
                     self._active = value
                     await self.async_update_ha_state()
+                    if not value:
+                        await self._async_startup(None)
             elif key[:8] == "working_":
-                _LOGGER.debug("%s = %s", key, value)
+                if int(key[8:]) == self._number:
+                    _LOGGER.debug("%s = %s", key, value)
             else:
                 _LOGGER.debug("Unhandled message received: %s", {key: value})
 
