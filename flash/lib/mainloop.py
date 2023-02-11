@@ -59,11 +59,13 @@ class Loop:
         self._stop = False
         self._run_time = 0
         self._idle_time = 0
+        self._task_scheduled = False
 
     def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
         new_task = Task(callback, *args, **kwargs)
         self._tasks.append(new_task)
+        self._task_scheduled = True
         return lambda: self._tasks.remove(new_task) if new_task in self._tasks else None
 
     def reset(self):
@@ -73,6 +75,7 @@ class Loop:
     def run_once(self):
         """Run one iteration and return the time of next execution."""
         next_time = None
+        self._task_scheduled = False
 
         for task in self._tasks.copy():
             next_run = task.next_run
@@ -87,6 +90,10 @@ class Loop:
 
             if next_run is not None and (next_time is None or next_run - next_time < 0):
                 next_time = next_run
+
+        if self._task_scheduled:
+            next_time = self.next_run
+            self._task_scheduled = False
 
         collect()
         return next_time

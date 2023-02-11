@@ -100,7 +100,7 @@ def test_loop():
 
     callback.reset_mock()
     loop.schedule_task(lambda: loop.schedule_task(callback))
-    loop.run_once()
+    assert loop.run_once() == 2500
     assert callback.call_count == 0
-    loop.run_once()
+    assert loop.run_once() == 2600
     assert callback.call_count == 1
