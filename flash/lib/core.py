@@ -144,12 +144,22 @@ class Commands:
                 else:
                     raise ValueError("invalid json")
 
-            try:
-                transmit(x["sender_eui64"], json_dumps(response))
-            except Exception as e:
-                _LOGGER.error("Exception: %s: %s", type(e).__name__, e)
+            self._transmit(x["sender_eui64"], json_dumps(response))
 
             x = receive()
+
+    def _transmit(self, eui64, data):
+        """Retries sending data on insufficient buffers, packet already queued for target."""
+        try:
+            transmit(eui64, data)
+        except Exception as e:
+            _LOGGER.error("Exception on transmit: %s: %s", type(e).__name__, e)
+            if isinstance(e, OSError) and "EAGAIN" in str(e):
+                main_loop.schedule_task(
+                    (lambda eui64, data: lambda: self._transmit(eui64, data))(
+                        eui64, data
+                    )
+                )
 
     def cmd_help(self, sender_eui64):
         """Return the list of available commands."""

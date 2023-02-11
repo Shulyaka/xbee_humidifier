@@ -3,7 +3,6 @@
 from json import dumps as json_dumps
 
 from lib.core import Commands
-from xbee import transmit
 
 
 class HumidifierCommands(Commands):
@@ -90,13 +89,13 @@ class HumidifierCommands(Commands):
         if target not in self._humidifier_binds[number]:
             self._humidifier_binds[number][target] = (
                 self._humidifier_available[number].subscribe(
-                    lambda x: transmit(
+                    lambda x: self._transmit(
                         target,
                         json_dumps({"available_" + str(number): x}),
                     )
                 ),
                 self._humidifier_zone[number].subscribe(
-                    lambda x: transmit(
+                    lambda x: self._transmit(
                         target,
                         json_dumps({"working_" + str(number): x}),
                     )
@@ -135,7 +134,7 @@ class HumidifierCommands(Commands):
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target not in self._pump_binds:
             self._pump_binds[target] = self._pump.subscribe(
-                lambda x: transmit(target, json_dumps({"pump": x}))
+                lambda x: self._transmit(target, json_dumps({"pump": x}))
             )
 
     def cmd_pump_unbind(self, sender_eui64, target=None):
@@ -172,7 +171,9 @@ class HumidifierCommands(Commands):
             self._valve_binds[number] = {}
         if target not in self._valve_binds[number]:
             self._valve_binds[number][target] = self._valve[number].subscribe(
-                lambda x: transmit(target, json_dumps({"valve_" + str(number): x}))
+                lambda x: self._transmit(
+                    target, json_dumps({"valve_" + str(number): x})
+                )
             )
 
     def cmd_valve_unbind(self, sender_eui64, number, target=None):
@@ -191,7 +192,7 @@ class HumidifierCommands(Commands):
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
         if target not in self._pump_temp_binds:
             self._pump_temp_binds[target] = self._pump_temp.subscribe(
-                lambda x: transmit(target, json_dumps({"pump_temp": x}))
+                lambda x: self._transmit(target, json_dumps({"pump_temp": x}))
             )
 
     def cmd_pump_temp_unbind(self, sender_eui64, target=None):
