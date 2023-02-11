@@ -113,7 +113,7 @@ commands = HumidifierCommands(
 )
 
 _cancel_warning_cb = main_loop.schedule_task(
-    lambda: _LOGGER.warning("Not initialized"), period=5000
+    lambda: _LOGGER.warning("Not initialized"), period=30000
 )
 _unsubscribe_warning = {}
 

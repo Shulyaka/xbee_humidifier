@@ -27,7 +27,13 @@ from homeassistant.components.zha.core.const import (
     CLUSTER_TYPE_IN,
     ZHA_EVENT,
 )
-from homeassistant.const import ATTR_COMMAND, ATTR_MODE, CONF_NAME, STATE_ON
+from homeassistant.const import (
+    ATTR_COMMAND,
+    ATTR_MODE,
+    CONF_NAME,
+    EVENT_COMPONENT_LOADED,
+    STATE_ON,
+)
 from homeassistant.core import DOMAIN as HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change
@@ -125,6 +131,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         self._max_humidity = None
         if XBeeHumidifier._log_handler is None:
             XBeeHumidifier._log_handler = self._number
+        self._remove_sensor_tracking = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -157,6 +164,21 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 self._state = old_state.state == STATE_ON
         if self._state is None:
             self._state = False
+
+        self._remove_zha_tracking = None
+
+        @callback
+        async def async_zha_loaded(event):
+            if self._remove_zha_tracking is not None:
+                self._remove_zha_tracking()
+                self._remove_zha_tracking = None
+            await self._async_startup(None)
+
+        @callback
+        def zha_filter(event):
+            return event.data["component"] == "zha"
+
+        self.hass.bus.async_listen(EVENT_COMPONENT_LOADED, async_zha_loaded, zha_filter)
 
         await self._async_startup(None)  # init the sensor
 
@@ -209,9 +231,10 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
 
         # Add listener
-        async_track_state_change(
-            self.hass, self._sensor_entity_id, self._async_sensor_changed
-        )
+        if self._remove_sensor_tracking is None:
+            self._remove_sensor_tracking = async_track_state_change(
+                self.hass, self._sensor_entity_id, self._async_sensor_changed
+            )
 
     async def _command(self, command, *args, **kwargs):
         if len(args) > 0 and len(kwargs) > 0:
