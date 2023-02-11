@@ -33,6 +33,8 @@ from homeassistant.const import (
     CONF_NAME,
     EVENT_COMPONENT_LOADED,
     STATE_ON,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
 )
 from homeassistant.core import DOMAIN as HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -228,7 +230,8 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             await self._command("hum", self._number, is_on=self._state)
 
         sensor_state = self.hass.states.get(self._sensor_entity_id)
-        await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
+        if sensor_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
 
         # Add listener
         if self._remove_sensor_tracking is None:
@@ -322,8 +325,8 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
                 if XBeeHumidifier._log_handler == self._number:
                     _LOGGER.debug("%s = %s", key, value)
             elif key[:10] == "available_":
-                _LOGGER.debug("%s = %s", key, value)
                 if int(key[10:]) == self._number:
+                    _LOGGER.debug("%s = %s", key, value)
                     self._active = value
                     await self.async_update_ha_state()
                     if not value:
