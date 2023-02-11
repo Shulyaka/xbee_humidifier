@@ -54,7 +54,7 @@ if config.debug:
         idle_time = main_loop._idle_time - prev_idle_time
         prev_run_time = main_loop._run_time
         prev_idle_time = main_loop._idle_time
-        print("CPU " + str(round(run_time * 100 / (run_time + idle_time), 2)) + "%")
+        print("CPU " + str(run_time * 100 / (run_time + idle_time)) + "%")
 
     cpu_stats_cancel = main_loop.schedule_task(cpu_stats, period=1000)
 else:

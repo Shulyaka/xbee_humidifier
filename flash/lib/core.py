@@ -25,6 +25,7 @@ class Entity:
                 callback(value)
                 collect()
             except Exception as e:
+                _LOGGER.error("callback error for %s", callback)
                 _LOGGER.error(type(e).__name__ + ": " + str(e))
 
     def subscribe(self, callback):

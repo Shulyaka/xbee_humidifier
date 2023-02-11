@@ -25,6 +25,7 @@ class Task:
         try:
             self._callback()
         except Exception as e:
+            _LOGGER.error("mainloop: error with %s", self._callback)
             _LOGGER.error(type(e).__name__ + ": " + str(e))
 
         if self._period:

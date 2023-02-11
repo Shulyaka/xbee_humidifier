@@ -118,18 +118,25 @@ class DutyCycle:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
                     self._loop_unschedule()
-                    self._loop_unschedule = None
-                _LOGGER.debug("All zones turned of, stopping the duty cycle")
-                self.stop_cycle()
+                _LOGGER.debug("All zones turned of, scheduling duty cycle stop")
+                self._loop_unschedule = main_loop.schedule_task(
+                    lambda: self.stop_cycle()
+                )
 
     def _pump_block_changed(self, value):
         """Handle block on/off."""
         if value:
-            _LOGGER.debug("Pump blocking turned on, stopping the duty cycle")
-            self.stop_cycle()
+            if self._loop_unschedule:
+                _LOGGER.debug("Cancelling existing duty cycle schedule")
+                self._loop_unschedule()
+            _LOGGER.debug("Pump blocking turned on, scheduling duty cycle stop")
+            self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
         else:
-            _LOGGER.debug("Pump blocking turned off, starting the duty cycle")
-            self.start_cycle()
+            if self._loop_unschedule:
+                _LOGGER.debug("Cancelling existing duty cycle schedule")
+                self._loop_unschedule()
+            _LOGGER.debug("Pump blocking turned off, scheduling duty cycle start")
+            self._loop_unschedule = main_loop.schedule_task(lambda: self.start_cycle())
 
     def _pump_changed(self, value):
         """Handle pump on/off."""
