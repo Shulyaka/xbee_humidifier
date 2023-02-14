@@ -117,7 +117,7 @@ def setup_comp_2():
 
 def test_unavailable_state():
     """Test the setting of defaults to unknown."""
-    _setup_sensor(None)
+    _setup_sensor("unavailable")
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,

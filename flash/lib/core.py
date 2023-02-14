@@ -27,6 +27,7 @@ class Entity:
             except Exception as e:
                 _LOGGER.error("callback error for %s", callback)
                 _LOGGER.error(type(e).__name__ + ": " + str(e))
+                raise
 
     def subscribe(self, callback):
         """Add new callback."""
@@ -51,10 +52,12 @@ class Entity:
 class VirtualSwitch(Entity):
     """Virtual digital entity."""
 
+    _type = bool
+
     def __init__(self, value=None):
         """Init the class."""
         super().__init__()
-        self._state = bool(value)
+        self.state = value
 
     @property
     def state(self):
@@ -64,28 +67,14 @@ class VirtualSwitch(Entity):
     @state.setter
     def state(self, value):
         """Set new state."""
-        self._state = bool(value)
-        self._run_triggers(bool(value))
+        self._state = self._type(value) if self._type is not None else value
+        self._run_triggers(self._state)
 
 
-class VirtualSensor(Entity):
+class VirtualSensor(VirtualSwitch):
     """Virtual numeric entity."""
 
-    def __init__(self, value=None):
-        """Init the class."""
-        super().__init__()
-        self._state = value
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Set new state."""
-        self._state = value
-        self._run_triggers(value)
+    _type = None
 
 
 class Commands:
