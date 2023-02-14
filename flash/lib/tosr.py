@@ -18,9 +18,8 @@ class TosrSwitch(Entity):
 
     def __init__(self, switch_number, period=30000):
         """Init the class."""
-        super().__init__()
         self._switch_number = switch_number
-        self._state = self.state
+        super().__init__(value=self.state)
         self._stop_updates = main_loop.schedule_task(
             lambda: self.update(), period=period
         )
@@ -56,8 +55,6 @@ class TosrSwitch(Entity):
 class TosrTemp(Entity):
     """TOSR0X-T temperature sensor."""
 
-    _value = None
-
     def __init__(self, period=30000, threshold=1 / 16):
         """Init the class."""
         super().__init__()
@@ -76,7 +73,7 @@ class TosrTemp(Entity):
         """Get current temperature."""
         super().update()
         value = tosr.temperature
-        self._value = value
+        self._state = value
         threshold = self._threshold if auto else 1 / 16
         if (
             self._last_callback_value is None
@@ -88,7 +85,7 @@ class TosrTemp(Entity):
     @property
     def state(self):
         """Get cached temperature."""
-        return self._value
+        return self._state
 
     @state.setter
     def state(self, value):

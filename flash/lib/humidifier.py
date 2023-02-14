@@ -37,12 +37,11 @@ class GenericHygrostat(Entity):
         sensor_stale_duration=None,
     ):
         """Initialize the hygrostat."""
-        super().__init__()
+        super().__init__(value=initial_state if initial_state is not None else False)
         self._switch_entity_id = switch_entity_id
         self._sensor_entity_id = sensor_entity_id
         self._dry_tolerance = dry_tolerance
         self._wet_tolerance = wet_tolerance
-        self._state = initial_state if initial_state is not None else False
         self._saved_target_humidity = away_humidity or target_humidity
         self._active = available_sensor_id
         self._active.state = False

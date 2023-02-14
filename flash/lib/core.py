@@ -14,9 +14,19 @@ _LOGGER = logging.getLogger(__name__)
 class Entity:
     """Base class."""
 
-    def __init__(self):
+    _type = None
+
+    def __init__(self, value=None):
         """Init the class."""
         self._triggers = []
+        self._state = None
+        # self.state = value
+        new_value = self._set(value)
+        if new_value is None:
+            new_value = value
+        if value != self._state or self._state is None:
+            self._state = new_value
+            self._run_triggers(new_value)
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
@@ -27,7 +37,6 @@ class Entity:
             except Exception as e:
                 _LOGGER.error("callback error for %s", callback)
                 _LOGGER.error(type(e).__name__ + ": " + str(e))
-                raise
 
     def subscribe(self, callback):
         """Add new callback."""
@@ -37,16 +46,25 @@ class Entity:
     @property
     def state(self):
         """Get cached state."""
-        pass
+        return self._state
 
     @state.setter
     def state(self, value):
         """Set new state."""
-        self._run_triggers(value)
+        new_value = self._set(value)
+        if new_value is None:
+            new_value = value
+        if value != self._state or self._state is None:
+            self._state = new_value
+            self._run_triggers(new_value)
 
     def update(self):
         """Get updated state."""
         pass
+
+    def _set(self, value):
+        """Write the value and return mapped value."""
+        return self._type(value) if self._type is not None else value
 
 
 class VirtualSwitch(Entity):
@@ -54,27 +72,11 @@ class VirtualSwitch(Entity):
 
     _type = bool
 
-    def __init__(self, value=None):
-        """Init the class."""
-        super().__init__()
-        self.state = value
 
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Set new state."""
-        self._state = self._type(value) if self._type is not None else value
-        self._run_triggers(self._state)
-
-
-class VirtualSensor(VirtualSwitch):
+class VirtualSensor(Entity):
     """Virtual numeric entity."""
 
-    _type = None
+    pass
 
 
 class Commands:

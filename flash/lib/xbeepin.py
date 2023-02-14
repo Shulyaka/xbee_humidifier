@@ -31,7 +31,6 @@ class DigitalInput(Entity):
     def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
         """Init the class."""
         super().__init__()
-        self._value = None
         self._pin = Pin(gpio, Pin.IN, pull)
         self.update()
         self._stop_updates = main_loop.schedule_task(
@@ -46,14 +45,14 @@ class DigitalInput(Entity):
         """Get pin state."""
         super().update()
         value = bool(self._pin.value())
-        if self._value != value:
-            self._value = value
+        if self._state != value:
+            self._state = value
             self._run_triggers(value)
 
     @property
     def state(self):
         """Get cached state."""
-        return self._value
+        return self._state
 
     @state.setter
     def state(self, value):
@@ -87,7 +86,6 @@ class AnalogInput(Entity):
     def __init__(self, gpio, period=500, threshold=1):
         """Init the class."""
         super().__init__()
-        self._value = None
         self._last_callback_value = None
         self._pin = ADC(gpio)
         self._threshold = threshold
@@ -104,7 +102,7 @@ class AnalogInput(Entity):
         """Get pin state."""
         super().update()
         value = self._pin.read()
-        self._value = value
+        self._state = value
         threshold = self._threshold if auto else 1
         if (
             self._last_callback_value is None
@@ -116,7 +114,7 @@ class AnalogInput(Entity):
     @property
     def state(self):
         """Get cached state."""
-        return self._value
+        return self._state
 
     @state.setter
     def state(self, value):
