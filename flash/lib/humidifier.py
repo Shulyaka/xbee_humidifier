@@ -103,8 +103,6 @@ class GenericHygrostat(Entity):
     @state.setter
     def state(self, value):
         """Set current state."""
-        if not self._active.state:
-            return
         self._state = bool(value)
         if value:
             self._operate(force=True)
