@@ -16,7 +16,7 @@ class Entity:
 
     _type = None
 
-    def __init__(self, value=None):
+    def __init__(self, value=None, period=None):
         """Init the class."""
         self._triggers = []
         self._state = None
@@ -27,6 +27,20 @@ class Entity:
         if value != self._state or self._state is None:
             self._state = new_value
             self._run_triggers(new_value)
+
+        self.update()
+
+        if period is not None:
+            self._stop_updates = main_loop.schedule_task(
+                lambda: self.update(auto=True), period=period
+            )
+        else:
+            self._stop_updates = None
+
+    def __del__(self):
+        """Cancel callbacks."""
+        if self._stop_updates is not None:
+            self._stop_updates()
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
@@ -58,7 +72,7 @@ class Entity:
             self._state = new_value
             self._run_triggers(new_value)
 
-    def update(self):
+    def update(self, auto=None):
         """Get updated state."""
         pass
 

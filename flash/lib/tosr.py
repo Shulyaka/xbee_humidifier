@@ -2,7 +2,6 @@
 
 from lib import logging
 from lib.core import Entity
-from lib.mainloop import main_loop
 from lib.tosr0x import Tosr0x
 
 try:
@@ -19,14 +18,7 @@ class TosrSwitch(Entity):
     def __init__(self, switch_number, period=30000):
         """Init the class."""
         self._switch_number = switch_number
-        super().__init__(value=self.state)
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=period
-        )
-
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
+        super().__init__(value=None, period=period)
 
     @property
     def state(self):
@@ -42,9 +34,8 @@ class TosrSwitch(Entity):
             self._state = value
             self._run_triggers(value)
 
-    def update(self):
+    def update(self, auto=None):
         """Get relay states."""
-        super().update()
         tosr.update()
         value = self.state
         if self._state != value:
@@ -57,21 +48,12 @@ class TosrTemp(Entity):
 
     def __init__(self, period=30000, threshold=1 / 16):
         """Init the class."""
-        super().__init__()
         self._last_callback_value = None
         self._threshold = threshold
-        self.update()
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(auto=True), period=period
-        )
-
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
+        super().__init__(period=period)
 
     def update(self, auto=None):
         """Get current temperature."""
-        super().update()
         value = tosr.temperature
         self._state = value
         threshold = self._threshold if auto else 1 / 16

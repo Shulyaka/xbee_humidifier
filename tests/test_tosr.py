@@ -20,12 +20,13 @@ def test_tosr_switch():
     mock_tosr.update.reset_mock()
     tosr_switch_2 = TosrSwitch(2)
     assert mock_tosr.get_relay_state.call_count == 1
+    assert mock_tosr.update.call_count == 1
     sleep_ms(30000)
     main_loop.run_once()
     assert mock_tosr.get_relay_state.call_count == 2
     assert not tosr_switch_2.state
     assert mock_tosr.get_relay_state.call_count == 3
-    assert mock_tosr.update.call_count == 1
+    assert mock_tosr.update.call_count == 2
 
     mock_tosr.get_relay_state.reset_mock()
     mock_tosr.update.reset_mock()

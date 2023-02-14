@@ -1,7 +1,6 @@
 """Interface to the XBee pins with as core.Entity classes."""
 
 from lib.core import Entity
-from lib.mainloop import main_loop
 from machine import ADC, PWM, Pin
 
 
@@ -30,20 +29,11 @@ class DigitalInput(Entity):
 
     def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
         """Init the class."""
-        super().__init__()
         self._pin = Pin(gpio, Pin.IN, pull)
-        self.update()
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=period
-        )
+        super().__init__(period=period)
 
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
-
-    def update(self):
+    def update(self, auto=None):
         """Get pin state."""
-        super().update()
         value = bool(self._pin.value())
         if self._state != value:
             self._state = value
@@ -85,22 +75,13 @@ class AnalogInput(Entity):
 
     def __init__(self, gpio, period=500, threshold=1):
         """Init the class."""
-        super().__init__()
         self._last_callback_value = None
         self._pin = ADC(gpio)
         self._threshold = threshold
-        self.update()
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(auto=True), period=period
-        )
-
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
+        super().__init__(period=period)
 
     def update(self, auto=None):
         """Get pin state."""
-        super().update()
         value = self._pin.read()
         self._state = value
         threshold = self._threshold if auto else 1
