@@ -313,7 +313,7 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             elif key == "log":
                 if XBeeHumidifier._log_handler == self._number:
                     _XBEE_LOGGER.log(value["sev"], value["msg"])
-                if value["msg"] == "Not initialized":
+                if value["msg"] in ("Not initialized", "Main loop started"):
                     await self._async_startup(None)
             elif key == "pump":
                 if XBeeHumidifier._log_handler == self._number:
