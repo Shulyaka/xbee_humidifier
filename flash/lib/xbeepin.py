@@ -8,6 +8,7 @@ class DigitalOutput(Entity):
     """Digital output switch."""
 
     _cache = True
+    _type = bool
 
     def __init__(self, gpio):
         """Init the class."""
@@ -16,18 +17,18 @@ class DigitalOutput(Entity):
 
     def _get(self):
         """Get pin state."""
-        return bool(self._pin.value())
+        return self._pin.value()
 
     def _set(self, value):
         """Set pin state."""
         self._pin.value(value)
-        return bool(value)
 
 
 class DigitalInput(Entity):
     """Digital input sensor."""
 
     _readonly = True
+    _type = bool
 
     def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
         """Init the class."""
@@ -36,7 +37,7 @@ class DigitalInput(Entity):
 
     def _get(self):
         """Get pin state."""
-        return bool(self._pin.value())
+        return self._pin.value()
 
 
 class AnalogOutput(Entity):

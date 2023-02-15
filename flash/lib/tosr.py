@@ -15,6 +15,8 @@ except Exception as e:
 class TosrSwitch(Entity):
     """TOSR0X relay."""
 
+    _type = bool
+
     def __init__(self, switch_number, period=30000):
         """Init the class."""
         self._switch_number = switch_number
@@ -27,9 +29,7 @@ class TosrSwitch(Entity):
 
     def _set(self, value):
         """Set relay state."""
-        value = bool(value)
         tosr.set_relay_state(self._switch_number, value)
-        return value
 
 
 class TosrTemp(Entity):

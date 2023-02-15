@@ -68,12 +68,12 @@ class Entity:
         """Set new state."""
         if self._readonly:
             return
-        new_value = self._set(value)
-        if new_value is None:
-            new_value = value
+        if self._type is not None:
+            value = self._type(value)
+        self._set(value)
         if value != self._state or self._state is None:
-            self._state = new_value
-            self._run_triggers(new_value)
+            self._state = value
+            self._run_triggers(value)
 
     def update(self, auto=None):
         """Get updated state."""
@@ -95,8 +95,8 @@ class Entity:
         return self._state
 
     def _set(self, value):
-        """Write the value and return mapped value."""
-        return self._type(value) if self._type is not None else value
+        """Write the value."""
+        pass
 
 
 class VirtualSwitch(Entity):
