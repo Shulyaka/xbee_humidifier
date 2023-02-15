@@ -16,11 +16,12 @@ class TosrSwitch(Entity):
     """TOSR0X relay."""
 
     _type = bool
+    _period = 30000
 
-    def __init__(self, switch_number, period=30000):
+    def __init__(self, switch_number, *args, **kwargs):
         """Init the class."""
         self._switch_number = switch_number
-        super().__init__(value=None, period=period)
+        super().__init__(*args, **kwargs)
 
     def _get(self):
         """Get relay state."""
@@ -36,12 +37,11 @@ class TosrTemp(Entity):
     """TOSR0X-T temperature sensor."""
 
     _readonly = True
-
-    def __init__(self, period=30000, threshold=1 / 16):
-        """Init the class."""
-        super().__init__(period=period, threshold=threshold)
+    _period = 30000
+    _threshold = 1 / 16
 
     def _get(self):
+        """Get the temperature."""
         return tosr.temperature
 
 

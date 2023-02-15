@@ -22,6 +22,8 @@ MODE_AWAY = const("away")
 class GenericHygrostat(Entity):
     """Representation of a Generic Hygrostat device."""
 
+    _type = bool
+
     def __init__(
         self,
         switch_entity_id,
@@ -35,6 +37,8 @@ class GenericHygrostat(Entity):
         initial_state=None,
         away_humidity=None,
         sensor_stale_duration=None,
+        *args,
+        **kwargs
     ):
         """Initialize the hygrostat."""
         self._switch_entity_id = switch_entity_id
@@ -52,7 +56,9 @@ class GenericHygrostat(Entity):
         self._sensor_stale_duration = sensor_stale_duration
         self._remove_stale_tracking = None
         self._is_away = False
-        super().__init__(value=initial_state if initial_state is not None else False)
+        super().__init__(
+            value=initial_state if initial_state is not None else False, *args, **kwargs
+        )
 
         self._state_unsubscribe = self.subscribe(lambda x: self._state_changed(x))
 

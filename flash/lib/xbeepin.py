@@ -10,10 +10,10 @@ class DigitalOutput(Entity):
     _cache = True
     _type = bool
 
-    def __init__(self, gpio):
+    def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
         self._pin = Pin(gpio, Pin.OUT)
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def _get(self):
         """Get pin state."""
@@ -29,11 +29,12 @@ class DigitalInput(Entity):
 
     _readonly = True
     _type = bool
+    _period = 500
 
-    def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
+    def __init__(self, gpio, pull=Pin.PULL_UP, *args, **kwargs):
         """Init the class."""
         self._pin = Pin(gpio, Pin.IN, pull)
-        super().__init__(period=period)
+        super().__init__(*args, **kwargs)
 
     def _get(self):
         """Get pin state."""
@@ -45,10 +46,10 @@ class AnalogOutput(Entity):
 
     _cache = True
 
-    def __init__(self, gpio):
+    def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
         self._pin = PWM(gpio)
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def _get(self):
         """Get PWM value."""
@@ -63,11 +64,13 @@ class AnalogInput(Entity):
     """ADC Input."""
 
     _readonly = True
+    _period = 500
+    _threshold = 1
 
-    def __init__(self, gpio, period=500, threshold=1):
+    def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
         self._pin = ADC(gpio)
-        super().__init__(period=period, threshold=threshold)
+        super().__init__(*args, **kwargs)
 
     def _get(self):
         """Get pin state."""

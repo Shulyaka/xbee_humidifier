@@ -17,21 +17,26 @@ class Entity:
     _type = None
     _cache = False
     _readonly = False
+    _period = None
+    _threshold = None
 
     def __init__(self, value=None, period=None, threshold=None):
         """Init the class."""
         self._triggers = []
         self._state = None
         self._last_callback_value = None
-        self._threshold = threshold
+        if threshold is not None:
+            self._threshold = threshold if threshold != 0 else None
+        if period is not None:
+            self._period = period if period != 0 else None
         if not self._readonly:
             self.state = value
 
         self.update()
 
-        if period is not None:
+        if self._period is not None:
             self._stop_updates = main_loop.schedule_task(
-                lambda: self.update(auto=True), period=period
+                lambda: self.update(auto=True), period=self._period
             )
         else:
             self._stop_updates = None
