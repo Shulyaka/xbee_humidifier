@@ -15,18 +15,17 @@ class Entity:
     """Base class."""
 
     _type = None
+    _cache = False
+    _readonly = False
 
-    def __init__(self, value=None, period=None):
+    def __init__(self, value=None, period=None, threshold=None):
         """Init the class."""
         self._triggers = []
         self._state = None
-        # self.state = value
-        new_value = self._set(value)
-        if new_value is None:
-            new_value = value
-        if value != self._state or self._state is None:
-            self._state = new_value
-            self._run_triggers(new_value)
+        self._last_callback_value = None
+        self._threshold = threshold
+        if not self._readonly:
+            self.state = value
 
         self.update()
 
@@ -60,11 +59,15 @@ class Entity:
     @property
     def state(self):
         """Get cached state."""
+        if self._cache:
+            self.update(auto=True)
         return self._state
 
     @state.setter
     def state(self, value):
         """Set new state."""
+        if self._readonly:
+            return
         new_value = self._set(value)
         if new_value is None:
             new_value = value
@@ -74,7 +77,22 @@ class Entity:
 
     def update(self, auto=None):
         """Get updated state."""
-        pass
+        self._state = self._get()
+        if (
+            self._last_callback_value is None
+            or not auto
+            or (
+                self._threshold is not None
+                and abs(self._last_callback_value - self._state) >= self._threshold
+            )
+            or (self._threshold is None and self._last_callback_value != self._state)
+        ):
+            self._last_callback_value = self._state
+            self._run_triggers(self._state)
+
+    def _get(self):
+        """Read the value."""
+        return self._state
 
     def _set(self, value):
         """Write the value and return mapped value."""

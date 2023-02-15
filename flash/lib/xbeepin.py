@@ -7,97 +7,67 @@ from machine import ADC, PWM, Pin
 class DigitalOutput(Entity):
     """Digital output switch."""
 
+    _cache = True
+
     def __init__(self, gpio):
         """Init the class."""
-        super().__init__()
         self._pin = Pin(gpio, Pin.OUT)
+        super().__init__()
 
-    @property
-    def state(self):
+    def _get(self):
         """Get pin state."""
         return bool(self._pin.value())
 
-    @state.setter
-    def state(self, value):
+    def _set(self, value):
         """Set pin state."""
         self._pin.value(value)
-        self._run_triggers(bool(value))
+        return bool(value)
 
 
 class DigitalInput(Entity):
     """Digital input sensor."""
+
+    _readonly = True
 
     def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
         """Init the class."""
         self._pin = Pin(gpio, Pin.IN, pull)
         super().__init__(period=period)
 
-    def update(self, auto=None):
+    def _get(self):
         """Get pin state."""
-        value = bool(self._pin.value())
-        if self._state != value:
-            self._state = value
-            self._run_triggers(value)
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Output is disabled."""
-        pass
+        return bool(self._pin.value())
 
 
 class AnalogOutput(Entity):
     """PWM output."""
 
+    _cache = True
+
     def __init__(self, gpio):
         """Init the class."""
-        super().__init__()
         self._pin = PWM(gpio)
+        super().__init__()
 
-    @property
-    def state(self):
+    def _get(self):
         """Get PWM value."""
         return self._pin.duty()
 
-    @state.setter
-    def state(self, value):
+    def _set(self, value):
         """Set PWM value."""
         self._pin.duty(value)
-        self._run_triggers(value)
 
 
 class AnalogInput(Entity):
     """ADC Input."""
 
+    _readonly = True
+
     def __init__(self, gpio, period=500, threshold=1):
         """Init the class."""
-        self._last_callback_value = None
         self._pin = ADC(gpio)
-        self._threshold = threshold
-        super().__init__(period=period)
+        super().__init__(period=period, threshold=threshold)
 
-    def update(self, auto=None):
+    def _get(self):
         """Get pin state."""
-        value = self._pin.read()
-        self._state = value
-        threshold = self._threshold if auto else 1
-        if (
-            self._last_callback_value is None
-            or abs(self._last_callback_value - value) >= threshold
-        ):
-            self._last_callback_value = value
-            self._run_triggers(value)
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Output is disabled."""
-        pass
+        return self._pin.read()

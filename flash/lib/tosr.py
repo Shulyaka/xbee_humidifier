@@ -20,59 +20,29 @@ class TosrSwitch(Entity):
         self._switch_number = switch_number
         super().__init__(value=None, period=period)
 
-    @property
-    def state(self):
-        """Get cached relay state."""
+    def _get(self):
+        """Get relay state."""
+        tosr.update()
         return tosr.get_relay_state(self._switch_number)
 
-    @state.setter
-    def state(self, value):
+    def _set(self, value):
         """Set relay state."""
         value = bool(value)
         tosr.set_relay_state(self._switch_number, value)
-        if self._state != value:
-            self._state = value
-            self._run_triggers(value)
-
-    def update(self, auto=None):
-        """Get relay states."""
-        tosr.update()
-        value = self.state
-        if self._state != value:
-            self._state = value
-            self._run_triggers(value)
+        return value
 
 
 class TosrTemp(Entity):
     """TOSR0X-T temperature sensor."""
 
+    _readonly = True
+
     def __init__(self, period=30000, threshold=1 / 16):
         """Init the class."""
-        self._last_callback_value = None
-        self._threshold = threshold
-        super().__init__(period=period)
+        super().__init__(period=period, threshold=threshold)
 
-    def update(self, auto=None):
-        """Get current temperature."""
-        value = tosr.temperature
-        self._state = value
-        threshold = self._threshold if auto else 1 / 16
-        if (
-            self._last_callback_value is None
-            or abs(self._last_callback_value - value) >= threshold
-        ):
-            self._last_callback_value = value
-            self._run_triggers(value)
-
-    @property
-    def state(self):
-        """Get cached temperature."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Output is disabled."""
-        pass
+    def _get(self):
+        return tosr.temperature
 
 
 tosr_switch = {x: TosrSwitch(x + 1) for x in range(4)}

@@ -11,9 +11,11 @@ from lib.tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 def test_tosr_switch():
     """Test TosrSwitch class."""
     mock_tosr.get_relay_state.return_value = True
+    tosr_switch[0].update()
     assert tosr_switch[0].state
 
     mock_tosr.get_relay_state.return_value = False
+    tosr_switch[0].update()
     assert not tosr_switch[0].state
 
     mock_tosr.get_relay_state.reset_mock()
@@ -25,7 +27,7 @@ def test_tosr_switch():
     main_loop.run_once()
     assert mock_tosr.get_relay_state.call_count == 2
     assert not tosr_switch_2.state
-    assert mock_tosr.get_relay_state.call_count == 3
+    assert mock_tosr.get_relay_state.call_count == 2
     assert mock_tosr.update.call_count == 2
 
     mock_tosr.get_relay_state.reset_mock()
