@@ -1,7 +1,7 @@
-"""Interface to tosr0x relays with as core.Entity classes."""
+"""Interface to tosr0x relays with as core.Sensor classes."""
 
 from lib import logging
-from lib.core import Entity
+from lib.core import Sensor
 from lib.tosr0x import Tosr0x
 
 try:
@@ -12,7 +12,7 @@ except Exception as e:
     raise e
 
 
-class TosrSwitch(Entity):
+class TosrSwitch(Sensor):
     """TOSR0X relay."""
 
     _type = bool
@@ -33,7 +33,7 @@ class TosrSwitch(Entity):
         tosr.set_relay_state(self._switch_number, value)
 
 
-class TosrTemp(Entity):
+class TosrTemp(Sensor):
     """TOSR0X-T temperature sensor."""
 
     _readonly = True

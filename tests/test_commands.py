@@ -5,7 +5,7 @@ import logging
 from unittest.mock import patch
 
 import commands
-from lib.core import VirtualSensor, VirtualSwitch
+from lib.core import Sensor, Switch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 from machine import soft_reset as mock_soft_reset
@@ -16,12 +16,12 @@ from xbee import receive as mock_receive, transmit as mock_transmit
 def test_commands():
     """Test Commands class."""
 
-    valve = {x: VirtualSwitch() for x in range(5)}
-    pump_temp = VirtualSensor(34.2)
+    valve = {x: Switch() for x in range(5)}
+    pump_temp = Sensor(34.2)
 
-    humidifier_zone = {x: VirtualSwitch() for x in range(3)}
-    humidifier_sensor = {x: VirtualSensor() for x in range(3)}
-    humidifier_available = {x: VirtualSwitch() for x in range(3)}
+    humidifier_zone = {x: Switch() for x in range(3)}
+    humidifier_sensor = {x: Sensor() for x in range(3)}
+    humidifier_available = {x: Switch() for x in range(3)}
 
     humidifier = {
         x: GenericHygrostat(
@@ -40,8 +40,8 @@ def test_commands():
         for x in range(3)
     }
 
-    pump = VirtualSwitch()
-    pump_block = VirtualSwitch()
+    pump = Switch()
+    pump_block = Switch()
 
     cmnds = commands.HumidifierCommands(
         valve=valve,

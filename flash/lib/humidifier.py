@@ -3,7 +3,7 @@
 from time import ticks_ms
 
 from lib import logging
-from lib.core import Entity
+from lib.core import Switch
 from lib.mainloop import main_loop
 from micropython import const
 
@@ -19,10 +19,8 @@ MODE_NORMAL = const("normal")
 MODE_AWAY = const("away")
 
 
-class GenericHygrostat(Entity):
+class GenericHygrostat(Switch):
     """Representation of a Generic Hygrostat device."""
-
-    _type = bool
 
     def __init__(
         self,

@@ -1,4 +1,4 @@
-"""Implementation of Entity classes with subscription support."""
+"""Implementation of Sensor and Switch classes with event subscription support."""
 
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
@@ -11,7 +11,7 @@ from xbee import receive, transmit
 _LOGGER = logging.getLogger(__name__)
 
 
-class Entity:
+class Sensor:
     """Base class."""
 
     _type = None
@@ -104,16 +104,10 @@ class Entity:
         pass
 
 
-class VirtualSwitch(Entity):
-    """Virtual digital entity."""
+class Switch(Sensor):
+    """Digital entity."""
 
     _type = bool
-
-
-class VirtualSensor(Entity):
-    """Virtual numeric entity."""
-
-    pass
 
 
 class Commands:

@@ -1,10 +1,10 @@
-"""Interface to the XBee pins with as core.Entity classes."""
+"""Interface to the XBee pins with as core.Sensor classes."""
 
-from lib.core import Entity
+from lib.core import Sensor
 from machine import ADC, PWM, Pin
 
 
-class DigitalOutput(Entity):
+class DigitalOutput(Sensor):
     """Digital output switch."""
 
     _cache = True
@@ -24,7 +24,7 @@ class DigitalOutput(Entity):
         self._pin.value(value)
 
 
-class DigitalInput(Entity):
+class DigitalInput(Sensor):
     """Digital input sensor."""
 
     _readonly = True
@@ -41,7 +41,7 @@ class DigitalInput(Entity):
         return self._pin.value()
 
 
-class AnalogOutput(Entity):
+class AnalogOutput(Sensor):
     """PWM output."""
 
     _cache = True
@@ -60,7 +60,7 @@ class AnalogOutput(Entity):
         self._pin.duty(value)
 
 
-class AnalogInput(Entity):
+class AnalogInput(Sensor):
     """ADC Input."""
 
     _readonly = True
