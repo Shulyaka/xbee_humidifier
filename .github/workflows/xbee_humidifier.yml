@@ -1,4 +1,4 @@
-name: XBee Humidifier CI
+name: CI
 
 on:
   - push
