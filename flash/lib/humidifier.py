@@ -3,7 +3,7 @@
 from time import ticks_ms
 
 from lib import logging
-from lib.core import Entity
+from lib.core import Switch
 from lib.mainloop import main_loop
 from micropython import const
 
@@ -19,7 +19,7 @@ MODE_NORMAL = const("normal")
 MODE_AWAY = const("away")
 
 
-class GenericHygrostat(Entity):
+class GenericHygrostat(Switch):
     """Representation of a Generic Hygrostat device."""
 
     def __init__(
@@ -35,14 +35,14 @@ class GenericHygrostat(Entity):
         initial_state=None,
         away_humidity=None,
         sensor_stale_duration=None,
+        *args,
+        **kwargs
     ):
         """Initialize the hygrostat."""
-        super().__init__()
         self._switch_entity_id = switch_entity_id
         self._sensor_entity_id = sensor_entity_id
         self._dry_tolerance = dry_tolerance
         self._wet_tolerance = wet_tolerance
-        self._state = initial_state if initial_state is not None else False
         self._saved_target_humidity = away_humidity or target_humidity
         self._active = available_sensor_id
         self._active.state = False
@@ -54,6 +54,11 @@ class GenericHygrostat(Entity):
         self._sensor_stale_duration = sensor_stale_duration
         self._remove_stale_tracking = None
         self._is_away = False
+        super().__init__(
+            value=initial_state if initial_state is not None else False, *args, **kwargs
+        )
+
+        self._state_unsubscribe = self.subscribe(lambda x: self._state_changed(x))
 
         if self._target_humidity is None:
             self._target_humidity = self._min_humidity
@@ -69,6 +74,7 @@ class GenericHygrostat(Entity):
 
     def __del__(self):
         """Cancel callbacks."""
+        self._state_unsubscribe()
         self._sensor_unsubscribe()
         if self._remove_stale_tracking:
             self._remove_stale_tracking()
@@ -95,21 +101,13 @@ class GenericHygrostat(Entity):
 
         return data
 
-    @property
-    def state(self):
-        """Get current state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
+    def _state_changed(self, value):
         """Set current state."""
-        self._state = bool(value)
         if value:
             self._operate(force=True)
         else:
             if self._switch_entity_id.state:
                 self._switch_entity_id.state = False
-        self._run_triggers(bool(value))
 
     @property
     def extra_state_attributes(self):

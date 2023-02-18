@@ -6,7 +6,7 @@ from commands import HumidifierCommands
 import config
 from dutycycle import DutyCycle
 from lib import logging
-from lib.core import VirtualSensor, VirtualSwitch
+from lib.core import Sensor, Switch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 from micropython import kbd_intr, mem_info
@@ -16,9 +16,9 @@ collect()
 _LOGGER = logging.getLogger(__name__)
 
 
-humidifier_zone = {x: VirtualSwitch() for x in range(3)}
-humidifier_sensor = {x: VirtualSensor() for x in range(3)}
-humidifier_available = {x: VirtualSwitch() for x in range(3)}
+humidifier_zone = {x: Switch() for x in range(3)}
+humidifier_sensor = {x: Sensor() for x in range(3)}
+humidifier_available = {x: Switch() for x in range(3)}
 
 if config.debug:
     zone_unsubscribe = {}
@@ -84,7 +84,7 @@ humidifier = {
     for x in range(3)
 }
 
-pump_block = VirtualSwitch()
+pump_block = Switch()
 
 if config.debug:
     humidifier_unsubscribe = {}

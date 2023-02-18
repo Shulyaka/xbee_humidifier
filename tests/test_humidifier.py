@@ -2,7 +2,7 @@
 from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
-from lib.core import Entity, VirtualSensor, VirtualSwitch
+from lib.core import Sensor, Switch
 from lib.humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat
 from lib.mainloop import main_loop
 import pytest
@@ -12,9 +12,9 @@ MIN_HUMIDITY = 20
 MAX_HUMIDITY = 65
 TARGET_HUMIDITY = 42
 
-humidifier_switch = VirtualSwitch()
-humidifier_sensor = VirtualSensor()
-humidifier_available = VirtualSwitch()
+humidifier_switch = Switch()
+humidifier_sensor = Sensor()
+humidifier_available = Switch()
 
 calls = []
 switch_unsubscribe = humidifier_switch.subscribe(lambda x: calls.append(x))
@@ -36,7 +36,7 @@ def test_heneric_hygrostat():
         sensor_stale_duration=30 * 60,
     )
 
-    assert isinstance(humidifier, Entity)
+    assert isinstance(humidifier, Switch)
 
     callback = MagicMock()
     humidifier.subscribe(callback)
@@ -117,7 +117,7 @@ def setup_comp_2():
 
 def test_unavailable_state():
     """Test the setting of defaults to unknown."""
-    _setup_sensor(None)
+    _setup_sensor("unavailable")
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,

@@ -1,124 +1,77 @@
-"""Interface to the XBee pins with as core.Entity classes."""
+"""Interface to the XBee pins with as core.Sensor classes."""
 
-from lib.core import Entity
-from lib.mainloop import main_loop
+from lib.core import Sensor
 from machine import ADC, PWM, Pin
 
 
-class DigitalOutput(Entity):
+class DigitalOutput(Sensor):
     """Digital output switch."""
 
-    def __init__(self, gpio):
+    _cache = True
+    _type = bool
+
+    def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
-        super().__init__()
         self._pin = Pin(gpio, Pin.OUT)
+        super().__init__(*args, **kwargs)
 
-    @property
-    def state(self):
+    def _get(self):
         """Get pin state."""
-        return bool(self._pin.value())
+        return self._pin.value()
 
-    @state.setter
-    def state(self, value):
+    def _set(self, value):
         """Set pin state."""
         self._pin.value(value)
-        self._run_triggers(bool(value))
 
 
-class DigitalInput(Entity):
+class DigitalInput(Sensor):
     """Digital input sensor."""
 
-    def __init__(self, gpio, pull=Pin.PULL_UP, period=500):
+    _readonly = True
+    _type = bool
+    _period = 500
+
+    def __init__(self, gpio, pull=Pin.PULL_UP, *args, **kwargs):
         """Init the class."""
-        super().__init__()
-        self._value = None
         self._pin = Pin(gpio, Pin.IN, pull)
-        self.update()
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(), period=period
-        )
+        super().__init__(*args, **kwargs)
 
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
-
-    def update(self):
+    def _get(self):
         """Get pin state."""
-        super().update()
-        value = bool(self._pin.value())
-        if self._value != value:
-            self._value = value
-            self._run_triggers(value)
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._value
-
-    @state.setter
-    def state(self, value):
-        """Output is disabled."""
-        pass
+        return self._pin.value()
 
 
-class AnalogOutput(Entity):
+class AnalogOutput(Sensor):
     """PWM output."""
 
-    def __init__(self, gpio):
-        """Init the class."""
-        super().__init__()
-        self._pin = PWM(gpio)
+    _cache = True
 
-    @property
-    def state(self):
+    def __init__(self, gpio, *args, **kwargs):
+        """Init the class."""
+        self._pin = PWM(gpio)
+        super().__init__(*args, **kwargs)
+
+    def _get(self):
         """Get PWM value."""
         return self._pin.duty()
 
-    @state.setter
-    def state(self, value):
+    def _set(self, value):
         """Set PWM value."""
         self._pin.duty(value)
-        self._run_triggers(value)
 
 
-class AnalogInput(Entity):
+class AnalogInput(Sensor):
     """ADC Input."""
 
-    def __init__(self, gpio, period=500, threshold=1):
+    _readonly = True
+    _period = 500
+    _threshold = 1
+
+    def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
-        super().__init__()
-        self._value = None
-        self._last_callback_value = None
         self._pin = ADC(gpio)
-        self._threshold = threshold
-        self.update()
-        self._stop_updates = main_loop.schedule_task(
-            lambda: self.update(auto=True), period=period
-        )
+        super().__init__(*args, **kwargs)
 
-    def __del__(self):
-        """Cancel callbacks."""
-        self._stop_updates()
-
-    def update(self, auto=None):
+    def _get(self):
         """Get pin state."""
-        super().update()
-        value = self._pin.read()
-        self._value = value
-        threshold = self._threshold if auto else 1
-        if (
-            self._last_callback_value is None
-            or abs(self._last_callback_value - value) >= threshold
-        ):
-            self._last_callback_value = value
-            self._run_triggers(value)
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._value
-
-    @state.setter
-    def state(self, value):
-        """Output is disabled."""
-        pass
+        return self._pin.read()

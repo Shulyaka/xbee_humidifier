@@ -1,4 +1,4 @@
-"""Implementation of Entity classes with subscription support."""
+"""Implementation of Sensor and Switch classes with event subscription support."""
 
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
@@ -11,12 +11,40 @@ from xbee import receive, transmit
 _LOGGER = logging.getLogger(__name__)
 
 
-class Entity:
+class Sensor:
     """Base class."""
 
-    def __init__(self):
+    _type = None
+    _cache = False
+    _readonly = False
+    _period = None
+    _threshold = None
+
+    def __init__(self, value=None, period=None, threshold=None):
         """Init the class."""
         self._triggers = []
+        self._state = None
+        self._last_callback_value = None
+        if threshold is not None:
+            self._threshold = threshold if threshold != 0 else None
+        if period is not None:
+            self._period = period if period != 0 else None
+        if not self._readonly:
+            self.state = value
+
+        self.update()
+
+        if self._period is not None:
+            self._stop_updates = main_loop.schedule_task(
+                lambda: self.update(auto=True), period=self._period
+            )
+        else:
+            self._stop_updates = None
+
+    def __del__(self):
+        """Cancel callbacks."""
+        if self._stop_updates is not None:
+            self._stop_updates()
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
@@ -36,56 +64,50 @@ class Entity:
     @property
     def state(self):
         """Get cached state."""
-        pass
+        if self._cache:
+            self.update(auto=True)
+        return self._state
 
     @state.setter
     def state(self, value):
         """Set new state."""
-        self._run_triggers(value)
+        if self._readonly:
+            return
+        if self._type is not None:
+            value = self._type(value)
+        self._set(value)
+        if value != self._state or self._state is None:
+            self._state = value
+            self._run_triggers(value)
 
-    def update(self):
+    def update(self, auto=None):
         """Get updated state."""
+        self._state = self._get()
+        if (
+            self._last_callback_value is None
+            or not auto
+            or (
+                self._threshold is not None
+                and abs(self._last_callback_value - self._state) >= self._threshold
+            )
+            or (self._threshold is None and self._last_callback_value != self._state)
+        ):
+            self._last_callback_value = self._state
+            self._run_triggers(self._state)
+
+    def _get(self):
+        """Read the value."""
+        return self._state
+
+    def _set(self, value):
+        """Write the value."""
         pass
 
 
-class VirtualSwitch(Entity):
-    """Virtual digital entity."""
+class Switch(Sensor):
+    """Digital entity."""
 
-    def __init__(self, value=None):
-        """Init the class."""
-        super().__init__()
-        self._state = bool(value)
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Set new state."""
-        self._state = bool(value)
-        self._run_triggers(bool(value))
-
-
-class VirtualSensor(Entity):
-    """Virtual numeric entity."""
-
-    def __init__(self, value=None):
-        """Init the class."""
-        super().__init__()
-        self._state = value
-
-    @property
-    def state(self):
-        """Get cached state."""
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        """Set new state."""
-        self._state = value
-        self._run_triggers(value)
+    _type = bool
 
 
 class Commands:

@@ -3,7 +3,7 @@
 from time import sleep as mock_sleep
 
 import dutycycle
-from lib.core import VirtualSensor, VirtualSwitch
+from lib.core import Sensor, Switch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 
@@ -11,11 +11,11 @@ from lib.mainloop import main_loop
 def test_dutycycle():
     """Test DutyCycle class."""
 
-    tosr_switch = {x: VirtualSwitch() for x in range(5)}
+    tosr_switch = {x: Switch() for x in range(5)}
 
-    humidifier_switch = {x: VirtualSwitch() for x in range(3)}
-    humidifier_sensor = {x: VirtualSensor(40) for x in range(3)}
-    humidifier_available = {x: VirtualSwitch() for x in range(3)}
+    humidifier_switch = {x: Switch() for x in range(3)}
+    humidifier_sensor = {x: Sensor(40) for x in range(3)}
+    humidifier_available = {x: Switch() for x in range(3)}
 
     humidifier = {
         x: GenericHygrostat(
@@ -34,8 +34,8 @@ def test_dutycycle():
         for x in range(3)
     }
 
-    pump = VirtualSwitch()
-    pump_block = VirtualSwitch()
+    pump = Switch()
+    pump_block = Switch()
 
     duty_cycle = dutycycle.DutyCycle(
         pump, humidifier, humidifier_switch, tosr_switch, pump_block

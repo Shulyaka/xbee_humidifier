@@ -5,13 +5,13 @@ from micropython import const
 debug = const(True)
 
 if debug:
-    from lib.core import VirtualSensor, VirtualSwitch
+    from lib.core import Sensor, Switch
 
-    pump = VirtualSwitch()
-    pump_temp = VirtualSensor(37)
-    valve_switch = {x: VirtualSwitch() for x in range(4)}
-    pressure_in = VirtualSensor(7)
-    pressure_out = VirtualSensor(59)
+    pump = Switch()
+    pump_temp = Sensor(37)
+    valve_switch = {x: Switch() for x in range(4)}
+    pressure_in = Sensor(7)
+    pressure_out = Sensor(59)
 else:
     from lib.tosr import (  # noqa: F401
         tosr_switch as valve_switch,
