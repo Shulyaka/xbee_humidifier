@@ -12,11 +12,14 @@ from homeassistant.components.humidifier import (
 )
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
 from homeassistant.core import callback
-from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.xbee_humidifier import DOMAIN, async_setup_entry
+
+from .const import IEEE, MOCK_CONFIG
 
 ENTITY = "humidifier.test_humidifier_1"
-ENT_SENSOR = "sensor.test"
-IEEE = "00:11:22:33:44:55:66:77"
+ENT_SENSOR = "sensor.test1"
 
 
 def _setup_sensor(hass, humidity):
@@ -74,22 +77,8 @@ async def test_humidifier_services(hass, caplog):
     }
     commands["hum"] = MagicMock(return_value=hum_resp)
 
-    assert await async_setup_component(
-        hass,
-        "humidifier",
-        {
-            "humidifier": {
-                "platform": "xbee_humidifier",
-                "name": "test_humidifier_1",
-                "target_sensor": ENT_SENSOR,
-                "target_humidity": 42,
-                "away_humidity": 32,
-                "number": 1,
-                "device_ieee": IEEE,
-            }
-        },
-    )
-
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    assert await async_setup_entry(hass, config_entry)
     await hass.async_block_till_done()
 
     assert len(commands) == 2

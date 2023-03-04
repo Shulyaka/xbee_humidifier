@@ -9,9 +9,9 @@ from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
     MODE_AWAY,
     MODE_NORMAL,
-    PLATFORM_SCHEMA,
     HumidifierDeviceClass,
     HumidifierEntity,
+    HumidifierEntityDescription,
     HumidifierEntityFeature,
 )
 from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
@@ -36,20 +36,11 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import DOMAIN as HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from . import (
-    CONF_AWAY_HUMIDITY,
-    CONF_DEVICE_IEEE,
-    CONF_NUMBER,
-    CONF_SENSOR,
-    CONF_TARGET_HUMIDITY,
-    XBEE_HUMIDIFIER_SCHEMA,
-)
+from . import CONF_AWAY_HUMIDITY, CONF_DEVICE_IEEE, CONF_SENSOR, CONF_TARGET_HUMIDITY
 
 _LOGGER = logging.getLogger(__name__)
 _XBEE_LOGGER = logging.getLogger("xbee_humidifier")
@@ -63,37 +54,36 @@ XBEE_DATA_ENDPOINT = 0xE8
 
 REMOTE_COMMAND_TIMEOUT = 30
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(XBEE_HUMIDIFIER_SCHEMA.schema)
 
-
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
-    """Set up the generic hygrostat platform."""
-    if discovery_info:
-        config = discovery_info
-    name = config[CONF_NAME]
-    device_ieee = config[CONF_DEVICE_IEEE]
-    number = config[CONF_NUMBER]
-    sensor_entity_id = config[CONF_SENSOR]
-    target_humidity = config.get(CONF_TARGET_HUMIDITY)
-    away_humidity = config.get(CONF_AWAY_HUMIDITY)
-
-    async_add_entities(
-        [
+async def async_setup_entry(hass, entry, async_add_devices):
+    """Set up the humidifier platform."""
+    humidifiers = []
+    device_ieee = entry.data[CONF_DEVICE_IEEE]
+    for number in range(1, 4):
+        config = entry.data[number]
+        name = config[CONF_NAME]
+        sensor_entity_id = config[CONF_SENSOR]
+        target_humidity = config.get(CONF_TARGET_HUMIDITY)
+        away_humidity = config.get(CONF_AWAY_HUMIDITY)
+        entity_description = HumidifierEntityDescription(
+            key="xbee_humidifier_" + str(number),
+            name="Integration Humidifier " + str(number),
+            icon="mdi:humidifier",
+            device_class=HumidifierDeviceClass.HUMIDIFIER,
+        )
+        humidifiers.append(
             XBeeHumidifier(
                 name,
                 device_ieee,
-                number,
+                number - 1,
                 sensor_entity_id,
                 target_humidity,
                 away_humidity,
+                entity_description,
             )
-        ]
-    )
+        )
+
+    async_add_devices(humidifiers)
 
 
 class XBeeHumidifier(HumidifierEntity, RestoreEntity):
@@ -113,8 +103,10 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
         sensor_entity_id,
         target_humidity,
         away_humidity,
+        entity_description,
     ):
         """Initialize the hygrostat."""
+        self.entity_description = entity_description
         self._name = name
         self._device_ieee = device_ieee
         self._number = number
@@ -230,7 +222,10 @@ class XBeeHumidifier(HumidifierEntity, RestoreEntity):
             await self._command("hum", self._number, is_on=self._state)
 
         sensor_state = self.hass.states.get(self._sensor_entity_id)
-        if sensor_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+        if sensor_state is not None and sensor_state.state not in (
+            STATE_UNKNOWN,
+            STATE_UNAVAILABLE,
+        ):
             await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
 
         # Add listener

@@ -1,9 +1,8 @@
 """The xbee_humidifier custom component."""
-from homeassistant.const import CONF_NAME, Platform
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv, discovery
-from homeassistant.helpers.typing import ConfigType
-import voluptuous as vol
 
 DOMAIN = "xbee_humidifier"
 
@@ -15,33 +14,28 @@ CONF_DEVICE_IEEE = "device_ieee"
 
 DEFAULT_NAME = "XBee Humidifier"
 
-XBEE_HUMIDIFIER_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_NUMBER): vol.In([0, 1, 2]),
-        vol.Required(CONF_SENSOR): cv.entity_id,
-        vol.Required(CONF_DEVICE_IEEE): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_TARGET_HUMIDITY): vol.Coerce(int),
-        vol.Optional(CONF_AWAY_HUMIDITY): vol.Coerce(int),
-    }
-)
 
-CONFIG_SCHEMA = vol.Schema(
-    {DOMAIN: vol.All(cv.ensure_list, [XBEE_HUMIDIFIER_SCHEMA])},
-    extra=vol.ALLOW_EXTRA,
-)
+PLATFORMS: list[Platform] = [
+    Platform.HUMIDIFIER,
+]
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Generic Hygrostat component."""
-    if DOMAIN not in config:
-        return True
-
-    for humidifier_conf in config[DOMAIN]:
-        hass.async_create_task(
-            discovery.async_load_platform(
-                hass, Platform.HUMIDIFIER, DOMAIN, humidifier_conf, config
-            )
-        )
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up this integration using UI."""
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Handle removal of an entry."""
+    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unloaded
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload config entry."""
+    await async_unload_entry(hass, entry)
+    await async_setup_entry(hass, entry)
