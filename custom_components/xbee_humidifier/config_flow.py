@@ -12,8 +12,8 @@ from . import (
     CONF_NUMBER,
     CONF_SENSOR,
     CONF_TARGET_HUMIDITY,
-    DOMAIN,
 )
+from .const import DOMAIN
 
 DEFAULT_NAME = "XBee Humidifier"
 
