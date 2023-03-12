@@ -1,5 +1,6 @@
 """Implementation of Sensor and Switch classes with event subscription support."""
 
+from binascii import hexlify
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
 
@@ -207,4 +208,4 @@ class Commands:
 
     def cmd_unique_id(self, sender_eui64):
         """Return the unique identifier for the processor."""
-        return unique_id().decode()
+        return hexlify(unique_id()).decode()

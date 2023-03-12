@@ -135,7 +135,7 @@ def test_commands():
     ]
 
     assert command("bind") == "OK"
-    assert command("unique_id") == "\x01\x02\x03\x04\x05\x06\x07\x08"
+    assert command("unique_id") == "0102030405060708"
     pump_temp.state = 34.3
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
