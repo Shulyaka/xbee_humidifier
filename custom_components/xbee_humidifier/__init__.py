@@ -5,12 +5,11 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
-from .coordinator import XBeeHumidifierDataUpdateCoordinator
+from .coordinator import XBeeHumidifierApiClient, XBeeHumidifierDataUpdateCoordinator
 
 CONF_SENSOR = "target_sensor"
 CONF_TARGET_HUMIDITY = "target_humidity"
 CONF_AWAY_HUMIDITY = "away_humidity"
-CONF_NUMBER = "number"
 CONF_DEVICE_IEEE = "device_ieee"
 
 
@@ -22,12 +21,12 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
+    client = XBeeHumidifierApiClient(
+        hass=hass, device_ieee=entry.data[CONF_DEVICE_IEEE]
+    )
     hass.data[DOMAIN][
         entry.entry_id
-    ] = coordinator = XBeeHumidifierDataUpdateCoordinator(
-        hass=hass,
-        device_ieee=entry.data[CONF_DEVICE_IEEE],
-    )
+    ] = coordinator = XBeeHumidifierDataUpdateCoordinator(hass=hass, client=client)
 
     await coordinator.async_config_entry_first_refresh()
 

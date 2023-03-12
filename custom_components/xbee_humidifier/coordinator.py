@@ -37,25 +37,17 @@ XBEE_DATA_ENDPOINT = 0xE8
 REMOTE_COMMAND_TIMEOUT = 30
 
 
-class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from XBeeHumidifier."""
-
-    config_entry: ConfigEntry
+class XBeeHumidifierApiClient:
+    """Class to fetch data from XBeeHumidifier."""
 
     def __init__(
         self,
         hass: HomeAssistant,
         device_ieee,
     ) -> None:
-        """Inititialize the XBee Humidifier Client."""
-        super().__init__(
-            hass=hass,
-            logger=logging.getLogger(__package__),
-            name=DOMAIN,
-            update_method=self.async_update_data,
-            update_interval=timedelta(minutes=10),
-        )
+        """Inititialize the XBee Humidifier API Client."""
 
+        self.hass = hass
         self._device_ieee = device_ieee
         self._cmd_lock = asyncio.Lock()
         self._cmd_resp_lock = asyncio.Lock()
@@ -74,30 +66,12 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self.hass.bus.async_listen(ZHA_EVENT, async_zha_event, ieee_event_filter)
 
-        self._xbee_logger = logging.getLogger("xbee_humidifier")
-
-        async def async_log(data):
-            self._xbee_logger.log(data["sev"], data["msg"])
-            if data["msg"] in ("Not initialized", "Main loop started"):
-                await self.async_request_refresh()
-
-        self._remove_log_handler = self.add_subscriber("log", async_log)
-
-    def __del__(self):
-        """Destructor."""
-        self._remove_log_handler()
-
     def add_subscriber(self, name, callback):
         """Register listener."""
         if name not in self._callbacks:
             self._callbacks[name] = []
         self._callbacks[name].append(callback)
         return lambda: self._callbacks[name].remove(callback)
-
-    @callback
-    async def async_update_data(self):
-        """Update data."""
-        await self.command("bind")
 
     async def command(self, command, *args, **kwargs):
         """Issue xbee humidifier command."""
@@ -181,3 +155,43 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.error(type(e).__name__ + ": " + str(e))
             else:
                 _LOGGER.warning("No callback for %s", {key: value})
+
+
+class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching data from XBeeHumidifier."""
+
+    config_entry: ConfigEntry
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        client: XBeeHumidifierApiClient,
+    ) -> None:
+        """Inititialize the XBee Humidifier Client."""
+        super().__init__(
+            hass=hass,
+            logger=logging.getLogger(__package__),
+            name=DOMAIN,
+            update_method=self.async_update_data,
+            update_interval=timedelta(minutes=10),
+        )
+
+        self.client = client
+
+        self._xbee_logger = logging.getLogger("xbee_humidifier")
+
+        async def async_log(data):
+            self._xbee_logger.log(data["sev"], data["msg"])
+            if data["msg"] in ("Not initialized", "Main loop started"):
+                await self.async_request_refresh()
+
+        self._remove_log_handler = self.client.add_subscriber("log", async_log)
+
+    def __del__(self):
+        """Destructor."""
+        self._remove_log_handler()
+
+    @callback
+    async def async_update_data(self):
+        """Update data."""
+        await self.client.command("bind")
