@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 
 soft_reset = MagicMock()
 
+unique_id = MagicMock(return_value=b"\x01\x02\x03\x04\x05\x06\x07\x08")
+
 
 class Pin:
     """Mock Pin class."""

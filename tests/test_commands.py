@@ -128,12 +128,14 @@ def test_commands():
         "soft_reset",
         "test",
         "unbind",
+        "unique_id",
         "valve",
         "valve_bind",
         "valve_unbind",
     ]
 
     assert command("bind") == "OK"
+    assert command("unique_id") == "\x01\x02\x03\x04\x05\x06\x07\x08"
     pump_temp.state = 34.3
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"

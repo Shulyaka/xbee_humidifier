@@ -5,7 +5,7 @@ from json import dumps as json_dumps, loads as json_loads
 
 from lib import logging
 from lib.mainloop import main_loop
-from machine import soft_reset
+from machine import soft_reset, unique_id
 from xbee import receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
@@ -204,3 +204,7 @@ class Commands:
     def cmd_soft_reset(self, sender_eui64=None):
         """Schedule soft reset."""
         main_loop.schedule_task(soft_reset)
+
+    def cmd_unique_id(self, sender_eui64):
+        """Return the unique identifier for the processor."""
+        return unique_id().decode()
