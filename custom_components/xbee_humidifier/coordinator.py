@@ -54,6 +54,7 @@ class XBeeHumidifierApiClient:
         self._awaiting = {}
         self._callbacks = {}
 
+        @callback
         async def async_zha_event(event):
             await self._async_data_received(event.data["args"]["data"])
 
@@ -64,7 +65,13 @@ class XBeeHumidifierApiClient:
                 and event.data["device_ieee"] == self._device_ieee
             )
 
-        self.hass.bus.async_listen(ZHA_EVENT, async_zha_event, ieee_event_filter)
+        self._remove_listener = self.hass.bus.async_listen(
+            ZHA_EVENT, async_zha_event, ieee_event_filter
+        )
+
+    def __del__(self):
+        """Unsubscribe events."""
+        self._remove_listener()
 
     def add_subscriber(self, name, callback):
         """Register listener."""
@@ -97,9 +104,9 @@ class XBeeHumidifierApiClient:
                     timeout=REMOTE_COMMAND_TIMEOUT,
                 )
             except asyncio.TimeoutError:
-                _LOGGER.warning("No response to %s command", command)
+                _LOGGER.error("No response to %s command", command)
                 del self._awaiting[command]
-                raise
+                raise TimeoutError("No response to %s command" % command)
 
     async def _cmd(self, command, data):
         if command in self._awaiting:
@@ -121,9 +128,10 @@ class XBeeHumidifierApiClient:
 
         try:
             await self.hass.services.async_call(
-                ZHA_DOMAIN, SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND, data
+                ZHA_DOMAIN, SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND, data, True
             )
         except Exception as e:
+            _LOGGER.error(e)
             future.set_exception(e)
             del self._awaiting[command]
 

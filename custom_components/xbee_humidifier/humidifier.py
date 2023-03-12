@@ -45,7 +45,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the humidifier platform."""
     humidifiers = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    for number in range(1, 4):
+    for number in range(0, 3):
         config = entry.data[number]
         name = config[CONF_NAME]
         sensor_entity_id = config[CONF_SENSOR]
@@ -60,7 +60,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
         humidifiers.append(
             XBeeHumidifier(
                 name,
-                number - 1,
+                number,
                 sensor_entity_id,
                 target_humidity,
                 away_humidity,
