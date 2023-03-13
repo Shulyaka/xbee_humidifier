@@ -53,6 +53,17 @@ class XBeeHumidifierApiClient:
         self._cmd_resp_lock = asyncio.Lock()
         self._awaiting = {}
         self._callbacks = {}
+        self._remove_listener = None
+        self.start()
+
+    def __del__(self):
+        """Destructor."""
+        self.stop()
+
+    def start(self):
+        """Subscribe events."""
+        if self._remove_listener:
+            return
 
         @callback
         async def async_zha_event(event):
@@ -69,9 +80,11 @@ class XBeeHumidifierApiClient:
             ZHA_EVENT, async_zha_event, ieee_event_filter
         )
 
-    def __del__(self):
+    def stop(self):
         """Unsubscribe events."""
-        self._remove_listener()
+        if self._remove_listener:
+            self._remove_listener()
+            self._remove_listener = None
 
     def add_subscriber(self, name, callback):
         """Register listener."""

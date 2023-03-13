@@ -41,12 +41,12 @@ XBEE_DATA_ENDPOINT = 0xE8
 REMOTE_COMMAND_TIMEOUT = 30
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the humidifier platform."""
     humidifiers = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 3):
-        config = entry.data[number]
+        config = entry.data["humidifier_" + str(number)]
         name = config[CONF_NAME]
         sensor_entity_id = config[CONF_SENSOR]
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
@@ -69,7 +69,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
             )
         )
 
-    async_add_devices(humidifiers)
+    async_add_entities(humidifiers)
 
 
 class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
@@ -224,6 +224,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._remove_sensor_tracking = async_track_state_change(
                 self.hass, self._sensor_entity_id, self._async_sensor_changed
             )
+            self.async_on_remove(self._remove_sensor_tracking)
 
     @property
     def available(self):

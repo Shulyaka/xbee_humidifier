@@ -39,8 +39,10 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
-            client = XBeeHumidifierApiClient(self.hass, user_input[CONF_DEVICE_IEEE])
             try:
+                client = XBeeHumidifierApiClient(
+                    self.hass, user_input[CONF_DEVICE_IEEE]
+                )
                 unique_id = await client.command("unique_id")
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
@@ -51,8 +53,10 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     target_humidity = hum["state_attr"]["hum"]
                     away_humidity = hum["extra_state_attr"].get("sav_hum")
                     self.hum[number] = (target_humidity, away_humidity)
+                client.stop()
             except Exception as err:
                 _errors["base"] = str(err)
+                client.stop()
             else:
                 self.device_ieee = user_input[CONF_DEVICE_IEEE]
                 self.humidifier = {}
@@ -126,9 +130,9 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 title=self.device_ieee,
                 data={
                     CONF_DEVICE_IEEE: self.device_ieee,
-                    0: self.humidifier[0],
-                    1: self.humidifier[1],
-                    2: self.humidifier[2],
+                    "humidifier_0": self.humidifier[0],
+                    "humidifier_1": self.humidifier[1],
+                    "humidifier_2": self.humidifier[2],
                 },
             )
 
