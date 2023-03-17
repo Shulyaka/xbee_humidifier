@@ -43,13 +43,13 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 client = XBeeHumidifierApiClient(
                     self.hass, user_input[CONF_DEVICE_IEEE]
                 )
-                unique_id = await client.command("unique_id")
+                unique_id = await client.async_command("unique_id")
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
 
                 self.hum = {}
                 for number in range(0, 3):
-                    hum = await client.command("hum", number)
+                    hum = await client.async_command("hum", number)
                     target_humidity = hum["state_attr"]["hum"]
                     away_humidity = hum["extra_state_attr"].get("sav_hum")
                     self.hum[number] = (target_humidity, away_humidity)

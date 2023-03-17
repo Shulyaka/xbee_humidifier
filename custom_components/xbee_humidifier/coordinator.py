@@ -93,8 +93,19 @@ class XBeeHumidifierApiClient:
         self._callbacks[name].append(callback)
         return lambda: self._callbacks[name].remove(callback)
 
-    async def command(self, command, *args, **kwargs):
-        """Issue xbee humidifier command."""
+    def command(self, command, *args, **kwargs):
+        """Issue xbee humidifier command synchronously."""
+        if self.hass.loop == asyncio.get_running_loop():
+            raise NotImplementedError(
+                "The synchronous function cannot be run from the main hass loop, run from thread instead"
+            )
+
+        return asyncio.run_coroutine_threadsafe(
+            self.async_command(command, *args, **kwargs), self.hass.loop
+        ).result()
+
+    async def async_command(self, command, *args, **kwargs):
+        """Issue xbee humidifier command asynchronously."""
         if len(args) > 0 and len(kwargs) > 0:
             data = {"cmd": command, "args": (args, kwargs)}
         elif len(args) > 1:
@@ -210,9 +221,20 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __del__(self):
         """Destructor."""
-        self._remove_log_handler()
+        self.stop()
+
+    def stop(self):
+        """Unsubscribe events."""
+        if self._remove_log_handler:
+            self._remove_log_handler()
+            self._remove_log_handler = None
+
+    async def async_config_entry_first_refresh(self) -> None:
+        """Refresh data for the first time when a config entry is setup."""
+        await super().async_config_entry_first_refresh()
+        self.unique_id = await self.client.async_command("unique_id")
 
     @callback
     async def async_update_data(self):
         """Update data."""
-        await self.client.command("bind")
+        await self.client.async_command("bind")
