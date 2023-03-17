@@ -1,7 +1,7 @@
 {
   "domain": "xbee_humidifier",
   "name": "XBee Humidifier",
-  "config_flow": false,
+  "config_flow": true,
   "documentation": "https://github.com/Shulyaka/xbee_humidifier/README.md",
   "issue_tracker": "https://github.com/Shulyaka/xbee_humidifier/issues",
   "requirements": [],

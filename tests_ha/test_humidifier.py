@@ -12,11 +12,14 @@ from homeassistant.components.humidifier import (
 )
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
 from homeassistant.core import callback
-from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-ENTITY = "humidifier.test_humidifier_1"
-ENT_SENSOR = "sensor.test"
-IEEE = "00:11:22:33:44:55:66:77"
+from custom_components.xbee_humidifier.const import DOMAIN
+
+from .const import IEEE, MOCK_CONFIG
+
+ENTITY = "humidifier.test_humidifier_2"
+ENT_SENSOR = "sensor.test2"
 
 
 def _setup_sensor(hass, humidity):
@@ -74,34 +77,33 @@ async def test_humidifier_services(hass, caplog):
     }
     commands["hum"] = MagicMock(return_value=hum_resp)
 
-    assert await async_setup_component(
-        hass,
-        "humidifier",
-        {
-            "humidifier": {
-                "platform": "xbee_humidifier",
-                "name": "test_humidifier_1",
-                "target_sensor": ENT_SENSOR,
-                "target_humidity": 42,
-                "away_humidity": 32,
-                "number": 1,
-                "device_ieee": IEEE,
-            }
-        },
-    )
-
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    await config_entry.async_setup(hass)
     await hass.async_block_till_done()
 
-    assert len(commands) == 2
+    assert len(commands) == 3
     commands["bind"].assert_called_once_with()
-    assert commands["hum"].call_count == 7
-    assert commands["hum"].call_args_list[0][0][0] == 1
-    assert commands["hum"].call_args_list[1][0][0] == [[1], {"mode": "away"}]
-    assert commands["hum"].call_args_list[2][0][0] == [[1], {"hum": 32}]
-    assert commands["hum"].call_args_list[3][0][0] == [[1], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[4][0][0] == [[1], {"hum": 42}]
-    assert commands["hum"].call_args_list[5][0][0] == [[1], {"is_on": False}]
-    assert commands["hum"].call_args_list[6][0][0] == [[1], {"cur_hum": "50"}]
+    commands["unique_id"].assert_called_once_with()
+    assert commands["hum"].call_count == 19
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_args_list[3][0][0] == [[0], {"mode": "away"}]
+    assert commands["hum"].call_args_list[4][0][0] == [[1], {"mode": "away"}]
+    assert commands["hum"].call_args_list[5][0][0] == [[2], {"mode": "away"}]
+    assert commands["hum"].call_args_list[6][0][0] == [[0], {"hum": 32}]
+    assert commands["hum"].call_args_list[7][0][0] == [[1], {"hum": 32}]
+    assert commands["hum"].call_args_list[8][0][0] == [[2], {"hum": 32}]
+    assert commands["hum"].call_args_list[9][0][0] == [[0], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[10][0][0] == [[1], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[11][0][0] == [[2], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[12][0][0] == [[0], {"hum": 42}]
+    assert commands["hum"].call_args_list[13][0][0] == [[1], {"hum": 42}]
+    assert commands["hum"].call_args_list[14][0][0] == [[2], {"hum": 42}]
+    assert commands["hum"].call_args_list[15][0][0] == [[0], {"is_on": False}]
+    assert commands["hum"].call_args_list[16][0][0] == [[1], {"is_on": False}]
+    assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
+    assert commands["hum"].call_args_list[18][0][0] == [[1], {"cur_hum": "50"}]
 
     commands.clear()
 
@@ -119,7 +121,7 @@ async def test_humidifier_services(hass, caplog):
 
     assert state.attributes.get("available_modes") == ["normal", "away"]
     assert state.attributes.get("device_class") == "humidifier"
-    assert state.attributes.get("friendly_name") == "test_humidifier_1"
+    assert state.attributes.get("friendly_name") == "test_humidifier_2"
     assert state.attributes.get("humidity") == 42
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80
