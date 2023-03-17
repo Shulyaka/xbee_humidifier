@@ -225,6 +225,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
     def stop(self):
         """Unsubscribe events."""
+        self.client.stop()
         if self._remove_log_handler:
             self._remove_log_handler()
             self._remove_log_handler = None
