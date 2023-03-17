@@ -54,7 +54,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_description = HumidifierEntityDescription(
             key="xbee_humidifier_" + str(number),
             name="Integration Humidifier " + str(number),
-            icon="mdi:humidifier",
+            icon="mdi:air-humidifier",
             device_class=HumidifierDeviceClass.HUMIDIFIER,
         )
         humidifiers.append(
