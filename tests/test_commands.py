@@ -5,6 +5,7 @@ import logging
 from unittest.mock import patch
 
 import commands
+import config
 from lib.core import Sensor, Switch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
@@ -15,9 +16,6 @@ from xbee import receive as mock_receive, transmit as mock_transmit
 
 def test_commands():
     """Test Commands class."""
-
-    valve = {x: Switch() for x in range(5)}
-    pump_temp = Sensor(34.2)
 
     humidifier_zone = {x: Switch() for x in range(3)}
     humidifier_sensor = {x: Sensor() for x in range(3)}
@@ -40,17 +38,13 @@ def test_commands():
         for x in range(3)
     }
 
-    pump = Switch()
     pump_block = Switch()
 
     cmnds = commands.HumidifierCommands(
-        valve=valve,
-        pump_temp=pump_temp,
         humidifier=humidifier,
         sensor=humidifier_sensor,
         available=humidifier_available,
         zone=humidifier_zone,
-        pump=pump,
         pump_block=pump_block,
     )
 
@@ -128,13 +122,13 @@ def test_commands():
 
     assert command("bind") == "OK"
     assert command("unique_id") == "0102030405060708"
-    pump_temp.state = 34.3
+    config.pump_temp.state = 34.3
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.3}'
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
-    pump_temp.state = 34.4
+    config.pump_temp.state = 34.4
     assert mock_transmit.call_count == 0
     assert command("unbind") == "OK"
 
@@ -142,7 +136,7 @@ def test_commands():
         command("bind", '"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"')
         == "OK"
     )
-    pump_temp.state = 34.5
+    config.pump_temp.state = 34.5
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.5}'
@@ -151,7 +145,7 @@ def test_commands():
         command("unbind", '"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"')
         == "OK"
     )
-    pump_temp.state = 34.6
+    config.pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
 
     assert command("bind") == "OK"
@@ -179,33 +173,33 @@ def test_commands():
     assert mock_transmit.call_count == 0
 
     assert command("bind") == "OK"
-    pump.state = True
+    config.pump.state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump": true}'
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
-    pump.state = False
+    config.pump.state = False
     assert mock_transmit.call_count == 0
 
     assert command("bind") == "OK"
-    valve[3].state = True
+    config.valve_switch[3].state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"valve_3": true}'
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
-    valve[3].state = False
+    config.valve_switch[3].state = False
     assert mock_transmit.call_count == 0
 
     assert command("bind") == "OK"
-    pump_temp.state = 34.7
+    config.pump_temp.state = 34.7
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.7}'
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
-    pump_temp.state = 34.8
+    config.pump_temp.state = 34.8
     assert mock_transmit.call_count == 0
 
     assert command("pump_temp") == 34.8
@@ -281,13 +275,13 @@ def test_commands():
         assert mock_getLogger.mock_calls[1][0] == "().setTarget"
         assert mock_getLogger.mock_calls[1][1] == (b"\x00\x00\x00\x00\x00\x00\x00\x00",)
 
-    assert not pump.state
+    assert not config.pump.state
     assert command("pump", "true") == "OK"
     assert command("pump")
-    assert pump.state
+    assert config.pump.state
     assert command("pump", "false") == "OK"
     assert not command("pump")
-    assert not pump.state
+    assert not config.pump.state
 
     assert pump_block.state
     assert command("pump_block", "false") == "OK"

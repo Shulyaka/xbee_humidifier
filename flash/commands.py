@@ -2,6 +2,7 @@
 
 from json import dumps as json_dumps
 
+import config
 from lib.core import Commands
 
 
@@ -10,24 +11,18 @@ class HumidifierCommands(Commands):
 
     def __init__(
         self,
-        valve,
-        pump_temp,
         humidifier,
         sensor,
         available,
         zone,
-        pump,
         pump_block,
     ):
         """Init the module."""
         super().__init__()
-        self._valve = valve
-        self._pump_temp = pump_temp
         self._humidifier = humidifier
         self._sensor = sensor
         self._available = available
         self._zone = zone
-        self._pump = pump
         self._pump_block = pump_block
 
         self._binds = {
@@ -86,8 +81,8 @@ class HumidifierCommands(Commands):
     def cmd_pump(self, sender_eui64, state=None):
         """Get or set the pump state."""
         if state is None:
-            return self._pump.state
-        self._pump.state = state
+            return config.pump.state
+        config.pump.state = state
 
     def cmd_pump_block(self, sender_eui64, state=None):
         """Get or set the status of pump block."""
@@ -98,13 +93,13 @@ class HumidifierCommands(Commands):
 
     def cmd_pump_temp(self, sender_eui64):
         """Get current pump temperature."""
-        return self._pump_temp.state
+        return config.pump_temp.state
 
     def cmd_valve(self, sender_eui64, number, state=None):
         """Get or set the current valve status."""
         if state is None:
-            return self._valve[number].state
-        self._valve[number].state = state
+            return config.valve_switch[number].state
+        config.valve_switch[number].state = state
 
     def cmd_bind(self, sender_eui64, target=None):
         """Subscribe to updates."""
@@ -116,11 +111,11 @@ class HumidifierCommands(Commands):
                     lambda x: self._transmit(target, json_dumps({name: x}))
                 )
 
-        bind(self._pump_temp, self._binds["pump_temp"], "pump_temp")
-        bind(self._pump, self._binds["pump"], "pump")
+        bind(config.pump_temp, self._binds["pump_temp"], "pump_temp")
+        bind(config.pump, self._binds["pump"], "pump")
         for number in range(4):
             bind(
-                self._valve[number],
+                config.valve_switch[number],
                 self._binds["valve"][number],
                 "valve_" + str(number),
             )

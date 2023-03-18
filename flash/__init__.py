@@ -100,13 +100,10 @@ if config.debug:
 duty_cycle = DutyCycle(config.pump, humidifier, zone, config.valve_switch, pump_block)
 
 commands = HumidifierCommands(
-    config.valve_switch,
-    config.pump_temp,
     humidifier,
     sensor,
     available,
     zone,
-    config.pump,
     pump_block,
 )
 
