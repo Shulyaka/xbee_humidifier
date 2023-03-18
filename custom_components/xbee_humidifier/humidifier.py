@@ -15,7 +15,6 @@ from homeassistant.components.humidifier import (
 from homeassistant.const import (
     ATTR_MODE,
     CONF_NAME,
-    EVENT_COMPONENT_LOADED,
     STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -29,16 +28,8 @@ from .const import DOMAIN
 from .entity import XBeeHumidifierEntity
 
 _LOGGER = logging.getLogger(__name__)
-_XBEE_LOGGER = logging.getLogger("xbee_humidifier")
 
 ATTR_SAVED_HUMIDITY = "saved_humidity"
-ATTR_DATA = "data"
-
-XBEE_DATA_CLUSTER = 0x11
-SERIAL_DATA_CMD = 0x0000
-XBEE_DATA_ENDPOINT = 0xE8
-
-REMOTE_COMMAND_TIMEOUT = 30
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -52,8 +43,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
         away_humidity = config.get(CONF_AWAY_HUMIDITY)
         entity_description = HumidifierEntityDescription(
-            key="xbee_humidifier_" + str(number),
-            name="Integration Humidifier " + str(number),
+            key="xbee_humidifier_" + str(number + 1),
+            name="Humidifier " + str(number + 1),
             icon="mdi:air-humidifier",
             device_class=HumidifierDeviceClass.HUMIDIFIER,
         )
@@ -125,34 +116,17 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if self._state is None:
             self._state = False
 
-        self._remove_zha_tracking = None
-
-        @callback
-        async def async_zha_loaded(event):
-            if self._remove_zha_tracking is not None:
-                self._remove_zha_tracking()
-                self._remove_zha_tracking = None
-            await self._async_startup(None)
-
-        @callback
-        def zha_filter(event):
-            return event.data["component"] == "zha"
-
-        self.hass.bus.async_listen(EVENT_COMPONENT_LOADED, async_zha_loaded, zha_filter)
-
-        await self._async_startup(None)  # init the sensor
+        await self._async_startup(True)  # init the sensor
 
         async def async_log(data):
             if data["msg"] in ("Not initialized", "Main loop started"):
-                await self._async_startup(None)
+                await self._async_startup(False)
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
 
         async def async_update_available(value):
             self._active = value
             await self.async_update_ha_state()
-            if not value:
-                await self._async_startup(None)
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(
@@ -161,9 +135,12 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
 
     @callback
-    async def _async_startup(self, _now):
+    async def _async_startup(self, cached):
         """Init on startup."""
-        resp = await self.coordinator.client.async_command("hum", self._number)
+        if cached:
+            resp = self.coordinator.data.get(self._number)
+        if not cached or not resp:
+            resp = await self.coordinator.client.async_command("hum", self._number)
 
         self._min_humidity = resp["cap_attr"]["min_hum"]
         self._max_humidity = resp["cap_attr"]["max_hum"]

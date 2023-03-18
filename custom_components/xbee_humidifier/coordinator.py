@@ -239,3 +239,8 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     async def async_update_data(self):
         """Update data."""
         await self.client.async_command("bind")
+        data = {}
+        data[0] = await self.client.async_command("hum", 0)
+        data[1] = await self.client.async_command("hum", 1)
+        data[2] = await self.client.async_command("hum", 2)
+        return data
