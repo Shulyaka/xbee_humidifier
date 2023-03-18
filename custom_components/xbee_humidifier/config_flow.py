@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from homeassistant import config_entries
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 import voluptuous as vol
 
@@ -14,7 +13,6 @@ from .coordinator import XBeeHumidifierApiClient
 DEFAULT_NAME = "XBee Humidifier"
 
 XBEE_HUMIDIFIER_SCHEMA = {
-    vol.Optional(CONF_NAME): str,
     vol.Required(CONF_SENSOR): selector.EntitySelector(
         selector.EntitySelectorConfig(domain=SENSOR_DOMAIN)
     ),
@@ -51,7 +49,6 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 for number in range(0, 3):
                     hum = await client.async_command("hum", number)
                     self.hum[number] = {
-                        CONF_NAME: DEFAULT_NAME + " " + str(number + 1),
                         CONF_TARGET_HUMIDITY: hum["state_attr"]["hum"],
                         CONF_AWAY_HUMIDITY: hum["extra_state_attr"].get("sav_hum"),
                     }

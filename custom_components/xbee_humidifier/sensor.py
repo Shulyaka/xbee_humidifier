@@ -22,6 +22,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     entity_description = SensorEntityDescription(
         key="xbee_humidifier_pump_temperature",
         name="Pump Temperature",
+        has_entity_name=True,
         icon="mdi:hydraulic-oil-temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         entity_category=EntityCategory.DIAGNOSTIC,

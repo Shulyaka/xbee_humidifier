@@ -12,13 +12,7 @@ from homeassistant.components.humidifier import (
     HumidifierEntityDescription,
     HumidifierEntityFeature,
 )
-from homeassistant.const import (
-    ATTR_MODE,
-    CONF_NAME,
-    STATE_ON,
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
-)
+from homeassistant.const import ATTR_MODE, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -38,19 +32,18 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 3):
         config = entry.data["humidifier_" + str(number)]
-        name = config[CONF_NAME]
         sensor_entity_id = config[CONF_SENSOR]
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
         away_humidity = config.get(CONF_AWAY_HUMIDITY)
         entity_description = HumidifierEntityDescription(
             key="xbee_humidifier_" + str(number + 1),
             name="Humidifier " + str(number + 1),
+            has_entity_name=True,
             icon="mdi:air-humidifier",
             device_class=HumidifierDeviceClass.HUMIDIFIER,
         )
         humidifiers.append(
             XBeeHumidifier(
-                name,
                 number,
                 sensor_entity_id,
                 target_humidity,
@@ -68,7 +61,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     def __init__(
         self,
-        name,
         number,
         sensor_entity_id,
         target_humidity,
@@ -79,7 +71,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         """Initialize the hygrostat."""
         super().__init__(coordinator)
         self.entity_description = entity_description
-        self._name = name
         self._number = number
         self._sensor_entity_id = sensor_entity_id
         self._saved_target_humidity = away_humidity or target_humidity
@@ -214,11 +205,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if self._saved_target_humidity:
             return {ATTR_SAVED_HUMIDITY: self._saved_target_humidity}
         return None
-
-    @property
-    def name(self):
-        """Return the name of the hygrostat."""
-        return self._name
 
     @property
     def is_on(self):

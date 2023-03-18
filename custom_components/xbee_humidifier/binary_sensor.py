@@ -21,6 +21,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_description = BinarySensorEntityDescription(
             key="xbee_humidifier_working_" + str(number + 1),
             name="Working " + str(number + 1),
+            has_entity_name=True,
             device_class=BinarySensorDeviceClass.RUNNING,
             entity_category=EntityCategory.DIAGNOSTIC,
         )

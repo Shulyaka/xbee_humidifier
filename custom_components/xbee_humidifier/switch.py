@@ -21,6 +21,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_description = SwitchEntityDescription(
             key="xbee_humidifier_valve_" + str(number + 1),
             name="Valve " + str(number + 1) if number != 3 else "Pressure Drop Valve",
+            has_entity_name=True,
             icon="mdi:pipe-valve",
             device_class=SwitchDeviceClass.SWITCH,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -36,7 +37,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     entity_description = SwitchEntityDescription(
         key="xbee_humidifier_pump",
-        name="Humidifier Pump",
+        name="Pump",
+        has_entity_name=True,
         icon="mdi:water-pump",
         device_class=SwitchDeviceClass.SWITCH,
         entity_category=EntityCategory.DIAGNOSTIC,
