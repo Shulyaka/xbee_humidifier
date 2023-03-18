@@ -30,7 +30,13 @@ class HumidifierCommands(Commands):
         self._pump = pump
         self._pump_block = pump_block
 
-        self._binds = {"pump_temp": {}, "valve": {}, "hum": {}, "pump": {}}
+        self._binds = {
+            "pump": {},
+            "pump_temp": {},
+            "available": {0: {}, 1: {}, 2: {}},
+            "zone": {0: {}, 1: {}, 2: {}},
+            "valve": {0: {}, 1: {}, 2: {}, 3: {}},
+        }
 
     def __del__(self):
         """Cancel callbacks."""
@@ -104,91 +110,50 @@ class HumidifierCommands(Commands):
         """Subscribe to updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
-        if target not in self._binds["pump_temp"]:
-            self._binds["pump_temp"][target] = self._pump_temp.subscribe(
-                lambda x: self._transmit(target, json_dumps({"pump_temp": x}))
-            )
-
-        if target not in self._binds["pump"]:
-            self._binds["pump"][target] = self._pump.subscribe(
-                lambda x: self._transmit(target, json_dumps({"pump": x}))
-            )
-
-        for number in range(4):
-            if number not in self._binds["valve"] and number in self._valve:
-                self._binds["valve"][number] = {}
-            if target not in self._binds["valve"][number]:
-                self._binds["valve"][number][target] = self._valve[number].subscribe(
-                    (
-                        lambda number: lambda x: self._transmit(
-                            target, json_dumps({"valve_" + str(number): x})
-                        )
-                    )(number)
+        def bind(entity, binds, name):
+            if target not in binds:
+                binds[target] = entity.subscribe(
+                    lambda x: self._transmit(target, json_dumps({name: x}))
                 )
+
+        bind(self._pump_temp, self._binds["pump_temp"], "pump_temp")
+        bind(self._pump, self._binds["pump"], "pump")
+        for number in range(4):
+            bind(
+                self._valve[number],
+                self._binds["valve"][number],
+                "valve_" + str(number),
+            )
 
         for number in range(3):
-            if number not in self._binds["hum"] and number in self._humidifier:
-                self._binds["hum"][number] = {}
-            if target not in self._binds["hum"][number]:
-                self._binds["hum"][number][target] = (
-                    self._humidifier_available[number].subscribe(
-                        (
-                            lambda number: lambda x: self._transmit(
-                                target, json_dumps({"available_" + str(number): x})
-                            )
-                        )(number)
-                    ),
-                    self._humidifier_zone[number].subscribe(
-                        (
-                            lambda number: lambda x: self._transmit(
-                                target, json_dumps({"working_" + str(number): x})
-                            )
-                        )(number)
-                    ),
-                )
+            bind(
+                self._humidifier_available[number],
+                self._binds["available"][number],
+                "available_" + str(number),
+            )
+            bind(
+                self._humidifier_zone[number],
+                self._binds["zone"][number],
+                "working_" + str(number),
+            )
 
     def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
-        if target is None:
-            for unsubscribe in self._binds["pump_temp"].values():
-                unsubscribe()
-            self._binds["pump_temp"] = {}
-        elif target in self._binds["pump_temp"]:
-            self._binds["pump_temp"].pop(target)()
-
-        if target is None:
-            for unsubscribe in self._binds["pump"].values():
-                unsubscribe()
-            self._binds["pump"] = {}
-        elif target in self._binds["pump"]:
-            self._binds["pump"].pop(target)()
-
-        for number in range(4):
+        def unbind(binds):
             if target is None:
-                if number in self._binds["valve"]:
-                    for unsubscribe in self._binds["valve"][number].values():
-                        unsubscribe()
-                    self._binds["valve"][number] = {}
-            elif (
-                number in self._binds["valve"]
-                and target in self._binds["valve"][number]
-            ):
-                self._binds["valve"][number].pop(target)()
+                for unbind in binds.values():
+                    unbind()
+                binds.clear()
+            elif target in binds:
+                binds.pop(target)()
+
+        unbind(self._binds["pump_temp"])
+        unbind(self._binds["pump"])
+        for number in range(4):
+            unbind(self._binds["valve"][number])
 
         for number in range(3):
-            if target is None:
-                if number in self._binds["hum"]:
-                    for (unsubscribe_available, unsubscribe_zone,) in self._binds[
-                        "hum"
-                    ][number].values():
-                        unsubscribe_available()
-                        unsubscribe_zone()
-                    self._binds["hum"][number] = {}
-            elif number in self._binds["hum"] and target in self._binds["hum"][number]:
-                unsubscribe_available, unsubscribe_zone = self._binds["hum"][
-                    number
-                ].pop(target)
-                unsubscribe_available()
-                unsubscribe_zone()
+            unbind(self._binds["available"][number])
+            unbind(self._binds["zone"][number])
