@@ -12,6 +12,11 @@ if debug:
     valve_switch = {x: Switch() for x in range(4)}
     pressure_in = Sensor(7)
     pressure_out = Sensor(59)
+    water_temperature = Sensor(14)
+    aux_din = Switch(False)
+    aux_led = Switch(False)
+    pump_speed = Sensor(255)
+    fan = Switch(False)
 else:
     from lib.tosr import (  # noqa: F401
         tosr_switch as valve_switch,
