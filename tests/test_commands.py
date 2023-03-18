@@ -47,9 +47,9 @@ def test_commands():
         valve=valve,
         pump_temp=pump_temp,
         humidifier=humidifier,
-        humidifier_sensor=humidifier_sensor,
-        humidifier_available=humidifier_available,
-        humidifier_zone=humidifier_zone,
+        sensor=humidifier_sensor,
+        available=humidifier_available,
+        zone=humidifier_zone,
         pump=pump,
         pump_block=pump_block,
     )

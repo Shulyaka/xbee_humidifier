@@ -13,9 +13,9 @@ class HumidifierCommands(Commands):
         valve,
         pump_temp,
         humidifier,
-        humidifier_sensor,
-        humidifier_available,
-        humidifier_zone,
+        sensor,
+        available,
+        zone,
         pump,
         pump_block,
     ):
@@ -24,9 +24,9 @@ class HumidifierCommands(Commands):
         self._valve = valve
         self._pump_temp = pump_temp
         self._humidifier = humidifier
-        self._humidifier_sensor = humidifier_sensor
-        self._humidifier_available = humidifier_available
-        self._humidifier_zone = humidifier_zone
+        self._sensor = sensor
+        self._available = available
+        self._zone = zone
         self._pump = pump
         self._pump_block = pump_block
 
@@ -63,25 +63,25 @@ class HumidifierCommands(Commands):
         ):
             return {
                 "number": number,
-                "available": self._humidifier_available[number].state,
+                "available": self._available[number].state,
                 "is_on": self._humidifier[number].state,
-                "working": self._humidifier_zone[number].state,
+                "working": self._zone[number].state,
                 "cap_attr": self._humidifier[number].capability_attributes,
                 "state_attr": self._humidifier[number].state_attributes,
                 "extra_state_attr": self._humidifier[number].extra_state_attributes,
-                "cur_hum": self._humidifier_sensor[number].state,
+                "cur_hum": self._sensor[number].state,
             }
 
         if is_on is not None:
             self._humidifier[number].state = is_on
         if working is not None:
-            self._humidifier_zone[number].state = working
+            self._zone[number].state = working
         if mode is not None:
             self._humidifier[number].set_mode(mode)
         if hum is not None:
             self._humidifier[number].set_humidity(hum)
         if cur_hum is not None:
-            self._humidifier_sensor[number].state = cur_hum
+            self._sensor[number].state = cur_hum
 
     def cmd_pump(self, sender_eui64, state=None):
         """Get or set the pump state."""
@@ -127,12 +127,12 @@ class HumidifierCommands(Commands):
 
         for number in range(3):
             bind(
-                self._humidifier_available[number],
+                self._available[number],
                 self._binds["available"][number],
                 "available_" + str(number),
             )
             bind(
-                self._humidifier_zone[number],
+                self._zone[number],
                 self._binds["zone"][number],
                 "working_" + str(number),
             )
