@@ -14,7 +14,7 @@ from .entity import XBeeHumidifierEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the humidifier platform."""
+    """Set up the binary_sensor platform."""
     binary_sensors = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 3):

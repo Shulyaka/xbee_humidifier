@@ -14,8 +14,8 @@ from .entity import XBeeHumidifierEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the humidifier platform."""
-    switch = []
+    """Set up the switch platform."""
+    switches = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 4):
         entity_description = SwitchEntityDescription(
@@ -25,7 +25,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             device_class=SwitchDeviceClass.SWITCH,
             entity_category=EntityCategory.DIAGNOSTIC,
         )
-        switch.append(
+        switches.append(
             XBeeHumidifierSwitch(
                 name="valve",
                 number=number,
@@ -41,7 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         device_class=SwitchDeviceClass.SWITCH,
         entity_category=EntityCategory.DIAGNOSTIC,
     )
-    switch.append(
+    switches.append(
         XBeeHumidifierSwitch(
             name="pump",
             number=None,
@@ -50,7 +50,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
     )
 
-    async_add_entities(switch)
+    async_add_entities(switches)
 
 
 class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
