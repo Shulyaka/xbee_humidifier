@@ -17,11 +17,11 @@ class DutyCycle:
     _pressure_drop_delay_ms = const(5 * 1000)
     _pressure_drop_time_ms = const(25 * 1000)
 
-    def __init__(self, pump, humidifiers, humidifier_zone, valve_switch, pump_block):
+    def __init__(self, pump, humidifiers, zone, valve_switch, pump_block):
         """Init the class."""
         self._pump = pump
         self._humidifier = humidifiers
-        self._humidifier_zone = humidifier_zone
+        self._zone = zone
         self._valve_switch = valve_switch
         self._pump_block = pump_block
 
@@ -47,7 +47,7 @@ class DutyCycle:
             )
 
         self._zone_unsubscribe = {}
-        for number, zone in self._humidifier_zone.items():
+        for number, zone in self._zone.items():
             self._zone_unsubscribe[number] = zone.subscribe(
                 (lambda number: lambda x: self._zone_changed(number, x))(number)
             )
@@ -76,7 +76,7 @@ class DutyCycle:
     def _humidifier_changed(self, number, value):
         """Handle humidifier on/off."""
         if value:
-            if self._humidifier_zone[number].state:
+            if self._zone[number].state:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
                     self._loop_unschedule()
@@ -110,7 +110,7 @@ class DutyCycle:
                 )
         else:
             all_off = True
-            for zone in self._humidifier_zone.values():
+            for zone in self._zone.values():
                 if zone.state:
                     all_off = False
                     break
@@ -242,16 +242,16 @@ class DutyCycle:
             return
 
         if (
-            not self._humidifier_zone[0].state
-            and not self._humidifier_zone[1].state
-            and not self._humidifier_zone[2].state
+            not self._zone[0].state
+            and not self._zone[1].state
+            and not self._zone[2].state
         ):
             _LOGGER.debug("All zones are off, not starting the pump")
             return
 
         _LOGGER.debug("Setting up switches")
         for x in range(3):
-            self._valve_switch[x].state = self._humidifier_zone[x].state
+            self._valve_switch[x].state = self._zone[x].state
         self._valve_switch[3].state = False
 
         _LOGGER.debug("Starting the pump")
