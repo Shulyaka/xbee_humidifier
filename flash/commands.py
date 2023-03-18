@@ -30,10 +30,7 @@ class HumidifierCommands(Commands):
         self._pump = pump
         self._pump_block = pump_block
 
-        self._pump_temp_binds = {}
-        self._valve_binds = {}
-        self._humidifier_binds = {}
-        self._pump_binds = {}
+        self._binds = {"pump_temp": {}, "valve": {}, "hum": {}, "pump": {}}
 
     def __del__(self):
         """Cancel callbacks."""
@@ -107,21 +104,21 @@ class HumidifierCommands(Commands):
         """Subscribe to updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
-        if target not in self._pump_temp_binds:
-            self._pump_temp_binds[target] = self._pump_temp.subscribe(
+        if target not in self._binds["pump_temp"]:
+            self._binds["pump_temp"][target] = self._pump_temp.subscribe(
                 lambda x: self._transmit(target, json_dumps({"pump_temp": x}))
             )
 
-        if target not in self._pump_binds:
-            self._pump_binds[target] = self._pump.subscribe(
+        if target not in self._binds["pump"]:
+            self._binds["pump"][target] = self._pump.subscribe(
                 lambda x: self._transmit(target, json_dumps({"pump": x}))
             )
 
         for number in range(4):
-            if number not in self._valve_binds and number in self._valve:
-                self._valve_binds[number] = {}
-            if target not in self._valve_binds[number]:
-                self._valve_binds[number][target] = self._valve[number].subscribe(
+            if number not in self._binds["valve"] and number in self._valve:
+                self._binds["valve"][number] = {}
+            if target not in self._binds["valve"][number]:
+                self._binds["valve"][number][target] = self._valve[number].subscribe(
                     (
                         lambda number: lambda x: self._transmit(
                             target, json_dumps({"valve_" + str(number): x})
@@ -130,10 +127,10 @@ class HumidifierCommands(Commands):
                 )
 
         for number in range(3):
-            if number not in self._humidifier_binds and number in self._humidifier:
-                self._humidifier_binds[number] = {}
-            if target not in self._humidifier_binds[number]:
-                self._humidifier_binds[number][target] = (
+            if number not in self._binds["hum"] and number in self._humidifier:
+                self._binds["hum"][number] = {}
+            if target not in self._binds["hum"][number]:
+                self._binds["hum"][number][target] = (
                     self._humidifier_available[number].subscribe(
                         (
                             lambda number: lambda x: self._transmit(
@@ -155,43 +152,42 @@ class HumidifierCommands(Commands):
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
         if target is None:
-            for unsubscribe in self._pump_temp_binds.values():
+            for unsubscribe in self._binds["pump_temp"].values():
                 unsubscribe()
-            self._pump_temp_binds = {}
-        elif target in self._pump_temp_binds:
-            self._pump_temp_binds.pop(target)()
+            self._binds["pump_temp"] = {}
+        elif target in self._binds["pump_temp"]:
+            self._binds["pump_temp"].pop(target)()
 
         if target is None:
-            for unsubscribe in self._pump_binds.values():
+            for unsubscribe in self._binds["pump"].values():
                 unsubscribe()
-            self._pump_binds = {}
-        elif target in self._pump_binds:
-            self._pump_binds.pop(target)()
+            self._binds["pump"] = {}
+        elif target in self._binds["pump"]:
+            self._binds["pump"].pop(target)()
 
         for number in range(4):
             if target is None:
-                if number in self._valve_binds:
-                    for unsubscribe in self._valve_binds[number].values():
+                if number in self._binds["valve"]:
+                    for unsubscribe in self._binds["valve"][number].values():
                         unsubscribe()
-                    self._valve_binds[number] = {}
-            elif number in self._valve_binds and target in self._valve_binds[number]:
-                self._valve_binds[number].pop(target)()
+                    self._binds["valve"][number] = {}
+            elif (
+                number in self._binds["valve"]
+                and target in self._binds["valve"][number]
+            ):
+                self._binds["valve"][number].pop(target)()
 
         for number in range(3):
             if target is None:
-                if number in self._humidifier_binds:
-                    for (
-                        unsubscribe_available,
-                        unsubscribe_zone,
-                    ) in self._humidifier_binds[number].values():
+                if number in self._binds["hum"]:
+                    for (unsubscribe_available, unsubscribe_zone,) in self._binds[
+                        "hum"
+                    ][number].values():
                         unsubscribe_available()
                         unsubscribe_zone()
-                    self._humidifier_binds[number] = {}
-            elif (
-                number in self._humidifier_binds
-                and target in self._humidifier_binds[number]
-            ):
-                unsubscribe_available, unsubscribe_zone = self._humidifier_binds[
+                    self._binds["hum"][number] = {}
+            elif number in self._binds["hum"] and target in self._binds["hum"][number]:
+                unsubscribe_available, unsubscribe_zone = self._binds["hum"][
                     number
                 ].pop(target)
                 unsubscribe_available()
