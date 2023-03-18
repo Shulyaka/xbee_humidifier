@@ -115,23 +115,15 @@ def test_commands():
         "bind",
         "help",
         "hum",
-        "hum_bind",
-        "hum_unbind",
         "logger",
         "pump",
-        "pump_bind",
         "pump_block",
         "pump_temp",
-        "pump_temp_bind",
-        "pump_temp_unbind",
-        "pump_unbind",
         "soft_reset",
         "test",
         "unbind",
         "unique_id",
         "valve",
-        "valve_bind",
-        "valve_unbind",
     ]
 
     assert command("bind") == "OK"
@@ -162,8 +154,7 @@ def test_commands():
     pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
 
-    assert command("hum_bind", 0) == "OK"
-    assert command("hum_bind", 1) == "OK"
+    assert command("bind") == "OK"
     humidifier_sensor[0].state = 51.2
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
@@ -181,36 +172,39 @@ def test_commands():
         "working_1": True,
     }
     mock_transmit.reset_mock()
-    assert command("hum_unbind", 1) == "OK"
-    assert command("hum_unbind", 0) == "OK"
+    assert command("unbind") == "OK"
+    humidifier[1].state = False
+    assert not humidifier_zone[1].state
+    humidifier[1].state = True
+    assert mock_transmit.call_count == 0
 
-    assert command("pump_bind") == "OK"
+    assert command("bind") == "OK"
     pump.state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump": true}'
     mock_transmit.reset_mock()
-    assert command("pump_unbind") == "OK"
+    assert command("unbind") == "OK"
     pump.state = False
     assert mock_transmit.call_count == 0
 
-    assert command("valve_bind", 3) == "OK"
+    assert command("bind") == "OK"
     valve[3].state = True
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"valve_3": true}'
     mock_transmit.reset_mock()
-    assert command("valve_unbind", 3) == "OK"
+    assert command("unbind") == "OK"
     valve[3].state = False
     assert mock_transmit.call_count == 0
 
-    assert command("pump_temp_bind") == "OK"
+    assert command("bind") == "OK"
     pump_temp.state = 34.7
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert mock_transmit.call_args[0][1] == '{"pump_temp": 34.7}'
     mock_transmit.reset_mock()
-    assert command("pump_temp_unbind") == "OK"
+    assert command("unbind") == "OK"
     pump_temp.state = 34.8
     assert mock_transmit.call_count == 0
 
