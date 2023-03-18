@@ -140,6 +140,11 @@ class DutyCycle:
 
     def _pump_changed(self, value):
         """Handle pump on/off."""
+        if value and self._pump_block.state:
+            _LOGGER.warning("Stopping the pump because blocked")
+            self._pump.state = False
+            return
+
         if self._cancel_pump_timeout is not None:
             _LOGGER.debug("Cancelling existing pump timeout schedule")
             self._cancel_pump_timeout()
@@ -239,6 +244,10 @@ class DutyCycle:
 
         if self._pump.state:
             _LOGGER.debug("The pump is already running")
+            return
+
+        if self._pump_block.state:
+            _LOGGER.debug("Pump start blocked")
             return
 
         if (
