@@ -60,7 +60,7 @@ class XBeeHumidifierWorkingSensor(XBeeHumidifierEntity, BinarySensorEntity):
 
         async def async_update_state(value):
             self._state = value
-            await self.async_update_ha_state()
+            self.async_schedule_update_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(

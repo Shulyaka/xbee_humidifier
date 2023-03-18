@@ -52,6 +52,23 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
     )
 
+    entity_description = SwitchEntityDescription(
+        key="xbee_humidifier_pump_block",
+        name="Pump Block",
+        has_entity_name=True,
+        icon="mdi:water-pump-off",
+        device_class=SwitchDeviceClass.SWITCH,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    )
+    switches.append(
+        XBeeHumidifierSwitch(
+            name="pump_block",
+            number=None,
+            coordinator=coordinator,
+            entity_description=entity_description,
+        )
+    )
+
     async_add_entities(switches)
 
 
@@ -88,7 +105,7 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
 
         async def async_update_state(value):
             self._state = value
-            await self.async_update_ha_state()
+            self.async_schedule_update_ha_state()
 
         subscriber_name = (
             self._name if self._number is None else self._name + "_" + str(self._number)
@@ -113,6 +130,7 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
 
         if resp == "OK":
             self._state = True
+            self.async_schedule_update_ha_state()
 
     async def async_turn_off(self, **_: any) -> None:
         """Turn off the switch."""
@@ -125,3 +143,4 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
 
         if resp == "OK":
             self._state = False
+            self.async_schedule_update_ha_state()
