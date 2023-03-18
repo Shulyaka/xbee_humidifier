@@ -16,22 +16,22 @@ collect()
 _LOGGER = logging.getLogger(__name__)
 
 
-humidifier_zone = {x: Switch() for x in range(3)}
-humidifier_sensor = {x: Sensor() for x in range(3)}
-humidifier_available = {x: Switch() for x in range(3)}
+zone = {x: Switch() for x in range(3)}
+sensor = {x: Sensor() for x in range(3)}
+available = {x: Switch() for x in range(3)}
 
 if config.debug:
     zone_unsubscribe = {}
     sensor_unsubscribe = {}
     available_unsubscribe = {}
     for x in range(3):
-        zone_unsubscribe[x] = humidifier_zone[x].subscribe(
+        zone_unsubscribe[x] = zone[x].subscribe(
             (lambda x: lambda v: print("zone" + str(x) + " = " + str(v)))(x)
         )
-        sensor_unsubscribe[x] = humidifier_sensor[x].subscribe(
+        sensor_unsubscribe[x] = sensor[x].subscribe(
             (lambda x: lambda v: print("sensor" + str(x) + " = " + str(v)))(x)
         )
-        available_unsubscribe[x] = humidifier_available[x].subscribe(
+        available_unsubscribe[x] = available[x].subscribe(
             (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
         )
 
@@ -69,9 +69,9 @@ else:
 
 humidifier = {
     x: GenericHygrostat(
-        switch_entity_id=humidifier_zone[x],
-        sensor_entity_id=humidifier_sensor[x],
-        available_sensor_id=humidifier_available[x],
+        switch_entity_id=zone[x],
+        sensor_entity_id=sensor[x],
+        available_sensor_id=available[x],
         min_humidity=15,
         max_humidity=100,
         target_humidity=50,
@@ -97,17 +97,15 @@ if config.debug:
         lambda v: print("pump_block = " + str(v))
     )
 
-duty_cycle = DutyCycle(
-    config.pump, humidifier, humidifier_zone, config.valve_switch, pump_block
-)
+duty_cycle = DutyCycle(config.pump, humidifier, zone, config.valve_switch, pump_block)
 
 commands = HumidifierCommands(
     config.valve_switch,
     config.pump_temp,
     humidifier,
-    humidifier_sensor,
-    humidifier_available,
-    humidifier_zone,
+    sensor,
+    available,
+    zone,
     config.pump,
     pump_block,
 )
@@ -129,6 +127,6 @@ def _cancel_warning(confirm):
 
 
 for x in range(3):
-    _unsubscribe_warning[x] = humidifier_available[x].subscribe(_cancel_warning)
+    _unsubscribe_warning[x] = available[x].subscribe(_cancel_warning)
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
