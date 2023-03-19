@@ -113,6 +113,7 @@ def test_commands():
         "pressure_in",
         "pump",
         "pump_block",
+        "pump_speed",
         "pump_temp",
         "soft_reset",
         "test",
@@ -216,6 +217,11 @@ def test_commands():
     assert mock_transmit.call_count == 0
 
     assert command("pump_temp") == 34.8
+
+    config.pump_speed.state = 314
+    assert command("pump_speed") == 314
+    assert command("pump_speed", 234) == "OK"
+    assert config.pump_speed.state == 234
 
     assert not command("pump_block")
     pump_block.state = True

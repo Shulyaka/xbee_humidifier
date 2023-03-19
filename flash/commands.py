@@ -96,6 +96,13 @@ class HumidifierCommands(Commands):
         else:
             self._pump_block.state = state
 
+    def cmd_pump_speed(self, sender_eui64, state=None):
+        """Get or set the pump speed."""
+        if state is None:
+            return config.pump_speed.state
+        else:
+            config.pump_speed.state = state
+
     def cmd_pump_temp(self, sender_eui64):
         """Get current pump temperature."""
         return config.pump_temp.state
