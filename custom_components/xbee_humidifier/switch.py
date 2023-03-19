@@ -69,6 +69,23 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
     )
 
+    entity_description = SwitchEntityDescription(
+        key="xbee_humidifier_fan",
+        name="Fan",
+        has_entity_name=True,
+        icon="mdi:fan",
+        device_class=SwitchDeviceClass.SWITCH,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    )
+    switches.append(
+        XBeeHumidifierSwitch(
+            name="fan",
+            number=None,
+            coordinator=coordinator,
+            entity_description=entity_description,
+        )
+    )
+
     async_add_entities(switches)
 
 
