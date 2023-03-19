@@ -110,6 +110,7 @@ def test_commands():
         "help",
         "hum",
         "logger",
+        "pressure_in",
         "pump",
         "pump_block",
         "pump_temp",
@@ -120,6 +121,7 @@ def test_commands():
         "valve",
     ]
 
+    assert command("bind") == "OK"
     assert command("bind") == "OK"
     assert command("unique_id") == "0102030405060708"
     config.pump_temp.state = 34.3
@@ -147,6 +149,17 @@ def test_commands():
     )
     config.pump_temp.state = 34.6
     assert mock_transmit.call_count == 0
+
+    assert command("bind") == "OK"
+    config.pressure_in.state = 6.7
+    assert mock_transmit.call_count == 1
+    assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
+    assert mock_transmit.call_args[0][1] == '{"pressure_in": 6.7}'
+    mock_transmit.reset_mock()
+    assert command("unbind") == "OK"
+    config.pressure_in.state = 8.9
+    assert mock_transmit.call_count == 0
+    assert command("pressure_in") == 8.9
 
     assert command("bind") == "OK"
     humidifier_sensor[0].state = 51.2

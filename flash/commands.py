@@ -28,6 +28,7 @@ class HumidifierCommands(Commands):
         self._binds = {
             "pump": {},
             "pump_temp": {},
+            "pressure_in": {},
             "available": {0: {}, 1: {}, 2: {}},
             "zone": {0: {}, 1: {}, 2: {}},
             "valve": {0: {}, 1: {}, 2: {}, 3: {}},
@@ -78,6 +79,10 @@ class HumidifierCommands(Commands):
         if cur_hum is not None:
             self._sensor[number].state = cur_hum
 
+    def cmd_pressure_in(self, sender_eui64):
+        """Get current inbound pressure."""
+        return config.pressure_in.state
+
     def cmd_pump(self, sender_eui64, state=None):
         """Get or set the pump state."""
         if state is None:
@@ -113,6 +118,7 @@ class HumidifierCommands(Commands):
 
         bind(config.pump_temp, self._binds["pump_temp"], "pump_temp")
         bind(config.pump, self._binds["pump"], "pump")
+        bind(config.pressure_in, self._binds["pressure_in"], "pressure_in")
         for number in range(4):
             bind(
                 config.valve_switch[number],
@@ -146,6 +152,7 @@ class HumidifierCommands(Commands):
 
         unbind(self._binds["pump_temp"])
         unbind(self._binds["pump"])
+        unbind(self._binds["pressure_in"])
         for number in range(4):
             unbind(self._binds["valve"][number])
 
