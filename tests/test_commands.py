@@ -106,6 +106,7 @@ def test_commands():
         command("test", '[[1], {"test": "23"}]') == "args: (1,), kwargs: {'test': '23'}"
     )
     assert command("help") == [
+        "aux_led",
         "bind",
         "fan",
         "help",
@@ -228,6 +229,11 @@ def test_commands():
     assert not command("fan")
     assert command("fan", "true") == "OK"
     assert config.fan.state
+
+    config.aux_led.state = False
+    assert not command("aux_led")
+    assert command("aux_led", "true") == "OK"
+    assert config.aux_led.state
 
     assert not command("pump_block")
     pump_block.state = True

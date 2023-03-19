@@ -110,6 +110,13 @@ class HumidifierCommands(Commands):
         else:
             config.fan.state = state
 
+    def cmd_aux_led(self, sender_eui64, state=None):
+        """Get or set the AUX LED state."""
+        if state is None:
+            return config.aux_led.state
+        else:
+            config.aux_led.state = state
+
     def cmd_pump_temp(self, sender_eui64):
         """Get current pump temperature."""
         return config.pump_temp.state
