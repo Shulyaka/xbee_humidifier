@@ -85,7 +85,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self._min_humidity = None
         self._max_humidity = None
         self._remove_sensor_tracking = None
-        self._attr_unique_id = coordinator.unique_id + str(self._number)
+        self._attr_unique_id = coordinator.unique_id + "humidifier" + str(self._number)
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""

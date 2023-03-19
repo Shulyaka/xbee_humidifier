@@ -37,6 +37,24 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
     )
 
+    entity_description = SensorEntityDescription(
+        key="xbee_humidifier_pressure_in",
+        name="Pressure In",
+        has_entity_name=True,
+        icon="mdi:gauge-low",
+        device_class=SensorDeviceClass.PRESSURE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement="bar",
+        state_class=SensorStateClass.MEASUREMENT,
+    )
+    sensors.append(
+        XBeeHumidifierSensor(
+            name="pressure_in",
+            coordinator=coordinator,
+            entity_description=entity_description,
+        )
+    )
+
     async_add_entities(sensors)
 
 

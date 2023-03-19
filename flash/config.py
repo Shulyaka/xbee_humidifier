@@ -11,9 +11,9 @@ if debug:
     pump_temp = Sensor(37)
     valve_switch = {x: Switch() for x in range(4)}
     pressure_in = Sensor(7)
-    pressure_out = Sensor(59)
-    water_temperature = Sensor(14)
-    aux_din = Switch(False)
+    pressure_out = Sensor(59)  # Ignored for now
+    water_temperature = Sensor(14)  # Ignored for now
+    aux_din = Switch(False)  # Ignored for now
     aux_led = Switch(False)
     pump_speed = Sensor(255)
     fan = Switch(False)
