@@ -56,6 +56,7 @@ class DutyCycle:
 
     def __del__(self):
         """Cancel callbacks."""
+        self.stop_cycle()
         if self._loop_unschedule:
             self._loop_unschedule()
         if self._cancel_pump_timeout:
@@ -141,8 +142,11 @@ class DutyCycle:
     def _pump_changed(self, value):
         """Handle pump on/off."""
         if value and self._pump_block.state:
+            if self._loop_unschedule:
+                _LOGGER.debug("Cancelling existing duty cycle schedule")
+                self._loop_unschedule()
             _LOGGER.warning("Stopping the pump because blocked")
-            self._pump.state = False
+            self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
             return
 
         if self._cancel_pump_timeout is not None:
