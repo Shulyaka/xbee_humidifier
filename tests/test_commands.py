@@ -107,6 +107,7 @@ def test_commands():
     )
     assert command("help") == [
         "bind",
+        "fan",
         "help",
         "hum",
         "logger",
@@ -222,6 +223,11 @@ def test_commands():
     assert command("pump_speed") == 314
     assert command("pump_speed", 234) == "OK"
     assert config.pump_speed.state == 234
+
+    config.fan.state = False
+    assert not command("fan")
+    assert command("fan", "true") == "OK"
+    assert config.fan.state
 
     assert not command("pump_block")
     pump_block.state = True

@@ -103,6 +103,13 @@ class HumidifierCommands(Commands):
         else:
             config.pump_speed.state = state
 
+    def cmd_fan(self, sender_eui64, state=None):
+        """Get or set the fan state."""
+        if state is None:
+            return config.fan.state
+        else:
+            config.fan.state = state
+
     def cmd_pump_temp(self, sender_eui64):
         """Get current pump temperature."""
         return config.pump_temp.state
