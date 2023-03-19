@@ -81,7 +81,7 @@ async def test_humidifier_services(hass, caplog):
     await config_entry.async_setup(hass)
     await hass.async_block_till_done()
 
-    assert len(commands) == 9
+    assert len(commands) == 10
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["pump"].assert_called_once_with()
@@ -89,6 +89,7 @@ async def test_humidifier_services(hass, caplog):
     commands["pump_block"].assert_called_once_with()
     commands["pressure_in"].assert_called_once_with()
     commands["fan"].assert_called_once_with()
+    commands["aux_led"].assert_called_once_with()
     assert commands["valve"].call_count == 4
     assert commands["valve"].call_args_list[0][0][0] == 0
     assert commands["valve"].call_args_list[1][0][0] == 1
