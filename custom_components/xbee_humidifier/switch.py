@@ -58,7 +58,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         has_entity_name=True,
         icon="mdi:water-pump-off",
         device_class=SwitchDeviceClass.SWITCH,
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category=EntityCategory.CONFIG,
     )
     switches.append(
         XBeeHumidifierSwitch(
