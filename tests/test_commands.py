@@ -11,7 +11,7 @@ from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 from machine import soft_reset as mock_soft_reset
 import pytest
-from xbee import receive as mock_receive, transmit as mock_transmit
+from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_transmit
 
 
 def test_commands():
@@ -106,6 +106,7 @@ def test_commands():
         command("test", '[[1], {"test": "23"}]') == "args: (1,), kwargs: {'test': '23'}"
     )
     assert command("help") == [
+        "atcmd",
         "aux_led",
         "bind",
         "fan",
@@ -127,6 +128,8 @@ def test_commands():
     assert command("bind") == "OK"
     assert command("bind") == "OK"
     assert command("unique_id") == "0102030405060708"
+    assert command("atcmd", '"VL"') == "OK"
+    mock_atcmd.assert_called_once_with("VL")
     config.pump_temp.state = 34.3
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"

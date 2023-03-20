@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 ADDR_COORDINATOR = b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
+atcmd = MagicMock(return_value="OK")
 transmit = MagicMock()
 receive = MagicMock()
 

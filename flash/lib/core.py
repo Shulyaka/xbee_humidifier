@@ -7,7 +7,7 @@ from json import dumps as json_dumps, loads as json_loads
 from lib import logging
 from lib.mainloop import main_loop
 from machine import soft_reset, unique_id
-from xbee import receive, transmit
+from xbee import atcmd, receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -209,3 +209,7 @@ class Commands:
     def cmd_unique_id(self, sender_eui64):
         """Return the unique identifier for the processor."""
         return hexlify(unique_id()).decode()
+
+    def cmd_atcmd(self, sender_eui64, *args, **kwargs):
+        """Execute AT command and returns the result."""
+        return atcmd(*args, **kwargs)
