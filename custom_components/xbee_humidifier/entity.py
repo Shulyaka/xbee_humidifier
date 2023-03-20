@@ -1,6 +1,7 @@
 """XBeeHumidifierEntity class."""
 from __future__ import annotations
 
+from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -21,4 +22,5 @@ class XBeeHumidifierEntity(CoordinatorEntity):
             name=NAME,
             model=VERSION,
             manufacturer=ATTRIBUTION,
+            via_device=(ZHA_DOMAIN, coordinator.client.device_ieee),
         )

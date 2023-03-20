@@ -48,7 +48,7 @@ class XBeeHumidifierApiClient:
         """Inititialize the XBee Humidifier API Client."""
 
         self.hass = hass
-        self._device_ieee = device_ieee
+        self.device_ieee = device_ieee
         self._cmd_lock = asyncio.Lock()
         self._cmd_resp_lock = asyncio.Lock()
         self._awaiting = {}
@@ -73,7 +73,7 @@ class XBeeHumidifierApiClient:
         def ieee_event_filter(event):
             return (
                 event.data["command"] == "receive_data"
-                and event.data["device_ieee"] == self._device_ieee
+                and event.data["device_ieee"] == self.device_ieee
             )
 
         self._remove_listener = self.hass.bus.async_listen(
@@ -142,7 +142,7 @@ class XBeeHumidifierApiClient:
             ATTR_COMMAND: SERIAL_DATA_CMD,
             ATTR_COMMAND_TYPE: CLUSTER_COMMAND_SERVER,
             ATTR_ENDPOINT_ID: XBEE_DATA_ENDPOINT,
-            ATTR_IEEE: self._device_ieee,
+            ATTR_IEEE: self.device_ieee,
             ATTR_PARAMS: {ATTR_DATA: data},
         }
 
