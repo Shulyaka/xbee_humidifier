@@ -76,14 +76,18 @@ async def test_humidifier_services(hass, caplog):
         "state_attr": {"mode": "normal", "hum": 50},
     }
     commands["hum"] = MagicMock(return_value=hum_resp)
+    commands["atcmd"] = MagicMock(
+        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
+    )
 
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     await config_entry.async_setup(hass)
     await hass.async_block_till_done()
 
-    assert len(commands) == 11
+    assert len(commands) == 12
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
+    commands["atcmd"].assert_called_once_with("VL")
     commands["pump"].assert_called_once_with()
     commands["pump_temp"].assert_called_once_with()
     commands["pump_block"].assert_called_once_with()

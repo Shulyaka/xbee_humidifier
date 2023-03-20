@@ -234,6 +234,17 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         """Refresh data for the first time when a config entry is setup."""
         await super().async_config_entry_first_refresh()
         self.unique_id = await self.client.async_command("unique_id")
+        version_info = await self.client.async_command("atcmd", "VL")
+        version_info = (
+            ("Model: " + version_info)
+            .replace(" RELE", "\rVR")
+            .replace(" Compiler", "\rCompiler")
+            .replace("Bootloader", "VH")
+            .replace("\rOK\x00", "")
+            .split("\r")
+        )
+        version_info = [v.split(": ", 1) for v in version_info]
+        self.version_info = {k: v for k, v in version_info}
 
     @callback
     async def async_update_data(self):
