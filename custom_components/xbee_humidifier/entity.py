@@ -14,17 +14,13 @@ class XBeeHumidifierEntity(CoordinatorEntity):
 
     _attr_attribution = ATTRIBUTION
 
-    def __init__(self, coordinator: XBeeHumidifierDataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: XBeeHumidifierDataUpdateCoordinator, number=None
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.unique_id)},
-            name=NAME,
-            model=coordinator.version_info["Model"],
-            manufacturer=ATTRIBUTION,
-            via_device=(ZHA_DOMAIN, coordinator.client.device_ieee),
-            hw_version=coordinator.version_info["HV"],
-            sw_version="Version: "
+        sw_version = (
+            "Version: "
             + coordinator.version_info["VR"]
             + ", Build: "
             + coordinator.version_info["Build"]
@@ -33,5 +29,28 @@ class XBeeHumidifierEntity(CoordinatorEntity):
             + ", Compiler: "
             + coordinator.version_info["Compiler"]
             + ", Stack: "
-            + coordinator.version_info["Stack"],
+            + coordinator.version_info["Stack"]
         )
+
+        if number is not None:
+            self._attr_device_info = DeviceInfo(
+                identifiers={
+                    (DOMAIN, coordinator.client.device_ieee + "-" + str(number))
+                },
+                name=NAME + " " + str(number + 1),
+                model=coordinator.version_info["Model"],
+                manufacturer=ATTRIBUTION,
+                via_device=(DOMAIN, coordinator.client.device_ieee),
+                hw_version=coordinator.version_info["HV"],
+                sw_version=sw_version,
+            )
+        else:
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, coordinator.client.device_ieee)},
+                name=NAME + " Main Unit",
+                model=coordinator.version_info["Model"],
+                manufacturer=ATTRIBUTION,
+                via_device=(ZHA_DOMAIN, coordinator.client.device_ieee),
+                hw_version=coordinator.version_info["HV"],
+                sw_version=sw_version,
+            )

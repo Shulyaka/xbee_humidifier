@@ -20,7 +20,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for number in range(0, 3):
         entity_description = BinarySensorEntityDescription(
             key="xbee_humidifier_working_" + str(number + 1),
-            name="Working " + str(number + 1),
+            name="Working",
             has_entity_name=True,
             device_class=BinarySensorDeviceClass.RUNNING,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -46,11 +46,11 @@ class XBeeHumidifierWorkingSensor(XBeeHumidifierEntity, BinarySensorEntity):
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary_sensor class."""
-        super().__init__(coordinator)
         self.entity_description = entity_description
+        self._attr_unique_id = coordinator.unique_id + "working" + str(number)
+        super().__init__(coordinator, number)
         self._number = number
         self._state = None
-        self._attr_unique_id = coordinator.unique_id + "working" + str(self._number)
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""

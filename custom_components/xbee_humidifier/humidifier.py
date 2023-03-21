@@ -37,7 +37,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         away_humidity = config.get(CONF_AWAY_HUMIDITY)
         entity_description = HumidifierEntityDescription(
             key="xbee_humidifier_" + str(number + 1),
-            name="Humidifier " + str(number + 1),
+            name="Humidifier",
             has_entity_name=True,
             icon="mdi:air-humidifier",
             device_class=HumidifierDeviceClass.HUMIDIFIER,
@@ -69,8 +69,9 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         coordinator,
     ):
         """Initialize the hygrostat."""
-        super().__init__(coordinator)
         self.entity_description = entity_description
+        self._attr_unique_id = coordinator.unique_id + "humidifier" + str(number)
+        super().__init__(coordinator, number)
         self._number = number
         self._sensor_entity_id = sensor_entity_id
         self._saved_target_humidity = away_humidity or target_humidity
@@ -85,7 +86,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self._min_humidity = None
         self._max_humidity = None
         self._remove_sensor_tracking = None
-        self._attr_unique_id = coordinator.unique_id + "humidifier" + str(self._number)
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""

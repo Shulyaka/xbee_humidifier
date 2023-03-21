@@ -20,7 +20,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for number in range(0, 4):
         entity_description = SwitchEntityDescription(
             key="xbee_humidifier_valve_" + str(number + 1),
-            name="Valve " + str(number + 1) if number != 3 else "Pressure Drop Valve",
+            name="Valve" if number != 3 else "Pressure Drop Valve",
             has_entity_name=True,
             icon="mdi:pipe-valve",
             device_class=SwitchDeviceClass.SWITCH,
@@ -117,14 +117,14 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         entity_description: SwitchEntityDescription,
     ) -> None:
         """Initialize the switch class."""
-        super().__init__(coordinator)
         self.entity_description = entity_description
-        self._name = name
-        self._number = number
-        self._state = None
         self._attr_unique_id = coordinator.unique_id + (
             name if number is None else name + str(number)
         )
+        super().__init__(coordinator, number if number != 3 else None)
+        self._name = name
+        self._number = number
+        self._state = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""

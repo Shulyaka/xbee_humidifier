@@ -18,7 +18,7 @@ from custom_components.xbee_humidifier.const import DOMAIN
 
 from .const import IEEE, MOCK_CONFIG
 
-ENTITY = "humidifier.xbee_humidifier_humidifier_2"
+ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 ENT_SENSOR = "sensor.test2"
 
 
@@ -137,7 +137,7 @@ async def test_humidifier_services(hass, caplog):
 
     assert state.attributes.get("available_modes") == ["normal", "away"]
     assert state.attributes.get("device_class") == "humidifier"
-    assert state.attributes.get("friendly_name") == "XBee Humidifier Humidifier 2"
+    assert state.attributes.get("friendly_name") == "XBee Humidifier 2 Humidifier"
     assert state.attributes.get("humidity") == 42
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80
