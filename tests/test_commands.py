@@ -342,7 +342,7 @@ def test_commands():
     with pytest.raises(RuntimeError) as excinfo:
         command("pump_block", "[1, 2, 3]")
     assert (
-        "cmd_pump_block() takes from 2 to 3 positional arguments but 5 were given"
+        "cmd_pump_block() takes from 1 to 3 positional arguments but 5 were given"
         in str(excinfo.value)
     )
 

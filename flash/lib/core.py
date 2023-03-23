@@ -184,7 +184,7 @@ class Commands:
                     )
                 )
 
-    def cmd_help(self, sender_eui64):
+    def cmd_help(self, sender_eui64=None):
         """Return the list of available commands."""
         return [cmd[4:] for cmd in dir(self) if cmd.startswith("cmd_")]
 
@@ -192,11 +192,11 @@ class Commands:
         """Echo arguments."""
         return "args: " + str(args) + ", kwargs: " + str(kwargs)
 
-    def cmd_logger(self, sender_eui64, level=None, target=None):
+    def cmd_logger(self, sender_eui64=None, level=None, target=None):
         """Set logging level and target."""
         if level is not None:
             logging.getLogger().setLevel(level)
-        if target is not None or level is None:
+        if target is not None or (level is None and sender_eui64 is not None):
             target = (
                 bytes(target, encoding="utf-8") if target is not None else sender_eui64
             )
@@ -206,7 +206,7 @@ class Commands:
         """Schedule soft reset."""
         main_loop.schedule_task(soft_reset)
 
-    def cmd_unique_id(self, sender_eui64):
+    def cmd_unique_id(self, sender_eui64=None):
         """Return the unique identifier for the processor."""
         return hexlify(unique_id()).decode()
 

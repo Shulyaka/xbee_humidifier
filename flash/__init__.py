@@ -9,12 +9,18 @@ from lib import logging
 from lib.core import Sensor, Switch
 from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
+from machine import reset_cause
 from micropython import kbd_intr, mem_info
 
 collect()
 
 _LOGGER = logging.getLogger(__name__)
 
+
+if config.debug:
+    print("Reset cause %s", reset_cause())
+
+_LOGGER.debug("Reset cause %s", reset_cause())
 
 zone = {x: Switch() for x in range(3)}
 sensor = {x: Sensor() for x in range(3)}
