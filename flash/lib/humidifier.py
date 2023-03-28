@@ -58,6 +58,7 @@ class GenericHygrostat(Switch):
             value=initial_state if initial_state is not None else False, *args, **kwargs
         )
 
+        self._operate_unschedule = None
         self._state_unsubscribe = self.subscribe(lambda x: self._state_changed(x))
 
         if self._target_humidity is None:
@@ -78,6 +79,8 @@ class GenericHygrostat(Switch):
         self._sensor_unsubscribe()
         if self._remove_stale_tracking:
             self._remove_stale_tracking()
+        if self._operate_unschedule:
+            self._operate_unschedule()
 
     @property
     def capability_attributes(self):
@@ -104,7 +107,7 @@ class GenericHygrostat(Switch):
     def _state_changed(self, value):
         """Set current state."""
         if value:
-            self._operate(force=True)
+            self._schedule_operate(force=True)
         else:
             if self._switch_entity_id.state:
                 self._switch_entity_id.state = False
@@ -128,7 +131,7 @@ class GenericHygrostat(Switch):
     def set_humidity(self, humidity):
         """Set new target humidity."""
         self._target_humidity = int(humidity)
-        self._operate()
+        self._schedule_operate()
 
     def _sensor_changed(self, new_state):
         """Handle ambient humidity changes."""
@@ -144,7 +147,7 @@ class GenericHygrostat(Switch):
             )
 
         self._update_humidity(new_state)
-        self._operate()
+        self._schedule_operate()
 
     def _sensor_not_responding(self):
         """Handle sensor stale event."""
@@ -167,8 +170,21 @@ class GenericHygrostat(Switch):
             if self._switch_entity_id.state:
                 self._switch_entity_id.state = False
 
+    def _schedule_operate(self, force=False):
+        if self._operate_unschedule:
+            if not force:
+                return
+            self._operate_unschedule()
+        self._operate_unschedule = main_loop.schedule_task(
+            (lambda x: lambda: self._operate(x))(force)
+        )
+
     def _operate(self, force=False):
         """Check if we need to turn humidifying on or off."""
+        if self._operate_unschedule:
+            self._operate_unschedule()
+            self._operate_unschedule = None
+
         if not self._active.state and None not in (
             self._cur_humidity,
             self._target_humidity,
@@ -216,11 +232,11 @@ class GenericHygrostat(Switch):
                 self._target_humidity,
                 self._saved_target_humidity,
             )
-            self._operate(force=True)
+            self._schedule_operate(force=True)
         elif mode == MODE_NORMAL and self._is_away:
             self._is_away = False
             self._saved_target_humidity, self._target_humidity = (
                 self._target_humidity,
                 self._saved_target_humidity,
             )
-            self._operate(force=True)
+            self._schedule_operate(force=True)

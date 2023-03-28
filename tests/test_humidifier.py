@@ -14,7 +14,6 @@ TARGET_HUMIDITY = 42
 
 humidifier_switch = Switch()
 humidifier_sensor = Sensor()
-humidifier_available = Switch()
 
 calls = []
 switch_unsubscribe = humidifier_switch.subscribe(lambda x: calls.append(x))
@@ -22,6 +21,7 @@ switch_unsubscribe = humidifier_switch.subscribe(lambda x: calls.append(x))
 
 def test_heneric_hygrostat():
     """Test GenericHygrostat class."""
+    humidifier_available = Switch()
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
@@ -44,10 +44,12 @@ def test_heneric_hygrostat():
     assert not humidifier_available.state
 
     humidifier_sensor.state = 40
+    main_loop.run_once()
     assert humidifier_available.state
     assert not humidifier.state
 
     humidifier.state = True
+    main_loop.run_once()
     assert humidifier.state
     assert humidifier_switch.state
     callback.assert_called_once_with(True)
@@ -64,7 +66,7 @@ def test_humidifier_switch():
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         initial_state=True,
     )
 
@@ -73,6 +75,7 @@ def test_humidifier_switch():
     _setup_sensor(23)
 
     humidifier.set_humidity(32)
+    main_loop.run_once()
 
     assert humidifier_switch.state
     humidifier.state = False
@@ -91,7 +94,7 @@ def setup_comp_0():
     return GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         dry_tolerance=2,
         wet_tolerance=4,
         initial_state=True,
@@ -107,7 +110,7 @@ def setup_comp_2():
     return GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         dry_tolerance=2,
         wet_tolerance=4,
         initial_state=True,
@@ -118,6 +121,7 @@ def setup_comp_2():
 def test_unavailable_state():
     """Test the setting of defaults to unknown."""
     _setup_sensor("unavailable")
+    humidifier_available = Switch()
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
@@ -131,6 +135,7 @@ def test_unavailable_state():
 
     # Sensor online
     _setup_sensor(30)
+    main_loop.run_once()
     assert humidifier_available.state
     assert not humidifier.state
 
@@ -201,6 +206,8 @@ def test_set_target_humidity_humidifier_on(setup_comp_2):
     _setup_switch(False)
     _setup_sensor(36)
     humidifier.set_humidity(45)
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert call
@@ -213,6 +220,8 @@ def test_set_target_humidity_humidifier_off(setup_comp_2):
     _setup_switch(True)
     _setup_sensor(45)
     humidifier.set_humidity(36)
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert not call
@@ -224,7 +233,9 @@ def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
     humidifier = setup_comp_2
     _setup_switch(False)
     humidifier.set_humidity(44)
+    main_loop.run_once()
     _setup_sensor(43)
+    main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
 
@@ -235,6 +246,8 @@ def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
     _setup_switch(False)
     humidifier.set_humidity(44)
     _setup_sensor(42)
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert call
@@ -246,7 +259,9 @@ def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
     humidifier = setup_comp_2
     _setup_switch(True)
     humidifier.set_humidity(46)
+    main_loop.run_once()
     _setup_sensor(48)
+    main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
 
@@ -257,6 +272,8 @@ def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
     _setup_switch(True)
     humidifier.set_humidity(46)
     _setup_sensor(50)
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert not call
@@ -274,6 +291,8 @@ def test_operation_mode_humidify(setup_comp_2):
     _setup_sensor(40)
     _setup_switch(False)
     humidifier.state = True
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert call
@@ -293,14 +312,15 @@ def test_init_ignores_tolerance():
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         target_humidity=40,
         dry_tolerance=4,
         wet_tolerance=2,
         initial_state=True,
         away_humidity=30,
     )
-    assert 1 == len(calls)
+    main_loop.run_once()
+    assert len(calls) == 1
     call = calls[0]
     assert not call
     humidifier.state = False
@@ -324,6 +344,7 @@ def test_no_state_change_when_operation_mode_off(setup_comp_2):
     _setup_sensor(60)
     humidifier.state = False
     _setup_sensor(35)
+    main_loop.run_once()
     assert len(calls) == 0
 
 
@@ -333,7 +354,7 @@ def setup_comp_4():
     return GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         target_humidity=40,
         dry_tolerance=3,
         wet_tolerance=3,
@@ -360,8 +381,11 @@ def test_mode_change_humidifier_trigger_on_not_long_enough(setup_comp_4):
     _setup_sensor(45)
     humidifier.state = False
     _setup_sensor(35)
+    main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = True
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert call
@@ -373,14 +397,17 @@ def test_float_tolerance_values():
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         target_humidity=40,
         wet_tolerance=0.2,
         initial_state=True,
     )
     _setup_switch(True)
+    main_loop.run_once()
     _setup_sensor(35)
+    main_loop.run_once()
     _setup_sensor(40.1)
+    main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
 
@@ -390,13 +417,15 @@ def test_float_tolerance_values_2():
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         target_humidity=40,
         wet_tolerance=0.2,
         initial_state=True,
     )
     _setup_switch(True)
     _setup_sensor(40.3)
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert not call
@@ -409,7 +438,7 @@ def test_custom_setup_params():
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         min_humidity=MIN_HUMIDITY,
         max_humidity=MAX_HUMIDITY,
         target_humidity=TARGET_HUMIDITY,
@@ -417,6 +446,7 @@ def test_custom_setup_params():
     assert humidifier._min_humidity == MIN_HUMIDITY
     assert humidifier._max_humidity == MAX_HUMIDITY
     assert humidifier._target_humidity == TARGET_HUMIDITY
+    humidifier.state = False
 
 
 def test_sensor_stale_duration(caplog):
@@ -425,16 +455,18 @@ def test_sensor_stale_duration(caplog):
     humidifier = GenericHygrostat(
         switch_entity_id=humidifier_switch,
         sensor_entity_id=humidifier_sensor,
-        available_sensor_id=humidifier_available,
+        available_sensor_id=Switch(),
         initial_state=True,
         sensor_stale_duration=10 * 60,
     )
 
     _setup_sensor(23)
+    main_loop.run_once()
 
     assert not humidifier_switch.state
 
     humidifier.set_humidity(32)
+    main_loop.run_once()
 
     assert humidifier_switch.state
 
@@ -448,6 +480,7 @@ def test_sensor_stale_duration(caplog):
 
     # Updated value from sensor received
     _setup_sensor(24)
+    main_loop.run_once()
 
     # A new value has arrived, the humidifier should go ON
     assert humidifier_switch.state
@@ -465,6 +498,7 @@ def test_sensor_stale_duration(caplog):
 
     # Updated value from sensor received
     _setup_sensor(22)
+    main_loop.run_once()
 
     # Not turning on by itself
     assert not humidifier.state

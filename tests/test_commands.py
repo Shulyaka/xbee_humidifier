@@ -169,6 +169,8 @@ def test_commands():
 
     assert command("bind") == "OK"
     humidifier_sensor[0].state = 51.2
+    assert mock_transmit.call_count == 0
+    main_loop.run_once()
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
     assert json_loads(mock_transmit.call_args[0][1]) == {
@@ -179,16 +181,25 @@ def test_commands():
     humidifier_sensor[1].state = 35.7
     assert not humidifier_zone[1].state
     humidifier[1].state = True
-    assert humidifier_zone[1].state
-    assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
-    assert json_loads(mock_transmit.call_args[0][1]) == {
+    assert mock_transmit.call_count == 0
+    main_loop.run_once()
+    assert mock_transmit.call_count == 2
+    assert mock_transmit.call_args_list[0][0][0] == b"\x00\x13\xa2\x00A\xa0n`"
+    assert json_loads(mock_transmit.call_args_list[0][0][1]) == {
+        "available_1": True,
+    }
+    assert mock_transmit.call_args_list[1][0][0] == b"\x00\x13\xa2\x00A\xa0n`"
+    assert json_loads(mock_transmit.call_args_list[1][0][1]) == {
         "working_1": True,
     }
+
+    assert humidifier_zone[1].state
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
     humidifier[1].state = False
     assert not humidifier_zone[1].state
     humidifier[1].state = True
+    main_loop.run_once()
     assert mock_transmit.call_count == 0
 
     assert command("bind") == "OK"
@@ -259,6 +270,7 @@ def test_commands():
     assert command("hum", '{"number": 2, "mode": "away"}') == "OK"
     assert command("hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "is_on": true}') == "OK"
+    main_loop.run_once()
     assert command("hum", 2) == {
         "available": True,
         "cap_attr": {

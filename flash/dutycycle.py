@@ -43,7 +43,11 @@ class DutyCycle:
         self._humidifier_unsubscribe = {}
         for number, humidifier in self._humidifier.items():
             self._humidifier_unsubscribe[number] = humidifier.subscribe(
-                (lambda number: lambda x: self._humidifier_changed(number, x))(number)
+                (
+                    lambda number: lambda x: main_loop.schedule_task(
+                        lambda: self._humidifier_changed(number, x)
+                    )
+                )(number)
             )
 
         self._zone_unsubscribe = {}
@@ -119,7 +123,7 @@ class DutyCycle:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
                     self._loop_unschedule()
-                _LOGGER.debug("All zones turned of, scheduling duty cycle stop")
+                _LOGGER.debug("All zones turned off, scheduling duty cycle stop")
                 self._loop_unschedule = main_loop.schedule_task(
                     lambda: self.stop_cycle()
                 )

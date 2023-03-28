@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 if config.debug:
-    print("Reset cause %s", reset_cause())
+    print("Reset cause %s" % reset_cause())
 
 _LOGGER.debug("Reset cause %s", reset_cause())
 

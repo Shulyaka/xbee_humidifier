@@ -59,6 +59,7 @@ def test_dutycycle():
     assert not tosr_switch[3].state
 
     main_loop.run_once()
+    main_loop.run_once()
 
     # Check that the duty cycle is started
     assert pump.state
@@ -128,8 +129,9 @@ def test_dutycycle():
     assert not tosr_switch[3].state
 
     humidifier[2].state = False
+    main_loop.run_once()
 
-    # Check that duty cyucle is not stopped until next loop run
+    # Check that duty cycle is not stopped until next loop run
     assert pump.state
     assert tosr_switch[0].state
     assert not tosr_switch[1].state
@@ -156,6 +158,7 @@ def test_dutycycle():
     assert not tosr_switch[3].state
 
     humidifier[1].state = True
+    main_loop.run_once()
     main_loop.run_once()
 
     # Check that duty cycle has started
@@ -187,6 +190,7 @@ def test_dutycycle():
     assert tosr_switch[3].state
 
     humidifier[1].state = True
+    main_loop.run_once()
     main_loop.run_once()
 
     # Check that duty cycle has started

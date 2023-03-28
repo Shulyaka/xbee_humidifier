@@ -78,6 +78,8 @@ class Loop:
         self._task_scheduled = False
 
         for task in self._tasks.copy():
+            if task not in self._tasks:
+                continue
             next_run = task.next_run
             if next_run - ticks_ms() <= 0:
                 task.run()
