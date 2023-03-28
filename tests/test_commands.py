@@ -197,6 +197,7 @@ def test_commands():
     mock_transmit.reset_mock()
     assert command("unbind") == "OK"
     humidifier[1].state = False
+    main_loop.run_once()
     assert not humidifier_zone[1].state
     humidifier[1].state = True
     main_loop.run_once()

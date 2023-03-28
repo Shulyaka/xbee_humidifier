@@ -56,6 +56,7 @@ def test_heneric_hygrostat():
 
     callback.reset_mock()
     humidifier.state = False
+    main_loop.run_once()
     assert not humidifier.state
     assert not humidifier_switch.state
     callback.assert_called_once_with(False)
@@ -79,6 +80,7 @@ def test_humidifier_switch():
 
     assert humidifier_switch.state
     humidifier.state = False
+    main_loop.run_once()
 
 
 def _setup_sensor(humidity):
@@ -147,6 +149,7 @@ def test_default_setup_params(setup_comp_2):
     assert humidifier._max_humidity == 100
     assert humidifier._target_humidity == 0
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_target_humidity(setup_comp_2):
@@ -160,6 +163,7 @@ def test_set_target_humidity(setup_comp_2):
         humidifier.set_humidity("str")
     assert humidifier._target_humidity == 40
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_away_mode(setup_comp_2):
@@ -169,6 +173,7 @@ def test_set_away_mode(setup_comp_2):
     humidifier.set_mode(MODE_AWAY)
     assert humidifier._target_humidity == 35
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
@@ -183,6 +188,7 @@ def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
     humidifier.set_mode(MODE_NORMAL)
     assert humidifier._target_humidity == 44
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
@@ -198,6 +204,7 @@ def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
     humidifier.set_mode(MODE_NORMAL)
     assert humidifier._target_humidity == 44
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_target_humidity_humidifier_on(setup_comp_2):
@@ -212,6 +219,7 @@ def test_set_target_humidity_humidifier_on(setup_comp_2):
     call = calls[0]
     assert call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_set_target_humidity_humidifier_off(setup_comp_2):
@@ -226,6 +234,7 @@ def test_set_target_humidity_humidifier_off(setup_comp_2):
     call = calls[0]
     assert not call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
@@ -238,6 +247,7 @@ def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
     main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
@@ -252,6 +262,7 @@ def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
     call = calls[0]
     assert call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
@@ -264,6 +275,7 @@ def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
     main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
@@ -278,6 +290,7 @@ def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
     call = calls[0]
     assert not call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_operation_mode_humidify(setup_comp_2):
@@ -297,6 +310,7 @@ def test_operation_mode_humidify(setup_comp_2):
     call = calls[0]
     assert call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def _setup_switch(is_on):
@@ -324,6 +338,7 @@ def test_init_ignores_tolerance():
     call = calls[0]
     assert not call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_running_when_operating_mode_is_off(setup_comp_2):
@@ -332,6 +347,8 @@ def test_running_when_operating_mode_is_off(setup_comp_2):
     _setup_switch(True)
     _setup_sensor(55)
     humidifier.state = False
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert not call
@@ -369,6 +386,8 @@ def test_mode_change_humidifier_trigger_off_not_long_enough(setup_comp_4):
     _setup_sensor(35)
     assert len(calls) == 0
     humidifier.state = False
+    assert len(calls) == 0
+    main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
     assert not call
@@ -390,6 +409,7 @@ def test_mode_change_humidifier_trigger_on_not_long_enough(setup_comp_4):
     call = calls[0]
     assert call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_float_tolerance_values():
@@ -410,6 +430,7 @@ def test_float_tolerance_values():
     main_loop.run_once()
     assert len(calls) == 0
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_float_tolerance_values_2():
@@ -430,6 +451,7 @@ def test_float_tolerance_values_2():
     call = calls[0]
     assert not call
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_custom_setup_params():
@@ -447,6 +469,7 @@ def test_custom_setup_params():
     assert humidifier._max_humidity == MAX_HUMIDITY
     assert humidifier._target_humidity == TARGET_HUMIDITY
     humidifier.state = False
+    main_loop.run_once()
 
 
 def test_sensor_stale_duration(caplog):
@@ -487,6 +510,7 @@ def test_sensor_stale_duration(caplog):
 
     # Manual turn off
     humidifier.state = False
+    main_loop.run_once()
     assert not humidifier_switch.state
 
     # Wait another 11 minutes

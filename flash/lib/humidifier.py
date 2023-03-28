@@ -59,7 +59,9 @@ class GenericHygrostat(Switch):
         )
 
         self._operate_unschedule = None
-        self._state_unsubscribe = self.subscribe(lambda x: self._state_changed(x))
+        self._state_unsubscribe = self.subscribe(
+            lambda x: self._schedule_operate(force=True)
+        )
 
         if self._target_humidity is None:
             self._target_humidity = self._min_humidity
@@ -103,14 +105,6 @@ class GenericHygrostat(Switch):
         data[ATTR_MODE] = self.mode
 
         return data
-
-    def _state_changed(self, value):
-        """Set current state."""
-        if value:
-            self._schedule_operate(force=True)
-        else:
-            if self._switch_entity_id.state:
-                self._switch_entity_id.state = False
 
     @property
     def extra_state_attributes(self):
@@ -201,6 +195,8 @@ class GenericHygrostat(Switch):
             )
 
         if not self._active.state or not self._state:
+            if force:
+                self._switch_entity_id.state = False
             return
 
         if force:
