@@ -1,7 +1,7 @@
 """Micropython TOSR04 interface implementation."""
 
 from sys import stdin, stdout
-from time import ticks_ms
+from time import ticks_diff, ticks_ms
 
 
 class Tosr0x:
@@ -57,12 +57,12 @@ class Tosr0x:
     def update(self):
         """Update the switch states, ratelimited."""
         now = ticks_ms()
-        if self._lastupdate is None or now - self._lastupdate >= 300:
+        if self._lastupdate is None or ticks_diff(now, self._lastupdate) >= 300:
             stdin.buffer.read()
             stdout.buffer.write("[")
             char = None
             while char is None or len(char) != 1:
-                if ticks_ms() - now > 1000:
+                if ticks_diff(ticks_ms(), now) > 1000:
                     raise RuntimeError("Failed to get relay state")
                 char = stdin.buffer.read()
                 if char is not None and len(char) > 1:
@@ -78,7 +78,7 @@ class Tosr0x:
         now = ticks_ms()
         char = b""
         while char is None or len(char) != 2:
-            if ticks_ms() - now > 1000:
+            if ticks_diff(ticks_ms(), now) > 1000:
                 raise RuntimeError("Failed to get temperature")
             newchar = stdin.buffer.read()
             if newchar is not None:

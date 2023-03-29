@@ -79,7 +79,7 @@ def test_loop():
 
     loop.schedule_task(callback)
     loop.schedule_task(lambda: loop.stop())
-    assert loop.run() == 2300
+    assert loop.run() is None
     assert loop.next_run is None
     callback.assert_called_once_with()
     assert mock_sleep_ms.call_count == 0

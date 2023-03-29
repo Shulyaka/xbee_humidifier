@@ -11,3 +11,13 @@ def _time_pass(t):
 
 sleep_ms = MagicMock(side_effect=_time_pass)
 sleep = MagicMock(side_effect=lambda x: _time_pass(x * 1000))
+
+
+def ticks_add(ticks, delta):
+    """Offset ticks value by a given number."""
+    return ticks + delta
+
+
+def ticks_diff(ticks1, ticks2):
+    """Measure ticks difference between values."""
+    return ticks1 - ticks2

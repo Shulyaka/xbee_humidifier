@@ -1,7 +1,7 @@
 """Simple main loop implementation."""
 
 from gc import collect
-from time import sleep_ms, ticks_ms
+from time import sleep_ms, ticks_add, ticks_diff, ticks_ms
 
 from lib import logging
 
@@ -18,7 +18,7 @@ class Task:
         self._period = period
 
         if self._next_run is None and self._period is not None:
-            self._next_run = ticks_ms() + self._period
+            self._next_run = ticks_add(ticks_ms(), self._period)
 
     def run(self):
         """Execute the task."""
@@ -29,10 +29,10 @@ class Task:
             _LOGGER.error(type(e).__name__ + ": " + str(e))
 
         if self._period:
-            self._next_run += self._period
+            self._next_run = ticks_add(self._next_run, self._period)
             now = ticks_ms()
-            if self._next_run - now < 0:
-                self._next_run = now + self._period
+            if ticks_diff(self._next_run, now) < 0:
+                self._next_run = ticks_add(now, self._period)
         else:
             self._callback = None
 
@@ -81,7 +81,7 @@ class Loop:
             if task not in self._tasks:
                 continue
             next_run = task.next_run
-            if next_run - ticks_ms() <= 0:
+            if ticks_diff(next_run, ticks_ms()) <= 0:
                 task.run()
                 if task.completed:
                     if task in self._tasks:
@@ -90,7 +90,9 @@ class Loop:
                 else:
                     next_run = task.next_run
 
-            if next_run is not None and (next_time is None or next_run - next_time < 0):
+            if next_run is not None and (
+                next_time is None or ticks_diff(next_run, next_time) < 0
+            ):
                 next_time = next_run
 
         if self._task_scheduled:
@@ -107,11 +109,12 @@ class Loop:
             start = ticks_ms()
             next_time = self.run_once()
             now = ticks_ms()
-            self._run_time += now - start
+            self._run_time += ticks_diff(now, start)
             if next_time is None:
-                _LOGGER.warning("No tasks")
-                next_time = now + 1000
-            diff = next_time - now
+                if self._stop:
+                    return None
+                raise RuntimeError("No tasks")
+            diff = ticks_diff(next_time, now)
             if diff > 0 and not self._stop:
                 self._idle_time += diff
                 sleep_ms(diff)
@@ -126,10 +129,10 @@ class Loop:
 
         for task in self._tasks:
             next_run = task.next_run
-            if next_run <= now:
+            if ticks_diff(next_run, now) <= 0:
                 return now
 
-            if next_time is None or next_run - next_time < 0:
+            if next_time is None or ticks_diff(next_run, next_time) < 0:
                 next_time = next_run
 
         return next_time

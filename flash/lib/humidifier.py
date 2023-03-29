@@ -1,6 +1,6 @@
 """Generic hygrostat implementation."""
 
-from time import ticks_ms
+from time import ticks_add, ticks_diff, ticks_ms
 
 from lib import logging
 from lib.core import Switch
@@ -137,7 +137,7 @@ class GenericHygrostat(Switch):
                 self._remove_stale_tracking()
             self._remove_stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
-                ticks_ms() + self._sensor_stale_duration * 1000,
+                ticks_add(ticks_ms(), self._sensor_stale_duration * 1000),
             )
 
         self._update_humidity(new_state)
@@ -147,7 +147,7 @@ class GenericHygrostat(Switch):
         """Handle sensor stale event."""
         _LOGGER.debug(
             "Sensor has not been updated for %s seconds",
-            int((ticks_ms() - self._sensor_last_updated) / 1000),
+            int(ticks_diff(ticks_ms(), self._sensor_last_updated) / 1000),
         )
         _LOGGER.warning("Sensor is stalled, call the emergency stop")
         self._update_humidity("Stalled")
