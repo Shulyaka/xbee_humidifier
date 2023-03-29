@@ -15,6 +15,7 @@ pytest-homeassistant-custom-component
 service_identity
 zha-quirks
 bellows
+zigpy==0.53.2
 zigpy_znp
 zigpy_xbee
 zigpy_deconz
