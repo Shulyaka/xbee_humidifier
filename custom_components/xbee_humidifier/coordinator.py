@@ -49,7 +49,7 @@ class XBeeHumidifierApiClient:
 
         self.hass = hass
         self.device_ieee = device_ieee
-        self._cmd_lock = asyncio.Lock()
+        self._cmd_lock = {}
         self._cmd_resp_lock = asyncio.Lock()
         self._awaiting = {}
         self._callbacks = {}
@@ -121,7 +121,10 @@ class XBeeHumidifierApiClient:
 
         _LOGGER.debug("data: %s", data)
 
-        async with self._cmd_lock:
+        if command not in self._cmd_lock:
+            self._cmd_lock[command] = asyncio.Lock()
+
+        async with self._cmd_lock[command]:
             try:
                 return await asyncio.wait_for(
                     await self._cmd(command, data),
