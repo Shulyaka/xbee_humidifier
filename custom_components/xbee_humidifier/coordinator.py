@@ -219,6 +219,14 @@ class XBeeHumidifierApiClient:
             else:
                 _LOGGER.warning("No callback for %s", {key: value})
 
+        if "data_received" in self._callbacks:
+            for listener in self._callbacks["data_received"]:
+                try:
+                    await listener(data)
+                except Exception as e:
+                    _LOGGER.error("callback error for %s", listener)
+                    _LOGGER.error(type(e).__name__ + ": " + str(e))
+
 
 class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from XBeeHumidifier."""
@@ -250,6 +258,13 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
 
+        async def async_data_received(data):
+            self.last_update_success = True
+
+        self._remove_data_received_handler = self.client.add_subscriber(
+            "data_received", async_data_received
+        )
+
     def __del__(self):
         """Destructor."""
         self.stop()
@@ -260,6 +275,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         if self._remove_log_handler:
             self._remove_log_handler()
             self._remove_log_handler = None
+        if self._remove_data_received_handler:
+            self._remove_data_received_handler()
+            self._remove_data_received_handler = None
 
     async def async_config_entry_first_refresh(self) -> None:
         """Refresh data for the first time when a config entry is setup."""
