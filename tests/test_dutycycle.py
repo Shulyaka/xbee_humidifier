@@ -217,3 +217,33 @@ def test_dutycycle():
     assert tosr_switch[1].state
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
+
+    pump_block.state = True
+    main_loop.run_once()
+
+    # Check that the pump block stops the duty cycle
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    pump.state = True
+    main_loop.run_once()
+
+    # Check that the pump did not start due to the pump block
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    pump_block.state = False
+    main_loop.run_once()
+
+    # Check that pump unblock starts the cycle back
+    assert pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state

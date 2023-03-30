@@ -305,7 +305,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             await self.coordinator.client.async_command("hum", self._number, mode=mode)
             == "OK"
         ):
-            if self._is_away != mode == MODE_AWAY:
+            if self._is_away != (mode == MODE_AWAY):
                 self._target_humidity, self._saved_target_humidity = (
                     self._saved_target_humidity,
                     self._target_humidity,
