@@ -58,8 +58,8 @@ class XBeeHumidifierEntity(CoordinatorEntity):
     async def atcmd(self, cmd, data=None):
         """Send AT command to device."""
         if data is not None:
-            response = await self.coordinator.client.async_command(cmd, data)
+            response = await self.coordinator.client.async_command("atmcmd", cmd, data)
         else:
-            response = await self.coordinator.client.async_command(cmd)
+            response = await self.coordinator.client.async_command("atmcmd", cmd)
 
         return {"response": response}
