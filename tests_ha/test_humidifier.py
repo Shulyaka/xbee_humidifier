@@ -199,3 +199,6 @@ async def test_humidifier_services(hass, caplog):
 
     assert len(commands) == 1
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
+
+    assert await config_entry.async_unload(hass)
+    await hass.async_block_till_done()
