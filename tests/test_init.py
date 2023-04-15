@@ -3,6 +3,7 @@
 from dutycycle import DutyCycle
 from lib.core import Sensor
 from lib.humidifier import GenericHygrostat
+from lib.mainloop import main_loop
 
 import flash
 
@@ -26,3 +27,9 @@ def test_init():
 
     assert isinstance(flash.pump_block, Sensor)
     assert isinstance(flash.duty_cycle, DutyCycle)
+
+    assert len(flash._unsubscribe_warning) == 3
+    flash.sensor[2].state = 55
+    main_loop.run_once()
+    assert flash._unsubscribe_warning is None
+    assert flash._cancel_warning_cb is None

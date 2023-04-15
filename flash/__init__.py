@@ -123,10 +123,16 @@ def _cancel_warning(confirm):
     if not confirm:
         return
 
+    global _cancel_warning_cb, _unsubscribe_warning
+
     for unsub in _unsubscribe_warning.values():
         unsub()
 
     _cancel_warning_cb()
+
+    _unsubscribe_warning.clear()
+    _unsubscribe_warning = None
+    _cancel_warning_cb = None
 
 
 for x in range(3):
