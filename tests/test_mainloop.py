@@ -93,6 +93,16 @@ def test_loop():
     assert mock_sleep_ms.call_count == 0
 
     callback.reset_mock()
+    _unschedule = loop.schedule_task(callback, period=100)
+    loop.schedule_task(lambda: loop.schedule_task(lambda: loop.stop()))
+    assert loop.run() == 1400
+    assert loop.next_run == 1400
+    assert callback.call_count == 0
+    assert mock_sleep_ms.call_count == 0
+    _unschedule()
+    assert loop.next_run is None
+
+    callback.reset_mock()
     loop.schedule_task(callback, period=100)
     mock_ticks_ms.return_value = 2300
     assert loop.run_once() == 2400
