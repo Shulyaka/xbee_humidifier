@@ -18,12 +18,9 @@ if debug:
     pump_speed = Sensor(255)
     fan = Switch(False)
 else:
-    from lib.tosr import (  # noqa: F401
-        tosr_switch as valve_switch,
-        tosr_temp as pump_temp,
-    )
     from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
     from machine import Pin
+    from tosr import tosr_switch as valve_switch, tosr_temp as pump_temp  # noqa: F401
 
     Pin("D0", mode=Pin.ALT, alt=Pin.AF0_COMMISSION)
     pressure_in = AnalogInput("D1")

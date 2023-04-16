@@ -10,7 +10,7 @@ bundle_list = [
     "lib/core.mpy",
     "lib/tosr0x.mpy",
     "lib/mainloop.mpy",
-    "lib/tosr.mpy",
+    "tosr.mpy",
     "lib/xbeepin.mpy",
     "humidifier.mpy",
     "dutycycle.mpy",
