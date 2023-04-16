@@ -3,8 +3,8 @@
 from time import sleep as mock_sleep
 
 import dutycycle
+from humidifier import GenericHygrostat
 from lib.core import Sensor, Switch
-from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 
 

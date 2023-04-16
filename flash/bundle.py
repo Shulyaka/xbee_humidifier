@@ -12,7 +12,7 @@ bundle_list = [
     "lib/mainloop.mpy",
     "lib/tosr.mpy",
     "lib/xbeepin.mpy",
-    "lib/humidifier.mpy",
+    "humidifier.mpy",
     "dutycycle.mpy",
     "config.mpy",
 ]

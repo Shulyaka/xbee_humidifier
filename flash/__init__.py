@@ -5,9 +5,9 @@ from gc import collect
 from commands import HumidifierCommands
 import config
 from dutycycle import DutyCycle
+from humidifier import GenericHygrostat
 from lib import logging
 from lib.core import Sensor, Switch
-from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 from machine import reset_cause
 from micropython import kbd_intr, mem_info

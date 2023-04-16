@@ -1,8 +1,8 @@
 """Test __main__."""
 
 from dutycycle import DutyCycle
+from humidifier import GenericHygrostat
 from lib.core import Sensor
-from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 
 import flash

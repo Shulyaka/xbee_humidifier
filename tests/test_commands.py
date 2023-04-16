@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 import commands
 import config
+from humidifier import GenericHygrostat
 from lib.core import Sensor, Switch
-from lib.humidifier import GenericHygrostat
 from lib.mainloop import main_loop
 from machine import soft_reset as mock_soft_reset
 import pytest
