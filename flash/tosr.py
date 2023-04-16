@@ -2,7 +2,7 @@
 
 from lib import logging
 from lib.core import Sensor
-from lib.tosr0x import Tosr0x
+from tosr0x import Tosr0x
 
 try:
     tosr = Tosr0x()

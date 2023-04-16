@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from flash.lib import tosr0x
+from flash import tosr0x
 
 
-@patch("flash.lib.tosr0x.stdout.buffer.write")
-@patch("flash.lib.tosr0x.stdin.buffer.read")
+@patch("flash.tosr0x.stdout.buffer.write")
+@patch("flash.tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
     """Test Tosr0x class."""
     mock_sleep.reset_mock()

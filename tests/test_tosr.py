@@ -4,7 +4,7 @@ from time import sleep_ms
 from unittest.mock import MagicMock
 
 from lib.mainloop import main_loop
-from lib.tosr0x import mock_temperature, mock_tosr
+from tosr0x import mock_temperature, mock_tosr
 from tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 
 

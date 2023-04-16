@@ -8,10 +8,10 @@ import uos
 bundle_list = [
     "lib/logging.mpy",
     "lib/core.mpy",
-    "lib/tosr0x.mpy",
     "lib/mainloop.mpy",
-    "tosr.mpy",
     "lib/xbeepin.mpy",
+    "tosr0x.mpy",
+    "tosr.mpy",
     "humidifier.mpy",
     "dutycycle.mpy",
     "config.mpy",
