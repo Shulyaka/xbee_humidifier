@@ -1,7 +1,4 @@
 """Test xbee_humidifier."""
-import json
-from unittest.mock import MagicMock
-
 from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
     DOMAIN as HUMIDIFIER,
@@ -11,11 +8,11 @@ from homeassistant.components.humidifier import (
     SERVICE_TURN_ON,
 )
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
-from homeassistant.core import callback
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.xbee_humidifier.const import DOMAIN
 
+from .conftest import calls, commands
 from .const import IEEE, MOCK_CONFIG
 
 ENTITY = "humidifier.xbee_humidifier_2_humidifier"
@@ -27,58 +24,10 @@ def _setup_sensor(hass, humidity):
     hass.states.async_set(ENT_SENSOR, humidity)
 
 
-async def test_humidifier_services(hass, caplog):
+async def test_humidifier_services(hass, caplog, data_from_device):
     """Test humidifier services."""
 
     _setup_sensor(hass, 50)
-
-    calls = []
-    commands = {}
-
-    def data_from_device(hass, ieee, data):
-        hass.bus.async_fire(
-            "zha_event",
-            {
-                "device_ieee": ieee,
-                "unique_id": ieee + ":232:0x0008",
-                "device_id": "abcdef01234567899876543210fedcba",
-                "endpoint_id": 232,
-                "cluster_id": 8,
-                "command": "receive_data",
-                "args": {"data": json.dumps(data)},
-            },
-        )
-
-    @callback
-    def log_call(call):
-        """Log service calls."""
-        calls.append(call)
-        data = json.loads(call.data["params"]["data"])
-        cmd = data["cmd"]
-        if cmd not in commands:
-            commands[cmd] = MagicMock(return_value="OK")
-        if "args" in data:
-            response = commands[cmd](data["args"])
-        else:
-            response = commands[cmd]()
-        data_from_device(hass, call.data["ieee"], {cmd + "_resp": response})
-
-    hass.services.async_register("zha", "issue_zigbee_cluster_command", log_call)
-
-    hum_resp = {
-        "extra_state_attr": {"sav_hum": 35},
-        "is_on": False,
-        "cur_hum": None,
-        "cap_attr": {"min_hum": 15, "max_hum": 80},
-        "available": False,
-        "working": False,
-        "number": 1,
-        "state_attr": {"mode": "normal", "hum": 50},
-    }
-    commands["hum"] = MagicMock(return_value=hum_resp)
-    commands["atcmd"] = MagicMock(
-        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
-    )
 
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     await config_entry.async_setup(hass)
@@ -86,7 +35,8 @@ async def test_humidifier_services(hass, caplog):
 
     assert commands["hum"].call_args[0][0] == [[1], {"cur_hum": "50"}]
 
-    commands.clear()
+    commands["hum"].reset_mock()
+    commands["hum"].return_value = "OK"
 
     assert hass.states.get(ENTITY).state == "unavailable"
 
@@ -106,14 +56,18 @@ async def test_humidifier_services(hass, caplog):
     assert state.attributes.get("saved_humidity") == 32
     assert state.attributes.get("supported_features") == 1
 
+    calls.clear()
+
     await hass.services.async_call(
         HUMIDIFIER,
         SERVICE_TURN_ON,
         {ATTR_ENTITY_ID: ENTITY},
         blocking=True,
     )
+    await hass.async_block_till_done()
 
-    assert len(commands) == 1
+    assert len(calls) == 1
+    calls.clear()
     commands["hum"].assert_called_once_with([[1], {"is_on": True}])
     assert hass.states.get(ENTITY).state == "on"
 
@@ -125,7 +79,8 @@ async def test_humidifier_services(hass, caplog):
         blocking=True,
     )
 
-    assert len(commands) == 1
+    assert len(calls) == 1
+    calls.clear()
     commands["hum"].assert_called_once_with([[1], {"is_on": False}])
 
     commands["hum"].reset_mock()
@@ -136,7 +91,8 @@ async def test_humidifier_services(hass, caplog):
         blocking=True,
     )
 
-    assert len(commands) == 1
+    assert len(calls) == 1
+    calls.clear()
     commands["hum"].assert_called_once_with([[1], {"hum": 44}])
     assert hass.states.get(ENTITY).attributes["humidity"] == 44
 
@@ -148,7 +104,8 @@ async def test_humidifier_services(hass, caplog):
         blocking=True,
     )
 
-    assert len(commands) == 1
+    assert len(calls) == 1
+    calls.clear()
     commands["hum"].assert_called_once_with([[1], {"mode": "away"}])
     assert hass.states.get(ENTITY).attributes["humidity"] == 32
     assert hass.states.get(ENTITY).attributes["saved_humidity"] == 44
@@ -158,7 +115,8 @@ async def test_humidifier_services(hass, caplog):
     _setup_sensor(hass, 49)
     await hass.async_block_till_done()
 
-    assert len(commands) == 1
+    assert len(calls) == 1
+    calls.clear()
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
 
     assert await config_entry.async_unload(hass)

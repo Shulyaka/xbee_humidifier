@@ -1,65 +1,14 @@
 """Test xbee_humidifier."""
-import json
-from unittest.mock import MagicMock
-
-from homeassistant.core import callback
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.xbee_humidifier.const import DOMAIN
 
+from .conftest import commands
 from .const import IEEE, MOCK_CONFIG
 
 
-async def test_init(hass, caplog):
+async def test_init(hass, caplog, data_from_device):
     """Test humidifier services."""
-
-    calls = []
-    commands = {}
-
-    def data_from_device(hass, ieee, data):
-        hass.bus.async_fire(
-            "zha_event",
-            {
-                "device_ieee": ieee,
-                "unique_id": ieee + ":232:0x0008",
-                "device_id": "abcdef01234567899876543210fedcba",
-                "endpoint_id": 232,
-                "cluster_id": 8,
-                "command": "receive_data",
-                "args": {"data": json.dumps(data)},
-            },
-        )
-
-    @callback
-    def log_call(call):
-        """Log service calls."""
-        calls.append(call)
-        data = json.loads(call.data["params"]["data"])
-        cmd = data["cmd"]
-        if cmd not in commands:
-            commands[cmd] = MagicMock(return_value="OK")
-        if "args" in data:
-            response = commands[cmd](data["args"])
-        else:
-            response = commands[cmd]()
-        data_from_device(hass, call.data["ieee"], {cmd + "_resp": response})
-
-    hass.services.async_register("zha", "issue_zigbee_cluster_command", log_call)
-
-    hum_resp = {
-        "extra_state_attr": {"sav_hum": 35},
-        "is_on": False,
-        "cur_hum": None,
-        "cap_attr": {"min_hum": 15, "max_hum": 80},
-        "available": False,
-        "working": False,
-        "number": 1,
-        "state_attr": {"mode": "normal", "hum": 50},
-    }
-    commands["hum"] = MagicMock(return_value=hum_resp)
-    commands["atcmd"] = MagicMock(
-        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
-    )
 
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     await config_entry.async_setup(hass)
@@ -100,8 +49,6 @@ async def test_init(hass, caplog):
     assert commands["hum"].call_args_list[15][0][0] == [[0], {"is_on": False}]
     assert commands["hum"].call_args_list[16][0][0] == [[1], {"is_on": False}]
     assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
-
-    commands.clear()
 
     data_from_device(hass, IEEE, {"log": {"msg": "Test log", "sev": 20}})
     await hass.async_block_till_done()

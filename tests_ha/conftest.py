@@ -1,9 +1,15 @@
 """Global fixtures for xbee_humidifier integration."""
 
 
-from unittest.mock import patch
+import json
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+try:
+    from homeassistant.core import callback
+except ImportError:
+    pass
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -28,24 +34,69 @@ def skip_notifications_fixture():
         yield
 
 
-# This fixture, when used, will result in calls to async_get_data to return None. To have the call
-# return a value, we would add the `return_value=<VALUE_TO_RETURN>` parameter to the patch call.
-@pytest.fixture(name="bypass_get_data")
-def bypass_get_data_fixture():
-    """Skip calls to get data from API."""
-    with patch(
-        "custom_components.integration_blueprint.IntegrationBlueprintApiClient.async_get_data"
-    ):
-        yield
+# This is used to access calls and configure command responses
+calls = []
+commands = {
+    "hum": MagicMock(return_value="OK"),
+    "atcmd": MagicMock(
+        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
+    ),
+}
 
 
-# In this fixture, we are forcing calls to async_get_data to raise an Exception. This is useful
-# for exception handling.
-@pytest.fixture(name="error_on_get_data")
-def error_get_data_fixture():
-    """Simulate error when retrieving data from API."""
-    with patch(
-        "custom_components.integration_blueprint.IntegrationBlueprintApiClient.async_get_data",
-        side_effect=Exception,
-    ):
-        yield
+# This fixture enables two-way communication with the device. The calls are logged in the calls
+# array. The command responses can be configured with command dict.
+@pytest.fixture(name="data_from_device")
+def data_from_device_fixture(hass):
+    """Configure fake two-way communication."""
+
+    hum_resp = {
+        "extra_state_attr": {"sav_hum": 35},
+        "is_on": False,
+        "cur_hum": None,
+        "cap_attr": {"min_hum": 15, "max_hum": 80},
+        "available": False,
+        "working": False,
+        "number": 1,
+        "state_attr": {"mode": "normal", "hum": 50},
+    }
+    commands["hum"].return_value = hum_resp
+
+    def data_from_device(hass, ieee, data):
+        """Simulate receiving data from device."""
+        hass.bus.async_fire(
+            "zha_event",
+            {
+                "device_ieee": ieee,
+                "unique_id": ieee + ":232:0x0008",
+                "device_id": "abcdef01234567899876543210fedcba",
+                "endpoint_id": 232,
+                "cluster_id": 8,
+                "command": "receive_data",
+                "args": {"data": json.dumps(data)},
+            },
+        )
+
+    @callback
+    def log_call(call):
+        """Log service calls."""
+        calls.append(call)
+        data = json.loads(call.data["params"]["data"])
+        cmd = data["cmd"]
+        if cmd not in commands:
+            commands[cmd] = MagicMock(return_value="OK")
+        if "args" in data:
+            response = commands[cmd](data["args"])
+        else:
+            response = commands[cmd]()
+        data_from_device(hass, call.data["ieee"], {cmd + "_resp": response})
+
+    hass.services.async_register("zha", "issue_zigbee_cluster_command", log_call)
+
+    yield data_from_device
+
+    for x in commands.values():
+        x.reset_mock()
+
+    commands["hum"].return_value = hum_resp
+    calls.clear()
