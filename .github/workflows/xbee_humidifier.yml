@@ -27,7 +27,7 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true
-        flag-name: Unit Test
+        flag-name: ${{ matrix.python-version }}
 
   coverage:
     needs: build
