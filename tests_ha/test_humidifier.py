@@ -8,12 +8,9 @@ from homeassistant.components.humidifier import (
     SERVICE_TURN_ON,
 )
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.xbee_humidifier.const import DOMAIN
 
 from .conftest import calls, commands
-from .const import IEEE, MOCK_CONFIG
+from .const import IEEE
 
 ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 ENT_SENSOR = "sensor.test2"
@@ -24,14 +21,12 @@ def _setup_sensor(hass, humidity):
     hass.states.async_set(ENT_SENSOR, humidity)
 
 
-async def test_humidifier_services(hass, caplog, data_from_device):
+async def test_humidifier_services(hass, caplog, data_from_device, test_config_entry):
     """Test humidifier services."""
 
     _setup_sensor(hass, 50)
 
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    await config_entry.async_setup(hass)
-    await hass.async_block_till_done()
+    await test_config_entry()
 
     assert commands["hum"].call_args[0][0] == [[1], {"cur_hum": "50"}]
 
@@ -118,6 +113,3 @@ async def test_humidifier_services(hass, caplog, data_from_device):
     assert len(calls) == 1
     calls.clear()
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
-
-    assert await config_entry.async_unload(hass)
-    await hass.async_block_till_done()

@@ -117,7 +117,7 @@ async def test_config_entry(hass):
     async def setup_test_entry():
         await config_entry.async_setup(hass)
         await hass.async_block_till_done()
-        yield config_entry
+        return config_entry
 
     yield setup_test_entry
 
