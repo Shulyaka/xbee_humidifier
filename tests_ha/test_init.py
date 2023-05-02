@@ -6,8 +6,6 @@ from .const import IEEE
 async def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test humidifier services."""
 
-    await test_config_entry()
-
     assert len(commands) == 12
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()

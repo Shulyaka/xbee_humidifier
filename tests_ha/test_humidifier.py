@@ -24,11 +24,12 @@ def _setup_sensor(hass, humidity):
 async def test_humidifier_services(hass, caplog, data_from_device, test_config_entry):
     """Test humidifier services."""
 
+    commands["hum"].reset_mock()
+
     _setup_sensor(hass, 50)
+    await hass.async_block_till_done()
 
-    await test_config_entry()
-
-    assert commands["hum"].call_args[0][0] == [[1], {"cur_hum": "50"}]
+    commands["hum"].assert_called_once_with([[1], {"cur_hum": "50"}])
 
     commands["hum"].reset_mock()
     commands["hum"].return_value = "OK"
