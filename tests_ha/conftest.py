@@ -47,6 +47,13 @@ commands = {
     "atcmd": MagicMock(
         return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
     ),
+    "pump_temp": MagicMock(return_value=31),
+    "pressure_in": MagicMock(return_value=7),
+    "valve": MagicMock(return_value=False),
+    "pump": MagicMock(return_value=False),
+    "pump_block": MagicMock(return_value=False),
+    "fan": MagicMock(return_value=False),
+    "aux_led": MagicMock(return_value=False),
 }
 
 
@@ -67,6 +74,13 @@ def data_from_device_fixture(hass):
         "state_attr": {"mode": "normal", "hum": 50},
     }
     commands["hum"].return_value = hum_resp
+    commands["pump_temp"].return_value = 31
+    commands["pressure_in"].return_value = 7
+    commands["valve"].return_value = False
+    commands["pump"].return_value = False
+    commands["pump_block"].return_value = False
+    commands["fan"].return_value = False
+    commands["aux_led"].return_value = False
 
     def data_from_device(hass, ieee, data):
         """Simulate receiving data from device."""

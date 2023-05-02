@@ -21,7 +21,7 @@ def _setup_sensor(hass, humidity):
     hass.states.async_set(ENT_SENSOR, humidity)
 
 
-async def test_humidifier_services(hass, caplog, data_from_device, test_config_entry):
+async def test_humidifier_services(hass, data_from_device, test_config_entry):
     """Test humidifier services."""
 
     commands["hum"].reset_mock()
