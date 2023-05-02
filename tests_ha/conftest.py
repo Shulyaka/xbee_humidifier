@@ -5,9 +5,15 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytest_asyncio
 
 try:
     from homeassistant.core import callback
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.xbee_humidifier.const import DOMAIN
+
+    from .const import MOCK_CONFIG
 except ImportError:
     pass
 
@@ -16,7 +22,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations."""
     yield
@@ -100,3 +106,20 @@ def data_from_device_fixture(hass):
 
     commands["hum"].return_value = hum_resp
     calls.clear()
+
+
+@pytest_asyncio.fixture
+async def test_config_entry(hass):
+    """Load and unload hass config entry."""
+
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+
+    async def setup_test_entry():
+        await config_entry.async_setup(hass)
+        await hass.async_block_till_done()
+        yield config_entry
+
+    yield setup_test_entry
+
+    assert await config_entry.async_unload(hass)
+    await hass.async_block_till_done()

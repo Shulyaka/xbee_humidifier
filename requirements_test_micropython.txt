@@ -2,6 +2,7 @@ isort
 flake8
 pylint
 pytest
+pytest-asyncio
 pytest-cov
 pytest-sugar
 pytest-timeout

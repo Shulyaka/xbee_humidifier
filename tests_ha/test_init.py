@@ -1,18 +1,12 @@
 """Test xbee_humidifier."""
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.xbee_humidifier.const import DOMAIN
-
 from .conftest import commands
-from .const import IEEE, MOCK_CONFIG
+from .const import IEEE
 
 
-async def test_init(hass, caplog, data_from_device):
+async def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test humidifier services."""
 
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    await config_entry.async_setup(hass)
-    await hass.async_block_till_done()
+    await test_config_entry()
 
     assert len(commands) == 12
     commands["bind"].assert_called_once_with()
@@ -53,6 +47,3 @@ async def test_init(hass, caplog, data_from_device):
     data_from_device(hass, IEEE, {"log": {"msg": "Test log", "sev": 20}})
     await hass.async_block_till_done()
     assert "Test log" in caplog.text
-
-    assert await config_entry.async_unload(hass)
-    await hass.async_block_till_done()
