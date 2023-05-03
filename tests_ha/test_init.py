@@ -3,7 +3,7 @@ from .conftest import commands
 from .const import IEEE
 
 
-async def test_init(hass, caplog, data_from_device, test_config_entry):
+def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test humidifier services."""
 
     assert len(commands) == 12
@@ -43,5 +43,4 @@ async def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
 
     data_from_device(hass, IEEE, {"log": {"msg": "Test log", "sev": 20}})
-    await hass.async_block_till_done()
     assert "Test log" in caplog.text
