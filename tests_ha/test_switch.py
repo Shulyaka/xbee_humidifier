@@ -79,4 +79,3 @@ async def test_switch_services(
     commands[command].assert_called_once_with(
         False if number is None else [number, False]
     )
-    commands[command].reset_mock()

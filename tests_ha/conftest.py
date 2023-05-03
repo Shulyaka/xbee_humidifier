@@ -55,6 +55,7 @@ commands = {
     "pump_block": MagicMock(return_value=False),
     "fan": MagicMock(return_value=False),
     "aux_led": MagicMock(return_value=False),
+    "pump_speed": MagicMock(return_value=252),
 }
 
 
@@ -82,6 +83,7 @@ def data_from_device_fixture(hass):
     commands["pump_block"].return_value = False
     commands["fan"].return_value = False
     commands["aux_led"].return_value = False
+    commands["pump_speed"].return_value = 252
 
     def data_from_device(hass, ieee, data):
         """Simulate receiving data from device."""
