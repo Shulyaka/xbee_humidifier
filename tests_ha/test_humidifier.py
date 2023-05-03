@@ -16,6 +16,23 @@ ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 ENT_SENSOR = "sensor.test2"
 
 
+def test_humidifier_init(hass, data_from_device, test_config_entry):
+    """Test that all humidifier entities are created."""
+
+    assert (
+        hass.states.get("humidifier.xbee_humidifier_1_humidifier").state
+        == "unavailable"
+    )
+    assert (
+        hass.states.get("humidifier.xbee_humidifier_1_humidifier").state
+        == "unavailable"
+    )
+    assert (
+        hass.states.get("humidifier.xbee_humidifier_3_humidifier").state
+        == "unavailable"
+    )
+
+
 def _setup_sensor(hass, humidity):
     """Set up the test sensor."""
     hass.states.async_set(ENT_SENSOR, humidity)
