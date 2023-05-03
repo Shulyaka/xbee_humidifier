@@ -5,7 +5,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-import pytest_asyncio
 
 try:
     from homeassistant.core import callback
@@ -15,6 +14,8 @@ try:
 
     from .const import MOCK_CONFIG
 except ImportError:
+    # Do not import unwanted stuff for micropython tests.
+    # Due to pytest bug it stills tries to import this file even for the tests from a separate directory.
     pass
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -22,7 +23,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
-@pytest_asyncio.fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations."""
     yield
@@ -122,7 +123,8 @@ def data_from_device_fixture(hass):
     calls.clear()
 
 
-@pytest_asyncio.fixture
+# This fixture loads and unloads the test config entry
+@pytest.fixture
 async def test_config_entry(hass):
     """Load and unload hass config entry."""
 
