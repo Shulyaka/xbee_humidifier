@@ -8,6 +8,7 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 import pytest
 
 from .conftest import commands
+from .const import IEEE
 
 ENT_VALVE1 = "switch.xbee_humidifier_1_valve"
 ENT_VALVE2 = "switch.xbee_humidifier_2_valve"
@@ -79,3 +80,34 @@ async def test_switch_services(
     commands[command].assert_called_once_with(
         False if number is None else [number, False]
     )
+
+
+@pytest.mark.parametrize(
+    "entity, data",
+    (
+        (ENT_VALVE1, "valve_0"),
+        (ENT_VALVE2, "valve_1"),
+        (ENT_VALVE3, "valve_2"),
+        (ENT_VALVE4, "valve_3"),
+        (ENT_PUMP, "pump"),
+        (ENT_PUMP_BLOCK, "pump_block"),
+        (ENT_FAN, "fan"),
+        (ENT_AUX_LED, "aux_led"),
+    ),
+)
+async def test_switch_remote_update(
+    hass, data_from_device, test_config_entry, entity, data
+):
+    """Test switch remote on/off."""
+
+    assert hass.states.get(entity).state == STATE_OFF
+
+    data_from_device(hass, IEEE, {data: True})
+    await hass.async_block_till_done()
+
+    assert hass.states.get(entity).state == STATE_ON
+
+    data_from_device(hass, IEEE, {data: False})
+    await hass.async_block_till_done()
+
+    assert hass.states.get(entity).state == STATE_OFF
