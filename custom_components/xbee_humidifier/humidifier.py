@@ -86,6 +86,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self._min_humidity = None
         self._max_humidity = None
         self._remove_sensor_tracking = None
+        self._cur_humidity = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -212,6 +213,11 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         return self._state
 
     @property
+    def current_humidity(self):
+        """Return the measured humidity."""
+        return self._cur_humidity
+
+    @property
     def target_humidity(self):
         """Return the humidity we try to reach."""
         return self._target_humidity
@@ -290,6 +296,12 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         """Handle ambient humidity changes."""
         if new_state is None:
             return
+
+        try:
+            self._cur_humidity = float(new_state.state)
+        except ValueError as ex:
+            _LOGGER.warning("Unable to update from sensor: %s", ex)
+            self._cur_humidity = new_state.state
 
         await self.coordinator.client.async_command(
             "hum", self._number, cur_hum=new_state.state

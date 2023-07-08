@@ -63,6 +63,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert state.attributes.get("device_class") == "humidifier"
     assert state.attributes.get("friendly_name") == "XBee Humidifier 2 Humidifier"
     assert state.attributes.get("humidity") == 42
+    assert state.attributes.get("current_humidity") == 50
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80
     assert state.attributes.get("mode") == "normal"
@@ -131,3 +132,4 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert len(calls) == 1
     calls.clear()
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
+    assert state.attributes.get("current_humidity") == 49
