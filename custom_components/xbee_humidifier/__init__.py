@@ -16,7 +16,6 @@ CONF_DEVICE_IEEE = "device_ieee"
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.HUMIDIFIER,
-    Platform.BINARY_SENSOR,
     Platform.SWITCH,
     Platform.NUMBER,
 ]
