@@ -7,6 +7,7 @@ from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
     MODE_AWAY,
     MODE_NORMAL,
+    HumidifierAction,
     HumidifierDeviceClass,
     HumidifierEntity,
     HumidifierEntityDescription,
@@ -126,6 +127,24 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             )
         )
 
+        self._attr_action = (
+            HumidifierAction.HUMIDIFYING
+            if self.coordinator.data.get(self._number, {}).get("working")
+            else HumidifierAction.IDLE
+        )
+
+        async def async_update_action(value):
+            self._attr_action = (
+                HumidifierAction.HUMIDIFYING if value else HumidifierAction.IDLE
+            )
+            self.async_schedule_update_ha_state()
+
+        self.async_on_remove(
+            self.coordinator.client.add_subscriber(
+                "working_" + str(self._number), async_update_action
+            )
+        )
+
     @callback
     async def _async_startup(self, cached):
         """Init on startup."""
@@ -143,6 +162,11 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._target_humidity = resp["state_attr"]["hum"]
             self._saved_target_humidity = resp["extra_state_attr"]["sav_hum"]
             self._active = resp["available"]
+            self._attr_action = (
+                HumidifierAction.HUMIDIFYING
+                if resp["working"]
+                else HumidifierAction.IDLE
+            )
         elif self._target_humidity is not None:
             if self._is_away:
                 await self.coordinator.client.async_command(
