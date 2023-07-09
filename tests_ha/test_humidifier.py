@@ -132,4 +132,4 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert len(calls) == 1
     calls.clear()
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
-    assert state.attributes.get("current_humidity") == 49
+    assert hass.states.get(ENTITY).attributes["current_humidity"] == 49
