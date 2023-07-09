@@ -137,5 +137,6 @@ async def test_config_entry(hass):
 
     yield config_entry
 
+    await hass.async_block_till_done()
     assert await config_entry.async_unload(hass)
     await hass.async_block_till_done()
