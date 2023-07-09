@@ -38,7 +38,7 @@ class TosrTemp(Sensor):
 
     _readonly = True
     _period = 30000
-    _threshold = 1 / 16
+    _lowpass = 1875
 
     def _get(self):
         """Get the temperature."""

@@ -110,7 +110,7 @@ def test_analog_input():
     """Test AnalogInput class."""
     mock_ADC.init.reset_mock()
 
-    sensor = xbeepin.AnalogInput("D0", threshold=5)
+    sensor = xbeepin.AnalogInput("D0", lowpass=2500)
     mock_ADC.init.assert_called_once_with("D0")
 
     # Set up the test
@@ -131,7 +131,7 @@ def test_analog_input():
     assert sensor.state == 10
     sensor._pin.read.assert_called_once_with()
 
-    # Test that callback is called if the change is above threshold
+    # Test that callback is called if the change is above lowpass threshold
     callback.reset_mock()
     sensor._pin.read.reset_mock()
     sensor._pin.read.return_value = 15
@@ -141,7 +141,7 @@ def test_analog_input():
     assert sensor.state == 15
     sensor._pin.read.assert_called_once_with()
 
-    # Test that callback is not called if the change is below threshold but state returns the correct value
+    # Test that callback is not called if the change is below the lowpass threshold but state returns the correct value
     callback.reset_mock()
     sensor._pin.read.reset_mock()
     sensor._pin.read.return_value = 19
@@ -151,7 +151,7 @@ def test_analog_input():
     assert sensor.state == 19
     sensor._pin.read.assert_called_once_with()
 
-    # Test that threshold is ignored on manual update
+    # Test that the lowpass threshold is ignored on manual update
     sensor._pin.read.reset_mock()
     sensor.update()
     callback.assert_called_once_with(19)

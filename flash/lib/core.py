@@ -3,6 +3,7 @@
 from binascii import hexlify
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
+from time import ticks_diff, ticks_ms
 
 from lib import logging
 from lib.mainloop import main_loop
@@ -19,15 +20,16 @@ class Sensor:
     _cache = False
     _readonly = False
     _period = None
-    _threshold = None
+    _lowpass = None
 
-    def __init__(self, value=None, period=None, threshold=None):
+    def __init__(self, value=None, period=None, lowpass=None):
         """Init the class."""
         self._triggers = []
         self._state = None
         self._last_callback_value = None
-        if threshold is not None and self._type != bool:
-            self._threshold = threshold if threshold != 0 else None
+        self._last_callback_time = None
+        if lowpass is not None and self._type != bool:
+            self._lowpass = lowpass if lowpass != 0 else None
         if period is not None:
             self._period = period if period != 0 else None
         if not self._readonly:
@@ -88,12 +90,15 @@ class Sensor:
             self._last_callback_value is None
             or not auto
             or (
-                self._threshold is not None
-                and abs(self._last_callback_value - self._state) >= self._threshold
+                self._lowpass is not None
+                and abs(self._last_callback_value - self._state)
+                * ticks_diff(ticks_ms(), self._last_callback_time)
+                >= self._lowpass
             )
-            or (self._threshold is None and self._last_callback_value != self._state)
+            or (self._lowpass is None and self._last_callback_value != self._state)
         ):
             self._last_callback_value = self._state
+            self._last_callback_time = ticks_ms()
             self._run_triggers(self._state)
 
     def _get(self):

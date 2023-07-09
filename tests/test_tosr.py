@@ -56,7 +56,7 @@ def test_tosr_temp():
     tosr_temp.update()
     assert tosr_temp.state == 42
 
-    sensor = TosrTemp(period=500, threshold=5)
+    sensor = TosrTemp(period=500, lowpass=2500)
 
     # Set up the test
     mock_temperature.reset_mock()
@@ -76,7 +76,7 @@ def test_tosr_temp():
     assert sensor.state == 10
     mock_temperature.assert_called_once_with()
 
-    # Test that callback is called if the change is above threshold
+    # Test that callback is called if the change is above lowpass threshold
     callback.reset_mock()
     mock_temperature.reset_mock()
     mock_temperature.return_value = 15
@@ -86,7 +86,7 @@ def test_tosr_temp():
     assert sensor.state == 15
     mock_temperature.assert_called_once_with()
 
-    # Test that callback is not called if the change is below threshold but state returns the correct value
+    # Test that callback is not called if the change is below the lowpass threshold but state returns the correct value
     callback.reset_mock()
     mock_temperature.reset_mock()
     mock_temperature.return_value = 15.0625
@@ -96,7 +96,7 @@ def test_tosr_temp():
     assert sensor.state == 15.0625
     mock_temperature.assert_called_once_with()
 
-    # Test that threshold is ignored on manual update
+    # Test that the lowpass threshold is ignored on manual update
     mock_temperature.reset_mock()
     sensor.update()
     callback.assert_called_once_with(15.0625)
