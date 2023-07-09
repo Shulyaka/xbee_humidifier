@@ -26,7 +26,7 @@ class Sensor:
         self._triggers = []
         self._state = None
         self._last_callback_value = None
-        if threshold is not None:
+        if threshold is not None and self._type != bool:
             self._threshold = threshold if threshold != 0 else None
         if period is not None:
             self._period = period if period != 0 else None
@@ -102,7 +102,6 @@ class Sensor:
 
     def _set(self, value):
         """Write the value."""
-        pass
 
 
 class Switch(Sensor):
