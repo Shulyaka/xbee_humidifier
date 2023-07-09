@@ -98,7 +98,7 @@ def test_dutycycle():
     assert tosr_switch[2].state
     assert tosr_switch[3].state
 
-    mock_sleep(25)
+    mock_sleep(55)
     main_loop.run_once()
 
     # Check that the pressure drop has finished
