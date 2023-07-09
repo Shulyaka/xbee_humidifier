@@ -87,6 +87,11 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY).state == "on"
     assert hass.states.get(ENTITY).attributes["action"] == "idle"
 
+    data_from_device(hass, IEEE, {"working_1": True})
+    await hass.async_block_till_done()
+
+    assert hass.states.get(ENTITY).attributes["action"] == "humidifying"
+
     commands["hum"].reset_mock()
     await hass.services.async_call(
         HUMIDIFIER,
@@ -126,7 +131,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY).attributes["humidity"] == 32
     assert hass.states.get(ENTITY).attributes["saved_humidity"] == 44
     assert hass.states.get(ENTITY).attributes["mode"] == "away"
-    assert hass.states.get(ENTITY).attributes["action"] == "humidifying"
+    assert hass.states.get(ENTITY).attributes["action"] == "off"
 
     commands["hum"].reset_mock()
     _setup_sensor(hass, 49)
@@ -136,4 +141,3 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     calls.clear()
     commands["hum"].assert_called_once_with([[1], {"cur_hum": "49"}])
     assert hass.states.get(ENTITY).attributes["current_humidity"] == 49
-    assert hass.states.get(ENTITY).attributes["action"] == "idle"
