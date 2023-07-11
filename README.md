@@ -27,3 +27,6 @@ Hardware:
 5. The XBee3 module with zigbee3 stack capable of running MicroPython
 6. A single-board computer capable of hosting Home Assistant with ZigBee stick
 7. Zigbee humidity and water leak sensors (I use Aqara)
+
+![image](https://github.com/Shulyaka/xbee_humidifier/assets/2741408/1bde427c-6b78-420a-9ca6-a9678a8affea)
+![image](https://github.com/Shulyaka/xbee_humidifier/assets/2741408/1ffda79b-5865-4031-8e36-aac3dec9fee7)
