@@ -131,3 +131,9 @@ dmypy.json
 # vim
 *.swp
 tags
+
+# XBee file system images
+*.fsota
+
+# Privacy-Enhanced Mail key files
+*.pem
