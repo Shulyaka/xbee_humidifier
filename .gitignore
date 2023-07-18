@@ -134,6 +134,10 @@ tags
 
 # XBee file system images
 *.fsota
+*.fs.ota
+
+# XBee profiles
+*.xpro
 
 # Privacy-Enhanced Mail key files
 *.pem
