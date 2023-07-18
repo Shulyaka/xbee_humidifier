@@ -166,34 +166,6 @@ class XBeeHumidifierApiClient:
 
         return future
 
-    async def stresstest(self, count=100):
-        """Perform stress test."""
-        await self.async_command("hum", number=0, is_on=True)
-
-        for c in range(count):
-            try:
-                data = {
-                    "cmd": "hum",
-                    "args": {"number": 0, "cur_hum": (c % 3) * 45 + 5},
-                }
-                data = {
-                    ATTR_CLUSTER_ID: XBEE_DATA_CLUSTER,
-                    ATTR_CLUSTER_TYPE: CLUSTER_TYPE_IN,
-                    ATTR_COMMAND: SERIAL_DATA_CMD,
-                    ATTR_COMMAND_TYPE: CLUSTER_COMMAND_SERVER,
-                    ATTR_ENDPOINT_ID: XBEE_DATA_ENDPOINT,
-                    ATTR_IEEE: self.device_ieee,
-                    ATTR_PARAMS: {ATTR_DATA: json.dumps(data)},
-                }
-                await self.hass.services.async_call(
-                    ZHA_DOMAIN,
-                    SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND,
-                    data,
-                    not bool(c % 8),
-                )
-            except Exception as e:
-                _LOGGER.error(e)
-
     async def _async_data_received(self, data):
         data = json.loads(data)
         for key, value in data.items():
