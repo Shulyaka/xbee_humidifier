@@ -63,14 +63,6 @@ if config.debug:
         print("CPU " + str(run_time * 100 / (run_time + idle_time)) + "%")
 
     cpu_stats_cancel = main_loop.schedule_task(cpu_stats, period=1000)
-else:
-    from machine import WDT
-
-    wdt = WDT(timeout=30000)
-    main_loop.schedule_task(lambda: wdt.feed(), period=1000)
-    kbd_intr(-1)
-
-    # main_loop.schedule_task(mem_info, period=30000)
 
 
 humidifier = {
@@ -139,3 +131,10 @@ for x in range(3):
     _unsubscribe_warning[x] = available[x].subscribe(_cancel_warning)
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
+
+if not config.debug:
+    from machine import WDT
+
+    wdt = WDT(timeout=30000)
+    main_loop.schedule_task(lambda: wdt.feed(), period=1000)
+    kbd_intr(-1)
