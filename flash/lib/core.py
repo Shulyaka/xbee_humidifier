@@ -32,7 +32,7 @@ class Sensor:
             self._lowpass = lowpass if lowpass != 0 else None
         if period is not None:
             self._period = period if period != 0 else None
-        if not self._readonly:
+        if not self._readonly and value is not None:
             self.state = value
 
         self.update()
