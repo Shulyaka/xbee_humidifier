@@ -1,10 +1,10 @@
 """Adds config flow for xbee_humidifier."""
 from __future__ import annotations
 
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.helpers import selector
-import voluptuous as vol
 
 from . import CONF_AWAY_HUMIDITY, CONF_DEVICE_IEEE, CONF_SENSOR, CONF_TARGET_HUMIDITY
 from .const import DOMAIN

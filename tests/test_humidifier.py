@@ -2,10 +2,10 @@
 from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
+import pytest
 from humidifier import MODE_AWAY, MODE_NORMAL, GenericHygrostat
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
-import pytest
 
 ATTR_SAVED_HUMIDITY = "sav_hum"
 MIN_HUMIDITY = 20

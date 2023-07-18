@@ -1,16 +1,16 @@
 """Test commands."""
 
-from json import loads as json_loads
 import logging
+from json import loads as json_loads
 from unittest.mock import patch
 
 import commands
 import config
+import pytest
 from humidifier import GenericHygrostat
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 from machine import soft_reset as mock_soft_reset
-import pytest
 from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_transmit
 
 

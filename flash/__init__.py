@@ -2,8 +2,8 @@
 
 from gc import collect
 
-from commands import HumidifierCommands
 import config
+from commands import HumidifierCommands
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
 from lib import logging

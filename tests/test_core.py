@@ -2,8 +2,8 @@
 
 from unittest import mock
 
-from lib import core
 import pytest
+from lib import core
 
 
 def test_subscription():

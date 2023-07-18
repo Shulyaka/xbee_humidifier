@@ -1,11 +1,11 @@
 """Test xbee_humidifier switches."""
+import pytest
 from homeassistant.components.switch import (
     DOMAIN as SWITCH,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
 )
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
-import pytest
 
 from .conftest import commands
 from .const import IEEE
