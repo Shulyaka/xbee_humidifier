@@ -8,3 +8,7 @@ except ImportError:
 from __init__ import *  # noqa: F403
 
 main_loop.run()  # noqa: F405
+
+import logging  # noqa: E402
+
+logging.getLogger(__name__).error("Main loop exited")
