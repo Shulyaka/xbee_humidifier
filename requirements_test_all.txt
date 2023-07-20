@@ -22,3 +22,4 @@ zigpy_deconz
 zigpy_zigate
 aiohttp_cors
 janus
+mpy-cross==1.12
