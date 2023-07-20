@@ -37,6 +37,7 @@ def test_loop():
     """Test Loop class."""
     callback = mock.MagicMock()
     mock_ticks_ms.return_value = 1000
+    mock_sleep_ms.reset_mock()
 
     loop = mainloop.Loop()
     assert loop.next_run is None

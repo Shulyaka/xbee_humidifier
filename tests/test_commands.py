@@ -14,7 +14,9 @@ from machine import soft_reset as mock_soft_reset
 from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_transmit
 
 
-def test_commands():
+@patch("flash.tosr0x.stdout.buffer.write")
+@patch("flash.tosr0x.stdin.buffer.read")
+def test_commands(mock_stdin, mock_stdout):
     """Test Commands class."""
 
     humidifier_zone = {x: Switch() for x in range(3)}
@@ -66,12 +68,19 @@ def test_commands():
         "cluster": 17,
     }
 
-    with pytest.raises(ValueError) as excinfo:
-        cmnds.update()
-    assert "invalid json" in str(excinfo.value)
+    mock_stdin.reset_mock()
+    mock_stdin.return_value = "UART Response"
+
+    cmnds.update()
 
     assert mock_receive.call_count == 1
-    assert mock_transmit.call_count == 0
+    assert mock_stdin.call_count == 1
+    assert mock_transmit.call_count == 1
+    assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
+    assert mock_transmit.call_args[0][1] == "UART Response"
+
+    mock_stdin.reset_mock()
+    mock_transmit.reset_mock()
 
     def command(cmd, args=None):
         mock_receive.reset_mock()

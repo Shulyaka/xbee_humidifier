@@ -3,7 +3,8 @@
 from binascii import hexlify
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
-from time import ticks_diff, ticks_ms
+from sys import stdin, stdout
+from time import sleep_ms, ticks_diff, ticks_ms
 
 from lib import logging
 from lib.mainloop import main_loop
@@ -172,7 +173,12 @@ class Commands:
                         cmd + "_resp": {"err": type(e).__name__ + ": " + str(e)}
                     }
                 else:
-                    raise ValueError("invalid json")
+                    stdout.buffer.write(x["payload"])
+                    sleep_ms(200)
+                    response = stdin.buffer.read()
+                    if response is not None:
+                        self._transmit(x["sender_eui64"], response)
+                    return
 
             self._transmit(x["sender_eui64"], json_dumps(response))
 
