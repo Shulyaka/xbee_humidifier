@@ -3,6 +3,8 @@
 from sys import stdin, stdout
 from time import ticks_diff, ticks_ms
 
+from xbee import atcmd
+
 
 class Tosr0x:
     """Class implementing tosr protocol."""
@@ -16,6 +18,7 @@ class Tosr0x:
 
     def tosr0x_reset():
         """Close all switches."""
+        atcmd("AP", 4)
         stdout.buffer.write("n")
 
     def set_relay_state(self, switch_number, state):

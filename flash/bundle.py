@@ -4,6 +4,7 @@ from gc import collect
 
 import machine
 import uos
+from xbee import atcmd
 
 bundle_list = [
     "lib/logging.mpy",
@@ -16,6 +17,8 @@ bundle_list = [
     "dutycycle.mpy",
     "config.mpy",
 ]
+
+atcmd("AP", 0)
 
 all_compiled = True
 for file in uos.listdir("/flash") + uos.listdir("/flash/lib"):
