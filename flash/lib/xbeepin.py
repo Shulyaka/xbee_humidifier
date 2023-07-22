@@ -65,7 +65,7 @@ class AnalogInput(Sensor):
 
     _readonly = True
     _period = 500
-    _lowpass = 500000
+    _lowpass = 1000000
 
     def __init__(self, gpio, *args, **kwargs):
         """Init the class."""
