@@ -141,3 +141,6 @@ tags
 
 # Privacy-Enhanced Mail key files
 *.pem
+
+# MicroPython compiled files
+*.mpy
