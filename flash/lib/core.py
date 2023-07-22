@@ -174,7 +174,7 @@ class Commands:
                     }
                 else:
                     stdout.buffer.write(x["payload"])
-                    sleep_ms(200)
+                    sleep_ms(50)
                     response = stdin.buffer.read()
                     if response is not None:
                         self._transmit(x["sender_eui64"], response)

@@ -15,6 +15,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_sleep.reset_mock()
     tosr = tosr0x.Tosr0x()
     mock_stdout.assert_called_once_with("n")
+    mock_stdin.assert_called_once_with()
 
     assert not tosr.switch0
     assert not tosr.switch1
@@ -22,6 +23,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert not tosr.switch3
     assert not tosr.switch4
 
+    mock_stdin.reset_mock()
     mock_stdout.reset_mock()
     mock_stdin.return_value = b"\x01"
     tosr.switch1 = True
