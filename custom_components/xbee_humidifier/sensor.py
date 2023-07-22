@@ -52,6 +52,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             name="pressure_in",
             coordinator=coordinator,
             entity_description=entity_description,
+            conversion=lambda x: (x / 4096 * 3.3 * 8 - 4) / 3,
         )
     )
 
@@ -66,6 +67,7 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         name,
         coordinator: XBeeHumidifierDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
+        conversion=None,
     ) -> None:
         """Initialize the switch class."""
         super().__init__(coordinator)
@@ -73,6 +75,7 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._name = name
         self._state = None
         self._attr_unique_id = coordinator.unique_id + name
+        self._conversion = conversion
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -81,6 +84,8 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._state = await self.coordinator.client.async_command(self._name)
 
         async def async_update_state(value):
+            if self._conversion is not None:
+                value = self._conversion(value)
             self._state = value
             self.async_schedule_update_ha_state()
 
