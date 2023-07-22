@@ -16,6 +16,19 @@ class Tosr0x:
         """Init the class."""
         Tosr0x.tosr0x_reset()
 
+    def _read(self, cmd=None, n=1, timeout=1000):
+        """Read serial data, returns less data on timeout, may return more than requested if there is more data in read buffer."""
+        if cmd is not None:
+            stdin.buffer.read()
+            stdout.buffer.write(cmd)
+        data = b""
+        now = ticks_ms()
+        while len(data) < n and ticks_diff(ticks_ms(), now) <= timeout:
+            r = stdin.buffer.read()
+            if r is not None:
+                data += r
+        return data
+
     def tosr0x_reset():
         """Close all switches."""
         atcmd("AP", 4)
@@ -59,37 +72,21 @@ class Tosr0x:
 
     def update(self):
         """Update the switch states, ratelimited."""
-        now = ticks_ms()
-        if self._lastupdate is None or ticks_diff(now, self._lastupdate) >= 300:
-            stdin.buffer.read()
-            stdout.buffer.write("[")
-            char = None
-            while char is None or len(char) != 1:
-                if ticks_diff(ticks_ms(), now) > 1000:
-                    raise RuntimeError("Failed to get relay state")
-                char = stdin.buffer.read()
-                if char is not None and len(char) > 1:
-                    raise RuntimeError("Unexpected data received")
-            self._states = int.from_bytes(char, "big")
+        if self._lastupdate is None or ticks_diff(ticks_ms(), self._lastupdate) >= 300:
+            data = self._read("[", 1)
+            if len(data) != 1:
+                raise RuntimeError("Failed to get relay state")
+            self._states = int.from_bytes(data, "big")
             self._lastupdate = ticks_ms()
 
     @property
     def temperature(self):
         """Read TOSR0-T temperature."""
-        stdin.buffer.read()
-        stdout.buffer.write("a")
-        now = ticks_ms()
-        char = b""
-        while char is None or len(char) != 2:
-            if ticks_diff(ticks_ms(), now) > 1000:
-                raise RuntimeError("Failed to get temperature")
-            newchar = stdin.buffer.read()
-            if newchar is not None:
-                char += newchar
-            if char is not None and len(char) > 2:
-                raise RuntimeError("Unexpected data received")
+        data = self._read("a", 2)
+        if len(data) != 2:
+            raise RuntimeError("Failed to get temperature")
 
-        temp = int.from_bytes(char, "big")
+        temp = int.from_bytes(data, "big")
         return (temp / 16 - 4096) if temp > 32767 else (temp / 16)
 
     @property
