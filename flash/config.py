@@ -1,12 +1,13 @@
 """Humidifier config."""
 
-from micropython import const
 from tosr0x import tosr0x_version
+
+debug = False
 
 if tosr0x_version() is None:
     from lib.core import Sensor, Switch
 
-    debug = const(True)
+    debug = True
     pump = Switch()
     pump_temp = Sensor(37)
     valve_switch = {x: Switch() for x in range(4)}
@@ -22,7 +23,6 @@ else:
     from machine import Pin
     from tosr import tosr_switch as valve_switch, tosr_temp as pump_temp  # noqa: F401
 
-    debug = const(False)
     Pin("D0", mode=Pin.ALT, alt=Pin.AF0_COMMISSION)
     pressure_in = AnalogInput("D1")
     pressure_out = AnalogInput("D2")

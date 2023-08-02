@@ -5,18 +5,17 @@ from time import ticks_add, ticks_diff, ticks_ms
 from lib import logging
 from lib.core import Switch
 from lib.mainloop import main_loop
-from micropython import const
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_HUMIDITY = const("hum")
-ATTR_MAX_HUMIDITY = const("max_hum")
-ATTR_MIN_HUMIDITY = const("min_hum")
-ATTR_SAVED_HUMIDITY = const("sav_hum")
-ATTR_MODE = const("mode")
+ATTR_HUMIDITY = "hum"
+ATTR_MAX_HUMIDITY = "max_hum"
+ATTR_MIN_HUMIDITY = "min_hum"
+ATTR_SAVED_HUMIDITY = "sav_hum"
+ATTR_MODE = "mode"
 
-MODE_NORMAL = const("normal")
-MODE_AWAY = const("away")
+MODE_NORMAL = "normal"
+MODE_AWAY = "away"
 
 
 class GenericHygrostat(Switch):
