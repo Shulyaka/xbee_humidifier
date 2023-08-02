@@ -16,6 +16,7 @@ bundle_list = [
     "tosr.mpy",
     "humidifier.mpy",
     "dutycycle.mpy",
+    "config.mpy",
 ]
 
 atcmd("AP", 0)
@@ -72,12 +73,14 @@ if not all_compiled:
 else:
     # Third stage: delete bundled files
     uos.chdir("/flash")
-    if len(uos.bundle()) == 0:
+    if len(uos.bundle()) != len(bundle_list):
         collect()
         uos.bundle(*bundle_list)  # Retry the bundle
 
-    for file in uos.bundle():
-        uos.remove(file + ".mpy")
-    uos.remove("bundle.mpy")
+    for file in uos.bundle() + ["bundle"]:
+        try:
+            uos.remove(file + ".mpy")
+        except OSError:
+            pass
     uos.sync()
     machine.soft_reset()

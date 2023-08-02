@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 if config.debug:
-    print("TOSR0X not detected, enabling emulation")
+    print("\nTOSR0X not detected, enabling emulation")
 
 _LOGGER.debug("Reset cause %s", reset_cause())
 
