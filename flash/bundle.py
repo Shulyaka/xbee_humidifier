@@ -4,6 +4,7 @@ from gc import collect
 
 import machine
 import uos
+from micropython import opt_level
 from xbee import atcmd
 
 bundle_list = [
@@ -27,6 +28,8 @@ for file in uos.listdir("/flash") + uos.listdir("/flash/lib"):
 
 if not all_compiled:
     # First stage: compile files
+    opt_level(3)
+
     def compile_file(name):
         """Compile a single file."""
         try:

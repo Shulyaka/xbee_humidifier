@@ -12,7 +12,7 @@ clean :
 	$(MAKE) -C lib clean
 
 %.mpy : %.py
-	mpy-cross $<
+	mpy-cross -mno-unicode -msmall-int-bits=31 -O3 $<
 
 test :
 	tox -e micropython

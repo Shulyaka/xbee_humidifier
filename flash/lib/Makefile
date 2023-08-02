@@ -8,4 +8,4 @@ clean :
 	rm -f *.mpy
 
 %.mpy : %.py
-	mpy-cross $<
+	mpy-cross -mno-unicode -msmall-int-bits=31 -O3 $<
