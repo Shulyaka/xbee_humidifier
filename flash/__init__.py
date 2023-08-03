@@ -22,54 +22,54 @@ if config.debug:
 
 _LOGGER.debug("Reset cause %s", reset_cause())
 
-zone = {x: Switch() for x in range(3)}
-sensor = {x: Sensor() for x in range(3)}
-available = {x: Switch() for x in range(3)}
+_zone = {x: Switch() for x in range(3)}
+_sensor = {x: Sensor() for x in range(3)}
+_available = {x: Switch() for x in range(3)}
 
 if config.debug:
-    zone_unsubscribe = {}
-    sensor_unsubscribe = {}
-    available_unsubscribe = {}
+    _zone_unsubscribe = {}
+    _sensor_unsubscribe = {}
+    _available_unsubscribe = {}
     for x in range(3):
-        zone_unsubscribe[x] = zone[x].subscribe(
+        _zone_unsubscribe[x] = _zone[x].subscribe(
             (lambda x: lambda v: print("zone" + str(x) + " = " + str(v)))(x)
         )
-        sensor_unsubscribe[x] = sensor[x].subscribe(
+        _sensor_unsubscribe[x] = _sensor[x].subscribe(
             (lambda x: lambda v: print("sensor" + str(x) + " = " + str(v)))(x)
         )
-        available_unsubscribe[x] = available[x].subscribe(
+        _available_unsubscribe[x] = _available[x].subscribe(
             (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
         )
 
-    pump_unsubscribe = config.pump.subscribe(lambda v: print("pump = " + str(v)))
-    valve_unsubscribe = {}
+    _pump_unsubscribe = config.pump.subscribe(lambda v: print("pump = " + str(v)))
+    _valve_unsubscribe = {}
     for x in range(4):
-        valve_unsubscribe[x] = config.valve_switch[x].subscribe(
+        _valve_unsubscribe[x] = config.valve_switch[x].subscribe(
             (lambda x: lambda v: print("valve" + str(x) + " = " + str(v)))(x)
         )
 
-    main_loop.schedule_task(mem_info, period=30000)
+    _mem_info_cancel = main_loop.schedule_task(mem_info, period=30000)
 
-    prev_run_time = main_loop._run_time
-    prev_idle_time = main_loop._idle_time
+    _prev_run_time = main_loop._run_time
+    _prev_idle_time = main_loop._idle_time
 
-    def cpu_stats():
+    def _cpu_stats():
         """Print cpu stats."""
-        global prev_run_time, prev_idle_time
-        run_time = main_loop._run_time - prev_run_time
-        idle_time = main_loop._idle_time - prev_idle_time
-        prev_run_time = main_loop._run_time
-        prev_idle_time = main_loop._idle_time
+        global _prev_run_time, _prev_idle_time
+        run_time = main_loop._run_time - _prev_run_time
+        idle_time = main_loop._idle_time - _prev_idle_time
+        _prev_run_time = main_loop._run_time
+        _prev_idle_time = main_loop._idle_time
         print("CPU " + str(run_time * 100 / (run_time + idle_time)) + "%")
 
-    cpu_stats_cancel = main_loop.schedule_task(cpu_stats, period=1000)
+    _cpu_stats_cancel = main_loop.schedule_task(_cpu_stats, period=1000)
 
 
-humidifier = {
+_humidifier = {
     x: GenericHygrostat(
-        switch_entity_id=zone[x],
-        sensor_entity_id=sensor[x],
-        available_sensor_id=available[x],
+        switch_entity_id=_zone[x],
+        sensor_entity_id=_sensor[x],
+        available_sensor_id=_available[x],
         min_humidity=15,
         max_humidity=100,
         target_humidity=50,
@@ -82,27 +82,29 @@ humidifier = {
     for x in range(3)
 }
 
-pump_block = Switch()
+_pump_block = Switch()
 
 if config.debug:
-    humidifier_unsubscribe = {}
+    _humidifier_unsubscribe = {}
     for x in range(3):
-        humidifier_unsubscribe[x] = humidifier[x].subscribe(
+        _humidifier_unsubscribe[x] = _humidifier[x].subscribe(
             (lambda x: lambda v: print("humidifier" + str(x) + " = " + str(v)))(x)
         )
 
-    pump_block_unsubscribe = pump_block.subscribe(
+    _pump_block_unsubscribe = _pump_block.subscribe(
         lambda v: print("pump_block = " + str(v))
     )
 
-duty_cycle = DutyCycle(config.pump, humidifier, zone, config.valve_switch, pump_block)
+_duty_cycle = DutyCycle(
+    config.pump, _humidifier, _zone, config.valve_switch, _pump_block
+)
 
-commands = HumidifierCommands(
-    humidifier,
-    sensor,
-    available,
-    zone,
-    pump_block,
+_commands = HumidifierCommands(
+    _humidifier,
+    _sensor,
+    _available,
+    _zone,
+    _pump_block,
 )
 
 _cancel_warning_cb = main_loop.schedule_task(
@@ -128,13 +130,13 @@ def _cancel_warning(confirm):
 
 
 for x in range(3):
-    _unsubscribe_warning[x] = available[x].subscribe(_cancel_warning)
+    _unsubscribe_warning[x] = _available[x].subscribe(_cancel_warning)
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
 
 if not config.debug:
     from machine import WDT
 
-    wdt = WDT(timeout=30000)
-    main_loop.schedule_task(lambda: wdt.feed(), period=1000)
+    _wdt = WDT(timeout=30000)
+    _wdt_cancel = main_loop.schedule_task(lambda: _wdt.feed(), period=1000)
     kbd_intr(-1)

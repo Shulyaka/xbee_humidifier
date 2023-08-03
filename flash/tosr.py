@@ -5,7 +5,7 @@ from lib.core import Sensor
 from tosr0x import Tosr0x
 
 try:
-    tosr = Tosr0x()
+    _tosr = Tosr0x()
 except Exception as e:
     Tosr0x.tosr0x_reset()
     logging.getLogger(__name__).error("Exception: %s: %s", type(e).__name__, e)
@@ -25,12 +25,12 @@ class TosrSwitch(Sensor):
 
     def _get(self):
         """Get relay state."""
-        tosr.update()
-        return tosr.get_relay_state(self._switch_number)
+        _tosr.update()
+        return _tosr.get_relay_state(self._switch_number)
 
     def _set(self, value):
         """Set relay state."""
-        tosr.set_relay_state(self._switch_number, value)
+        _tosr.set_relay_state(self._switch_number, value)
 
 
 class TosrTemp(Sensor):
@@ -42,7 +42,7 @@ class TosrTemp(Sensor):
 
     def _get(self):
         """Get the temperature."""
-        return tosr.temperature
+        return _tosr.temperature
 
 
 tosr_switch = {x: TosrSwitch(x + 1) for x in range(4)}

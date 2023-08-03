@@ -67,10 +67,10 @@ class Logger:
         self.log(CRITICAL, msg, *args, **kwargs)
 
 
-logger = Logger()
+_logger = Logger()
 
 
 def getLogger(name=None):
     """Compatibility function to get the logger."""
 
-    return logger
+    return _logger

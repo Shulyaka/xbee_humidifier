@@ -8,14 +8,14 @@ from lib.mainloop import main_loop
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_HUMIDITY = "hum"
-ATTR_MAX_HUMIDITY = "max_hum"
-ATTR_MIN_HUMIDITY = "min_hum"
-ATTR_SAVED_HUMIDITY = "sav_hum"
-ATTR_MODE = "mode"
+_ATTR_HUMIDITY = "hum"
+_ATTR_MAX_HUMIDITY = "max_hum"
+_ATTR_MIN_HUMIDITY = "min_hum"
+_ATTR_SAVED_HUMIDITY = "sav_hum"
+_ATTR_MODE = "mode"
 
-MODE_NORMAL = "normal"
-MODE_AWAY = "away"
+_MODE_NORMAL = "normal"
+_MODE_AWAY = "away"
 
 
 class GenericHygrostat(Switch):
@@ -87,8 +87,8 @@ class GenericHygrostat(Switch):
     def capability_attributes(self):
         """Return capability attributes."""
         data = {
-            ATTR_MIN_HUMIDITY: self._min_humidity,
-            ATTR_MAX_HUMIDITY: self._max_humidity,
+            _ATTR_MIN_HUMIDITY: self._min_humidity,
+            _ATTR_MAX_HUMIDITY: self._max_humidity,
         }
 
         return data
@@ -99,9 +99,9 @@ class GenericHygrostat(Switch):
         data = {}
 
         if self._target_humidity is not None:
-            data[ATTR_HUMIDITY] = self._target_humidity
+            data[_ATTR_HUMIDITY] = self._target_humidity
 
-        data[ATTR_MODE] = self.mode
+        data[_ATTR_MODE] = self.mode
 
         return data
 
@@ -109,7 +109,7 @@ class GenericHygrostat(Switch):
     def extra_state_attributes(self):
         """Return the optional state attributes."""
         if self._saved_target_humidity:
-            return {ATTR_SAVED_HUMIDITY: self._saved_target_humidity}
+            return {_ATTR_SAVED_HUMIDITY: self._saved_target_humidity}
         return None
 
     @property
@@ -118,8 +118,8 @@ class GenericHygrostat(Switch):
         if self._away_humidity is None:
             return None
         if self._is_away:
-            return MODE_AWAY
-        return MODE_NORMAL
+            return _MODE_AWAY
+        return _MODE_NORMAL
 
     def set_humidity(self, humidity):
         """Set new target humidity."""
@@ -219,7 +219,7 @@ class GenericHygrostat(Switch):
         """Set new mode."""
         if self._away_humidity is None:
             return
-        if mode == MODE_AWAY and not self._is_away:
+        if mode == _MODE_AWAY and not self._is_away:
             self._is_away = True
             if not self._saved_target_humidity:
                 self._saved_target_humidity = self._away_humidity
@@ -228,7 +228,7 @@ class GenericHygrostat(Switch):
                 self._saved_target_humidity,
             )
             self._schedule_operate(force=True)
-        elif mode == MODE_NORMAL and self._is_away:
+        elif mode == _MODE_NORMAL and self._is_away:
             self._is_away = False
             self._saved_target_humidity, self._target_humidity = (
                 self._target_humidity,
