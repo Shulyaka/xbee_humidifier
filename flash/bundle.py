@@ -56,6 +56,7 @@ if not all_compiled:
             compile_file("/flash/bundle.py")
         # First bundle bundle.mpy
         if "bundle.mpy" in uos.listdir("/flash") and "bundle" not in uos.bundle():
+            collect()
             uos.bundle("bundle.mpy")
         compile_dir("/flash/lib")
         compile_dir("/flash")
@@ -67,20 +68,30 @@ if not all_compiled:
         machine.soft_reset()  # Retry after reboot
 
     # Second stage: bundle
+    uos.mkdir(".bundle.tmp")
+    uos.sync()
     collect()
     uos.bundle(*bundle_list)  # This will trigger soft reset!
 
 else:
-    # Third stage: delete bundled files
+    # Retry the bundle if needed
     uos.chdir("/flash")
+    if ".bundle.tmp" not in uos.listdir("/flash"):
+        uos.mkdir(".bundle.tmp")
+        uos.sync()
+        collect()
+        uos.bundle("bundle.mpy")
+
     if len(uos.bundle()) != len(bundle_list):
         collect()
-        uos.bundle(*bundle_list)  # Retry the bundle
+        uos.bundle(*bundle_list)
 
+    # Third stage: delete bundled files
     for file in uos.bundle() + ["bundle"]:
         try:
             uos.remove(file + ".mpy")
         except OSError:
             pass
+    uos.rmdir(".bundle.tmp")
     uos.sync()
     machine.soft_reset()
