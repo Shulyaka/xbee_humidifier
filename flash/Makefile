@@ -1,5 +1,9 @@
 .PHONY: all lib mpy test
 
+MPY_CROSS := mpy-cross
+TOX := tox
+MFLAGS := -mno-unicode -msmall-int-bits=31 -O3
+
 all : lib mpy
 
 lib :
@@ -12,7 +16,7 @@ clean :
 	$(MAKE) -C lib clean
 
 %.mpy : %.py
-	mpy-cross -mno-unicode -msmall-int-bits=31 -O3 $<
+	$(MPY_CROSS) $(MFLAGS) $<
 
 test :
-	tox -e micropython
+	$(TOX) -e micropython
