@@ -22,7 +22,9 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox tox-gh-actions
     - name: Test with tox
-      run: tox
+      run: |
+        echo "~/.local/bin" >> $GITHUB_PATH
+        tox
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
