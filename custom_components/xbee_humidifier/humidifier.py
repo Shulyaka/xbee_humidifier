@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 
-import voluptuous as vol
 from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
     MODE_AWAY,
@@ -15,13 +14,12 @@ from homeassistant.components.humidifier import (
     HumidifierEntityFeature,
 )
 from homeassistant.const import ATTR_MODE, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.core import SupportsResponse, callback
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import CONF_AWAY_HUMIDITY, CONF_SENSOR, CONF_TARGET_HUMIDITY
-from .const import DOMAIN, SERVICE_ATCMD
+from .const import DOMAIN
 from .entity import XBeeHumidifierEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,18 +55,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
 
     async_add_entities(humidifiers)
-
-    platform = entity_platform.async_get_current_platform()
-
-    platform.async_register_entity_service(
-        SERVICE_ATCMD,
-        {
-            vol.Required("cmd"): cv.string,
-            vol.Optional("data"): cv.string,
-        },
-        "atcmd",
-        supports_response=SupportsResponse.ONLY,
-    )
 
 
 class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
