@@ -119,7 +119,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
         async def async_update_available(value):
             self._active = value
-            await self.async_update_ha_state()
+            return self.async_write_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(
@@ -274,7 +274,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             == "OK"
         ):
             self._state = True
-        await self.async_update_ha_state()
+        return self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         """Turn hygrostat off."""
@@ -285,7 +285,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             == "OK"
         ):
             self._state = False
-        await self.async_update_ha_state()
+        return self.async_write_ha_state()
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
@@ -298,7 +298,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             == "OK"
         ):
             self._target_humidity = humidity
-        await self.async_update_ha_state()
+        return self.async_write_ha_state()
 
     @property
     def min_humidity(self):
@@ -330,7 +330,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         await self.coordinator.client.async_command(
             "hum", self._number, cur_hum=new_state.state
         )
-        await self.async_update_ha_state()
+        return self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
@@ -347,4 +347,4 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                     self._target_humidity,
                 )
             self._is_away = mode == MODE_AWAY
-        await self.async_update_ha_state()
+        return self.async_write_ha_state()
