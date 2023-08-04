@@ -54,35 +54,18 @@ if not _all_compiled:
         # First compile main.py and bundle.py
         if "main.py" in uos.listdir():
             compile_file("main.py")
-        _rebundle = "bundle.mpy" in uos.listdir() and "bundle" not in uos.bundle()
         if "bundle.py" in uos.listdir():
             compile_file("bundle.py")
-            _rebundle = True
-        # First bundle bundle.mpy
-        if _rebundle:
-            uos.sync()
-            collect()
-            uos.bundle("bundle.mpy")  # This will trigger soft reset!
         compile_dir()
         compile_dir("lib")
-        print("Compiled successfully")
     except MemoryError as e:
         print(type(e).__name__ + ": " + str(e))
+    finally:
         uos.sync()
-        machine.soft_reset()  # Retry after reboot
-
-    uos.remove("bundle.mpy")
-    uos.sync()
-    machine.soft_reset()
+        machine.soft_reset()  # Retry or continue after reboot
 
 # Second stage: bundle
-if "bundle" not in uos.bundle():
-    uos.bundle("bundle.mpy")
-
-if "bundle.mpy" in uos.listdir():
-    uos.remove("bundle.mpy")
-    uos.sync()
-    machine.soft_reset()
-
+uos.remove("bundle.mpy")
+uos.sync()
 collect()
 uos.bundle(*_bundle_list)
