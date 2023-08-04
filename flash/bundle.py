@@ -22,7 +22,7 @@ _bundle_list = [
 atcmd("AP", 0)
 
 _all_compiled = True
-for file in uos.listdir("/flash") + uos.listdir("/flash/lib"):
+for file in uos.listdir() + uos.listdir("lib"):
     if file[-3:] == ".py":
         _all_compiled = False
         break
@@ -41,28 +41,30 @@ if not _all_compiled:
         uos.compile(name)
         uos.remove(name)
 
-    def compile_dir(name):
+    def compile_dir(name="."):
         """Compile the files in directory (non-recursive)."""
+        cwd = uos.getcwd()
         uos.chdir(name)
         for filename in uos.listdir():
             if filename[-3:] == ".py":
                 compile_file(filename)
+        uos.chdir(cwd)
 
     try:
         # First compile main.py and bundle.py
-        if "main.py" in uos.listdir("/flash"):
-            compile_file("/flash/main.py")
-        if "bundle.py" in uos.listdir("/flash"):
-            compile_file("/flash/bundle.py")
-            if "bundle" in uos.bundle():
-                uos.bundle(None)
+        if "main.py" in uos.listdir():
+            compile_file("main.py")
+        _rebundle = "bundle.mpy" in uos.listdir() and "bundle" not in uos.bundle()
+        if "bundle.py" in uos.listdir():
+            compile_file("bundle.py")
+            _rebundle = True
         # First bundle bundle.mpy
-        if "bundle.mpy" in uos.listdir("/flash") and "bundle" not in uos.bundle():
+        if _rebundle:
+            uos.sync()
             collect()
             uos.bundle("bundle.mpy")  # This will trigger soft reset!
-        compile_dir("/flash/lib")
-        compile_dir("/flash")
-        uos.sync()
+        compile_dir()
+        compile_dir("lib")
         print("Compiled successfully")
     except MemoryError as e:
         print(type(e).__name__ + ": " + str(e))
@@ -77,7 +79,7 @@ if not _all_compiled:
 if "bundle" not in uos.bundle():
     uos.bundle("bundle.mpy")
 
-if "bundle.mpy" in uos.listdir("/flash"):
+if "bundle.mpy" in uos.listdir():
     uos.remove("bundle.mpy")
     uos.sync()
     machine.soft_reset()
