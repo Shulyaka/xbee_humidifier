@@ -3,7 +3,7 @@
 from binascii import hexlify
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
-from time import ticks_diff, ticks_ms
+from time import ticks_add, ticks_diff, ticks_ms
 
 from lib import logging
 from lib.mainloop import main_loop
@@ -178,17 +178,20 @@ class Commands:
 
             x = receive()
 
-    def _transmit(self, eui64, data):
+    def _transmit(self, eui64, data, limit=3):
         """Retries sending data on insufficient buffers, packet already queued for target."""
         try:
             transmit(eui64, data)
         except Exception as e:
             _LOGGER.error("Exception on transmit: %s: %s", type(e).__name__, e)
-            if isinstance(e, OSError) and "EAGAIN" in str(e):
+            if isinstance(e, OSError) and "EAGAIN" in str(e) and limit > 1:
                 main_loop.schedule_task(
-                    (lambda eui64, data: lambda: self._transmit(eui64, data))(
-                        eui64, data
-                    )
+                    (
+                        lambda eui64, data, limit: lambda: self._transmit(
+                            eui64, data, limit
+                        )
+                    )(eui64, data, limit - 1),
+                    next_time=ticks_add(ticks_ms(), 50),
                 )
 
     def cmd_help(self, sender_eui64=None):
