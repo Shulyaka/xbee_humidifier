@@ -74,8 +74,8 @@ class XBeeHumidifierApiClient:
         @callback
         def ieee_event_filter(event):
             return (
-                event.data["command"] == "receive_data"
-                and event.data["device_ieee"] == self.device_ieee
+                event.data.get("command") == "receive_data"
+                and event.data.get("device_ieee") == self.device_ieee
             )
 
         self._remove_listener = self.hass.bus.async_listen(
