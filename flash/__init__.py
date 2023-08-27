@@ -1,6 +1,6 @@
 """Main module of the humidifier."""
 
-from gc import collect
+from gc import collect, mem_alloc, mem_free
 
 import config
 from commands import HumidifierCommands
@@ -10,7 +10,7 @@ from lib import logging
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 from machine import reset_cause
-from micropython import kbd_intr, mem_info
+from micropython import kbd_intr
 
 collect()
 
@@ -48,21 +48,28 @@ if config.debug:
             (lambda x: lambda v: print("valve" + str(x) + " = " + str(v)))(x)
         )
 
-    _mem_info_cancel = main_loop.schedule_task(mem_info, period=30000)
-
     _prev_run_time = main_loop._run_time
     _prev_idle_time = main_loop._idle_time
 
-    def _cpu_stats():
+    def _stats():
         """Print cpu stats."""
         global _prev_run_time, _prev_idle_time
         run_time = main_loop._run_time - _prev_run_time
         idle_time = main_loop._idle_time - _prev_idle_time
         _prev_run_time = main_loop._run_time
         _prev_idle_time = main_loop._idle_time
-        print("CPU " + str(run_time * 100 / (run_time + idle_time)) + "%")
 
-    _cpu_stats_cancel = main_loop.schedule_task(_cpu_stats, period=1000)
+        free = mem_free()
+        alloc = mem_alloc()
+        print(
+            "CPU "
+            + str(run_time * 100 / (run_time + idle_time))
+            + "%, MEM "
+            + str(alloc * 100 / (alloc + free))
+            + "%"
+        )
+
+    _stats_cancel = main_loop.schedule_task(_stats, period=1000)
 
 
 _humidifier = {
