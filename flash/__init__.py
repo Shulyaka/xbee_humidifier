@@ -32,20 +32,20 @@ if config.debug:
     _available_unsubscribe = {}
     for x in range(3):
         _zone_unsubscribe[x] = _zone[x].subscribe(
-            (lambda x: lambda v: print("zone" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("ZONE" + str(x) + " = " + str(v)))(x)
         )
         _sensor_unsubscribe[x] = _sensor[x].subscribe(
-            (lambda x: lambda v: print("sensor" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("SENSOR" + str(x) + " = " + str(v)))(x)
         )
         _available_unsubscribe[x] = _available[x].subscribe(
-            (lambda x: lambda v: print("available" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("AVAILABLE" + str(x) + " = " + str(v)))(x)
         )
 
-    _pump_unsubscribe = config.pump.subscribe(lambda v: print("pump = " + str(v)))
+    _pump_unsubscribe = config.pump.subscribe(lambda v: print("PUMP = " + str(v)))
     _valve_unsubscribe = {}
     for x in range(4):
         _valve_unsubscribe[x] = config.valve_switch[x].subscribe(
-            (lambda x: lambda v: print("valve" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("VALVE" + str(x) + " = " + str(v)))(x)
         )
 
     _prev_run_time = main_loop._run_time
@@ -95,11 +95,11 @@ if config.debug:
     _humidifier_unsubscribe = {}
     for x in range(3):
         _humidifier_unsubscribe[x] = _humidifier[x].subscribe(
-            (lambda x: lambda v: print("humidifier" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("HUMIDIFIER" + str(x) + " = " + str(v)))(x)
         )
 
     _pump_block_unsubscribe = _pump_block.subscribe(
-        lambda v: print("pump_block = " + str(v))
+        lambda v: print("PUMP_BLOCK = " + str(v))
     )
 
 _duty_cycle = DutyCycle(
