@@ -147,3 +147,5 @@ if not config.debug:
     _wdt = WDT(timeout=30000)
     _wdt_cancel = main_loop.schedule_task(lambda: _wdt.feed(), period=1000)
     kbd_intr(-1)
+
+collect()

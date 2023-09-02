@@ -63,6 +63,7 @@ class Loop:
 
     def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
+        collect()
         new_task = Task(callback, *args, **kwargs)
         self._tasks.append(new_task)
         self._task_scheduled = True
@@ -71,9 +72,11 @@ class Loop:
     def reset(self):
         """Remove all tasks."""
         self._tasks.clear()
+        collect()
 
     def run_once(self):
         """Run one iteration and return the time of next execution."""
+        collect()
         next_time = None
         self._task_scheduled = False
 
@@ -86,6 +89,7 @@ class Loop:
                 if task.completed:
                     if task in self._tasks:
                         self._tasks.remove(task)
+                        collect()
                     next_run = None
                 else:
                     next_run = task.next_run
@@ -104,6 +108,7 @@ class Loop:
 
     def run(self):
         """Run the loop continuously."""
+        collect()
         self._stop = False
         while not self._stop:
             start = ticks_ms()
