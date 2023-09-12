@@ -53,15 +53,15 @@ if config.debug:
         _prev_run_time = main_loop._run_time
         _prev_idle_time = main_loop._idle_time
 
-        free = mem_free()
         alloc = mem_alloc()
         print(
             "CPU {:.2%}, MEM {:.2%}".format(
-                run_time / (run_time + idle_time), alloc / (alloc + free)
+                run_time / (run_time + idle_time), alloc / (alloc + mem_free())
             )
         )
 
     main_loop.schedule_task(_stats, period=1000)
+    collect()
 
 
 _humidifier = {
@@ -80,8 +80,10 @@ _humidifier = {
     )
     for x in range(3)
 }
+collect()
 
 _pump_block = Switch()
+collect()
 
 if config.debug:
     for x in range(3):
@@ -90,10 +92,12 @@ if config.debug:
         )
 
     _pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))
+    collect()
 
 _duty_cycle = DutyCycle(
     config.pump, _humidifier, _zone, config.valve_switch, _pump_block
 )
+collect()
 
 _commands = HumidifierCommands(
     _humidifier,
@@ -102,6 +106,7 @@ _commands = HumidifierCommands(
     _zone,
     _pump_block,
 )
+collect()
 
 _cancel_warning_cb = main_loop.schedule_task(
     lambda: _LOGGER.warning("Not initialized"), period=30000
@@ -123,6 +128,7 @@ def _cancel_warning(confirm):
     _unsubscribe_warning.clear()
     _unsubscribe_warning = None
     _cancel_warning_cb = None
+    collect()
 
 
 for x in range(3):

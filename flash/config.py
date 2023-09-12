@@ -1,5 +1,7 @@
 """Humidifier config."""
 
+from gc import collect
+
 from tosr0x import tosr0x_version
 
 debug = False
@@ -7,6 +9,7 @@ debug = False
 if tosr0x_version() is None:
     from lib.core import Sensor, Switch
 
+    collect()
     debug = True
     pump = Switch()
     pump_temp = Sensor(37)
@@ -18,11 +21,13 @@ if tosr0x_version() is None:
     aux_led = Switch(False)
     pump_speed = Sensor(255)
     fan = Switch(False)
+    collect()
 else:
     from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
     from machine import Pin
     from tosr import tosr_switch as valve_switch, tosr_temp as pump_temp  # noqa: F401
 
+    collect()
     Pin("D0", mode=Pin.ALT, alt=Pin.AF0_COMMISSION)
     pressure_in = AnalogInput("D1")
     pressure_out = AnalogInput("D2")
@@ -35,3 +40,4 @@ else:
     Pin("D10", mode=Pin.ALT, alt=Pin.AF10_RSSI)
     pump_speed = AnalogOutput("D11")
     fan = DigitalOutput("D12")
+    collect()
