@@ -18,14 +18,14 @@ def test_subscription():
     callback.assert_called_once_with(42)
 
     callback.reset_mock()
-    unsubscribe()
+    entity.unsubscribe(unsubscribe)
     assert entity._triggers == []
 
     entity.state = 21
     assert callback.call_count == 0
 
     with pytest.raises(ValueError) as excinfo:
-        unsubscribe()
+        entity.unsubscribe(unsubscribe)
 
     assert str(excinfo.value) == "list.remove(x): x not in list"
 

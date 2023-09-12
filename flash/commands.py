@@ -163,20 +163,20 @@ class HumidifierCommands(Commands):
         """Unsubscribe to updates."""
         target = bytes(target, encoding="utf-8") if target is not None else sender_eui64
 
-        def unbind(binds):
+        def unbind(entity, binds):
             if target is None:
                 for unbind in binds.values():
-                    unbind()
+                    entity.unsubscribe(unbind)
                 binds.clear()
             elif target in binds:
-                binds.pop(target)()
+                entity.unsubscribe(binds.pop(target))
 
-        unbind(self._binds["pump_temp"])
-        unbind(self._binds["pump"])
-        unbind(self._binds["pressure_in"])
+        unbind(config.pump_temp, self._binds["pump_temp"])
+        unbind(config.pump, self._binds["pump"])
+        unbind(config.pressure_in, self._binds["pressure_in"])
         for number in range(4):
-            unbind(self._binds["valve"][number])
+            unbind(config.valve_switch[number], self._binds["valve"][number])
 
         for number in range(3):
-            unbind(self._binds["available"][number])
-            unbind(self._binds["zone"][number])
+            unbind(self._available[number], self._binds["available"][number])
+            unbind(self._zone[number], self._binds["zone"][number])

@@ -64,7 +64,11 @@ class Sensor:
     def subscribe(self, callback):
         """Add new callback."""
         self._triggers.append(callback)
-        return lambda: self._triggers.remove(callback)
+        return callback
+
+    def unsubscribe(self, callback):
+        """Remove callback."""
+        self._triggers.remove(callback)
 
     @property
     def state(self):

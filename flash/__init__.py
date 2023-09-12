@@ -124,10 +124,10 @@ def _cancel_warning(confirm):
     if not confirm:
         return
 
-    global _cancel_warning_cb, _unsubscribe_warning
+    global _available, _cancel_warning_cb, _unsubscribe_warning
 
-    for unsub in _unsubscribe_warning.values():
-        unsub()
+    for x, unsub in _unsubscribe_warning.items():
+        _available[x].subscribe(unsub)
 
     main_loop.remove_task(_cancel_warning_cb)
 

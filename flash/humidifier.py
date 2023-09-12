@@ -76,8 +76,8 @@ class GenericHygrostat(Switch):
 
     def __del__(self):
         """Cancel callbacks."""
-        self._state_unsubscribe()
-        self._sensor_unsubscribe()
+        self.unsubscribe(self._state_unsubscribe)
+        self._sensor_entity_id.unsubscribe(self._sensor_unsubscribe)
         main_loop.remove_task(self._remove_stale_tracking)
         main_loop.remove_task(self._operate_unschedule)
 

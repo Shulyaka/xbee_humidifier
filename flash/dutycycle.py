@@ -65,13 +65,13 @@ class DutyCycle:
         main_loop.remove_task(self._cancel_pump_timeout)
         main_loop.remove_task(self._cancel_close_valves)
         main_loop.remove_task(self._cancel_pressure_drop)
-        self._pump_unsubscribe()
-        self._valve_unsubscribe()
-        self._block_unsubscribe()
-        for humidifier_unsubscribe in self._humidifier_unsubscribe.values():
-            humidifier_unsubscribe()
-        for zone_unsubscribe in self._zone_unsubscribe.values():
-            zone_unsubscribe()
+        self._pump.unsubscribe(self._pump_unsubscribe)
+        self._valve_switch[3].unsubscribe(self._valve_unsubscribe)
+        self._pump_block.unsubscribe(self._block_unsubscribe)
+        for number, humidifier_unsubscribe in self._humidifier_unsubscribe.items():
+            self._humidifier[number].unsubscribe(humidifier_unsubscribe)
+        for number, zone_unsubscribe in self._zone_unsubscribe.items():
+            self._zone[number].unsubscribe(zone_unsubscribe)
         self._close_all_valves()
 
     def _humidifier_changed(self, number, value):
