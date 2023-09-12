@@ -1,5 +1,6 @@
 """Test __main__."""
 
+from commands import HumidifierCommands
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
 from lib.core import Sensor
@@ -10,6 +11,7 @@ import flash
 
 def test_init():
     """Test the main code."""
+    assert flash._setup is None
     assert isinstance(flash._zone, dict)
     assert len(flash._zone) == 3
     assert isinstance(flash._sensor, dict)
@@ -27,6 +29,7 @@ def test_init():
 
     assert isinstance(flash._pump_block, Sensor)
     assert isinstance(flash._duty_cycle, DutyCycle)
+    assert isinstance(flash._commands, HumidifierCommands)
 
     assert len(flash._warning_subscribers) == 3
     flash._sensor[2].state = 55
