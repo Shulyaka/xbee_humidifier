@@ -82,19 +82,23 @@ class DutyCycle:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
                     main_loop.remove_task(self._loop_unschedule)
                 _LOGGER.debug(
-                    "Humidifier %s turned on, scheduling duty cycle start", number
+                    "Humidifier {} turned on, scheduling duty cycle start".format(
+                        number
+                    )
                 )
                 self._loop_unschedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
                 )
             else:
-                _LOGGER.debug("Humidifier %s turned on, but its zone is off", number)
+                _LOGGER.debug(
+                    "Humidifier {} turned on, but its zone is off".format(number)
+                )
         else:
             if self._loop_unschedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
                 main_loop.remove_task(self._loop_unschedule)
             _LOGGER.debug(
-                "Humidifier %s turned off, scheduling duty cycle stop", number
+                "Humidifier {} turned off, scheduling duty cycle stop".format(number)
             )
             self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
 

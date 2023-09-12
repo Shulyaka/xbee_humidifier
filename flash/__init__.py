@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 if config.debug:
     print("\nTOSR0X not detected, enabling emulation")
 
-_LOGGER.debug("Reset cause %s", reset_cause())
+_LOGGER.debug("Reset cause {}".format(reset_cause()))
 
 _zone = {x: Switch() for x in range(3)}
 _sensor = {x: Sensor() for x in range(3)}
@@ -28,20 +28,18 @@ _available = {x: Switch() for x in range(3)}
 
 if config.debug:
     for x in range(3):
-        _zone[x].subscribe(
-            (lambda x: lambda v: print("ZONE" + str(x) + " = " + str(v)))(x)
-        )
+        _zone[x].subscribe((lambda x: lambda v: print("ZONE{} = {}".format(x, v)))(x))
         _sensor[x].subscribe(
-            (lambda x: lambda v: print("SENSOR" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("SENSOR{} = {}".format(x, v)))(x)
         )
         _available[x].subscribe(
-            (lambda x: lambda v: print("AVAILABLE" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("AVAILABLE{} = {}".format(x, v)))(x)
         )
 
-    config.pump.subscribe(lambda v: print("PUMP = " + str(v)))
+    config.pump.subscribe(lambda v: print("PUMP = {}".format(v)))
     for x in range(4):
         config.valve_switch[x].subscribe(
-            (lambda x: lambda v: print("VALVE" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("VALVE{} = {}".format(x, v)))(x)
         )
 
     _prev_run_time = main_loop._run_time
@@ -58,11 +56,9 @@ if config.debug:
         free = mem_free()
         alloc = mem_alloc()
         print(
-            "CPU "
-            + str(run_time * 100 / (run_time + idle_time))
-            + "%, MEM "
-            + str(alloc * 100 / (alloc + free))
-            + "%"
+            "CPU {:.2%}, MEM {:.2%}".format(
+                run_time / (run_time + idle_time), alloc / (alloc + free)
+            )
         )
 
     main_loop.schedule_task(_stats, period=1000)
@@ -90,10 +86,10 @@ _pump_block = Switch()
 if config.debug:
     for x in range(3):
         _humidifier[x].subscribe(
-            (lambda x: lambda v: print("HUMIDIFIER" + str(x) + " = " + str(v)))(x)
+            (lambda x: lambda v: print("HUMIDIFIER{} = {}".format(x, v)))(x)
         )
 
-    _pump_block.subscribe(lambda v: print("PUMP_BLOCK = " + str(v)))
+    _pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))
 
 _duty_cycle = DutyCycle(
     config.pump, _humidifier, _zone, config.valve_switch, _pump_block

@@ -80,7 +80,7 @@ class Tosr0x:
         if self._lastupdate is None or ticks_diff(ticks_ms(), self._lastupdate) >= 300:
             data = Tosr0x._read("[", 1, retry=10)
             if len(data) != 1:
-                raise RuntimeError("Failed to get relay state" + str(data))
+                raise RuntimeError("Failed to get relay state: {}".format(data))
             self._states = int.from_bytes(data, "big")
             self._lastupdate = ticks_ms()
 
@@ -89,7 +89,7 @@ class Tosr0x:
         """Read TOSR0-T temperature."""
         data = Tosr0x._read("a", 2, retry=10)
         if len(data) != 2:
-            raise RuntimeError("Failed to get temperature" + str(data))
+            raise RuntimeError("Failed to get temperature: {}".format(data))
 
         temp = int.from_bytes(data, "big")
         return (temp / 16 - 4096) if temp > 32767 else (temp / 16)

@@ -144,19 +144,19 @@ class HumidifierCommands(Commands):
             bind(
                 config.valve_switch[number],
                 self._binds["valve"][number],
-                "valve_" + str(number),
+                "valve_{}".format(number),
             )
 
         for number in range(3):
             bind(
                 self._available[number],
                 self._binds["available"][number],
-                "available_" + str(number),
+                "available_{}".format(number),
             )
             bind(
                 self._zone[number],
                 self._binds["zone"][number],
-                "working_" + str(number),
+                "working_{}".format(number),
             )
 
     def cmd_unbind(self, sender_eui64=None, target=None):

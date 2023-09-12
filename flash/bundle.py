@@ -23,7 +23,7 @@ atcmd("AP", 0)
 
 _all_compiled = True
 for file in uos.listdir() + uos.listdir("lib"):
-    if file[-3:] == ".py":
+    if file.endswith(".py"):
         _all_compiled = False
         break
 
@@ -34,7 +34,7 @@ if not _all_compiled:
     def compile_file(name):
         """Compile a single file."""
         try:
-            uos.remove(name[:-3] + ".mpy")
+            uos.remove(name.replace(".py", ".mpy"))
         except OSError:
             pass
         collect()
@@ -46,7 +46,7 @@ if not _all_compiled:
         cwd = uos.getcwd()
         uos.chdir(name)
         for filename in uos.listdir():
-            if filename[-3:] == ".py":
+            if filename.endswith(".py"):
                 compile_file(filename)
         uos.chdir(cwd)
 
@@ -59,7 +59,7 @@ if not _all_compiled:
         compile_dir()
         compile_dir("lib")
     except MemoryError as e:
-        print(type(e).__name__ + ": " + str(e))
+        print("{}: {}".format(type(e).__name__, e))
     finally:
         uos.sync()
         machine.soft_reset()  # Retry or continue after reboot

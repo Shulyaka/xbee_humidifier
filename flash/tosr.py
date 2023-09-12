@@ -8,7 +8,7 @@ try:
     _tosr = Tosr0x()
 except Exception as e:
     Tosr0x.tosr0x_reset()
-    logging.getLogger(__name__).error("Exception: %s: %s", type(e).__name__, e)
+    logging.getLogger(__name__).error("{}: {}".format(type(e).__name__, e))
     raise e
 
 

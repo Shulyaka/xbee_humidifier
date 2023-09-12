@@ -58,8 +58,8 @@ class Sensor:
                 callback(value)
                 collect()
             except Exception as e:
-                _LOGGER.error("callback error for %s", callback)
-                _LOGGER.error(type(e).__name__ + ": " + str(e))
+                _LOGGER.error("callback error for {}".format(callback))
+                _LOGGER.error("{}: {}".format(type(e).__name__, e))
 
     def subscribe(self, callback):
         """Add new callback."""
@@ -142,42 +142,41 @@ class Commands:
                 d = json_loads(x["payload"])
                 cmd = d["cmd"]
                 args = d.get("args")
-                if hasattr(self, "cmd_" + cmd):
+                sender_eui64 = x["sender_eui64"]
+                method = "cmd_{}".format(cmd)
+                if hasattr(self, method):
+                    method = getattr(self, method)
                     if args is None:
-                        response = getattr(self, "cmd_" + cmd)(
-                            sender_eui64=x["sender_eui64"]
-                        )
+                        response = method(sender_eui64=sender_eui64)
                     elif isinstance(args, dict):
-                        response = getattr(self, "cmd_" + cmd)(
-                            sender_eui64=x["sender_eui64"], **args
-                        )
+                        response = method(sender_eui64=sender_eui64, **args)
                     elif (
                         isinstance(args, list)
                         and len(args) == 2
                         and isinstance(args[0], list)
                         and isinstance(args[1], dict)
                     ):
-                        response = getattr(self, "cmd_" + cmd)(
-                            x["sender_eui64"], *args[0], **args[1]
-                        )
+                        response = method(sender_eui64, *args[0], **args[1])
                     elif isinstance(args, list):
-                        response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], *args)
+                        response = method(sender_eui64, *args)
                     else:
-                        response = getattr(self, "cmd_" + cmd)(x["sender_eui64"], args)
+                        response = method(sender_eui64, args)
                     if response is None:
                         response = "OK"
-                    response = {cmd + "_resp": response}
+                    response = {"{}_resp".format(cmd): response}
                 else:
                     raise AttributeError("No such command")
             except Exception as e:
                 if cmd is not None:
                     response = {
-                        cmd + "_resp": {"err": type(e).__name__ + ": " + str(e)}
+                        "{}_resp".format(cmd): {
+                            "err": "{}: {}".format(type(e).__name__, e)
+                        }
                     }
                 else:
                     raise ValueError("invalid json")
 
-            self._transmit(x["sender_eui64"], json_dumps(response))
+            self._transmit(sender_eui64, json_dumps(response))
 
             x = receive()
 
@@ -186,7 +185,7 @@ class Commands:
         try:
             transmit(eui64, data)
         except Exception as e:
-            _LOGGER.error("Exception on transmit: %s: %s", type(e).__name__, e)
+            _LOGGER.error("Exception on transmit: {}: {}".format(type(e).__name__, e))
             if isinstance(e, OSError) and "EAGAIN" in str(e) and limit > 1:
                 main_loop.schedule_task(
                     (
@@ -203,7 +202,7 @@ class Commands:
 
     def cmd_test(self, sender_eui64, *args, **kwargs):
         """Echo arguments."""
-        return "args: " + str(args) + ", kwargs: " + str(kwargs)
+        return "args: {}, kwargs: {}".format(args, kwargs)
 
     def cmd_logger(self, sender_eui64=None, level=None, target=None):
         """Set logging level and target."""

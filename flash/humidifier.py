@@ -65,7 +65,9 @@ class GenericHygrostat(Switch):
         if self._target_humidity is None:
             self._target_humidity = self._min_humidity
             _LOGGER.warning(
-                "No previously saved humidity, setting to %s", self._target_humidity
+                "No previously saved humidity, setting to {}".format(
+                    self._target_humidity
+                )
             )
 
         self._sensor_unsubscribe = self._sensor_entity_id.subscribe(
@@ -154,7 +156,7 @@ class GenericHygrostat(Switch):
             self._cur_humidity = float(humidity)
             self._sensor_last_updated = ticks_ms()
         except ValueError as ex:
-            _LOGGER.warning("%s: %s: %s", type(ex).__name__, ex, humidity)
+            _LOGGER.warning("{}: {}: {}".format(type(ex).__name__, ex, humidity))
             self._cur_humidity = None
             self._active.state = False
             if self._switch_entity_id.state:
@@ -180,12 +182,10 @@ class GenericHygrostat(Switch):
             self._active.state = True
             force = True
             _LOGGER.info(
-                (
-                    "Obtained current and target humidity. "
-                    "Generic hygrostat active. %s, %s"
-                ),
-                self._cur_humidity,
-                self._target_humidity,
+                "Obtained current and target humidity. "
+                "Generic hygrostat active. {}, {}".format(
+                    self._cur_humidity, self._target_humidity
+                )
             )
 
         if not self._active.state or not self._state:
