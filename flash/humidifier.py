@@ -165,9 +165,7 @@ class GenericHygrostat(Switch):
             if not force:
                 return
             main_loop.remove_task(self._operate_unschedule)
-        self._operate_unschedule = main_loop.schedule_task(
-            (lambda x: lambda: self._operate(x))(force)
-        )
+        self._operate_unschedule = main_loop.schedule_task(lambda: self._operate(force))
 
     def _operate(self, force=False):
         """Check if we need to turn humidifying on or off."""

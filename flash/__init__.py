@@ -27,24 +27,20 @@ _sensor = {x: Sensor() for x in range(3)}
 _available = {x: Switch() for x in range(3)}
 
 if config.debug:
-    _zone_unsubscribe = {}
-    _sensor_unsubscribe = {}
-    _available_unsubscribe = {}
     for x in range(3):
-        _zone_unsubscribe[x] = _zone[x].subscribe(
+        _zone[x].subscribe(
             (lambda x: lambda v: print("ZONE" + str(x) + " = " + str(v)))(x)
         )
-        _sensor_unsubscribe[x] = _sensor[x].subscribe(
+        _sensor[x].subscribe(
             (lambda x: lambda v: print("SENSOR" + str(x) + " = " + str(v)))(x)
         )
-        _available_unsubscribe[x] = _available[x].subscribe(
+        _available[x].subscribe(
             (lambda x: lambda v: print("AVAILABLE" + str(x) + " = " + str(v)))(x)
         )
 
-    _pump_unsubscribe = config.pump.subscribe(lambda v: print("PUMP = " + str(v)))
-    _valve_unsubscribe = {}
+    config.pump.subscribe(lambda v: print("PUMP = " + str(v)))
     for x in range(4):
-        _valve_unsubscribe[x] = config.valve_switch[x].subscribe(
+        config.valve_switch[x].subscribe(
             (lambda x: lambda v: print("VALVE" + str(x) + " = " + str(v)))(x)
         )
 
@@ -69,7 +65,7 @@ if config.debug:
             + "%"
         )
 
-    _stats_cancel = main_loop.schedule_task(_stats, period=1000)
+    main_loop.schedule_task(_stats, period=1000)
 
 
 _humidifier = {
@@ -92,15 +88,12 @@ _humidifier = {
 _pump_block = Switch()
 
 if config.debug:
-    _humidifier_unsubscribe = {}
     for x in range(3):
-        _humidifier_unsubscribe[x] = _humidifier[x].subscribe(
+        _humidifier[x].subscribe(
             (lambda x: lambda v: print("HUMIDIFIER" + str(x) + " = " + str(v)))(x)
         )
 
-    _pump_block_unsubscribe = _pump_block.subscribe(
-        lambda v: print("PUMP_BLOCK = " + str(v))
-    )
+    _pump_block.subscribe(lambda v: print("PUMP_BLOCK = " + str(v)))
 
 _duty_cycle = DutyCycle(
     config.pump, _humidifier, _zone, config.valve_switch, _pump_block
@@ -127,7 +120,7 @@ def _cancel_warning(confirm):
     global _available, _cancel_warning_cb, _unsubscribe_warning
 
     for x, unsub in _unsubscribe_warning.items():
-        _available[x].subscribe(unsub)
+        _available[x].unsubscribe(unsub)
 
     main_loop.remove_task(_cancel_warning_cb)
 
@@ -145,7 +138,7 @@ if not config.debug:
     from machine import WDT
 
     _wdt = WDT(timeout=30000)
-    _wdt_cancel = main_loop.schedule_task(lambda: _wdt.feed(), period=1000)
+    main_loop.schedule_task(lambda: _wdt.feed(), period=1000)
     kbd_intr(-1)
 
 collect()
