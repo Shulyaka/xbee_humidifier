@@ -108,31 +108,31 @@ _commands = HumidifierCommands(
 )
 collect()
 
-_cancel_warning_cb = main_loop.schedule_task(
+_warning_cb = main_loop.schedule_task(
     lambda: _LOGGER.warning("Not initialized"), period=30000
 )
-_unsubscribe_warning = {}
+_warning_subscribers = {}
 
 
 def _cancel_warning(confirm):
     if not confirm:
         return
 
-    global _available, _cancel_warning_cb, _unsubscribe_warning
+    global _available, _warning_cb, _warning_subscribers
 
-    for x, unsub in _unsubscribe_warning.items():
+    for x, unsub in _warning_subscribers.items():
         _available[x].unsubscribe(unsub)
 
-    main_loop.remove_task(_cancel_warning_cb)
+    main_loop.remove_task(_warning_cb)
 
-    _unsubscribe_warning.clear()
-    _unsubscribe_warning = None
-    _cancel_warning_cb = None
+    _warning_subscribers.clear()
+    _warning_subscribers = None
+    _warning_cb = None
     collect()
 
 
 for x in range(3):
-    _unsubscribe_warning[x] = _available[x].subscribe(_cancel_warning)
+    _warning_subscribers[x] = _available[x].subscribe(_cancel_warning)
 
 main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
 

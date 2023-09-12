@@ -27,22 +27,22 @@ class DutyCycle:
 
         self._pump.state = False
 
-        self._cancel_pump_timeout = None
-        self._cancel_close_valves = None
-        self._cancel_pressure_drop = None
-        self._loop_unschedule = None
+        self._pump_timeout = None
+        self._close_valves = None
+        self._pressure_drop = None
+        self._loop_schedule = None
 
-        self._pump_unsubscribe = self._pump.subscribe(lambda x: self._pump_changed(x))
-        self._valve_unsubscribe = self._valve_switch[3].subscribe(
+        self._pump_subscriber = self._pump.subscribe(lambda x: self._pump_changed(x))
+        self._valve_subscriber = self._valve_switch[3].subscribe(
             lambda x: self._pressure_drop_valve_changed(x)
         )
-        self._block_unsubscribe = self._pump_block.subscribe(
+        self._block_subscriber = self._pump_block.subscribe(
             lambda x: self._pump_block_changed(x)
         )
 
-        self._humidifier_unsubscribe = {}
+        self._humidifier_subscriber = {}
         for number, humidifier in self._humidifier.items():
-            self._humidifier_unsubscribe[number] = humidifier.subscribe(
+            self._humidifier_subscriber[number] = humidifier.subscribe(
                 (
                     lambda number: lambda x: main_loop.schedule_task(
                         lambda: self._humidifier_changed(number, x)
@@ -50,9 +50,9 @@ class DutyCycle:
                 )(number)
             )
 
-        self._zone_unsubscribe = {}
+        self._zone_subscriber = {}
         for number, zone in self._zone.items():
-            self._zone_unsubscribe[number] = zone.subscribe(
+            self._zone_subscriber[number] = zone.subscribe(
                 (lambda number: lambda x: self._zone_changed(number, x))(number)
             )
 
@@ -61,32 +61,32 @@ class DutyCycle:
     def __del__(self):
         """Cancel callbacks."""
         self.stop_cycle()
-        main_loop.remove_task(self._loop_unschedule)
-        main_loop.remove_task(self._cancel_pump_timeout)
-        main_loop.remove_task(self._cancel_close_valves)
-        main_loop.remove_task(self._cancel_pressure_drop)
-        self._pump.unsubscribe(self._pump_unsubscribe)
-        self._valve_switch[3].unsubscribe(self._valve_unsubscribe)
-        self._pump_block.unsubscribe(self._block_unsubscribe)
-        for number, humidifier_unsubscribe in self._humidifier_unsubscribe.items():
-            self._humidifier[number].unsubscribe(humidifier_unsubscribe)
-        for number, zone_unsubscribe in self._zone_unsubscribe.items():
-            self._zone[number].unsubscribe(zone_unsubscribe)
+        main_loop.remove_task(self._loop_schedule)
+        main_loop.remove_task(self._pump_timeout)
+        main_loop.remove_task(self._close_valves)
+        main_loop.remove_task(self._pressure_drop)
+        self._pump.unsubscribe(self._pump_subscriber)
+        self._valve_switch[3].unsubscribe(self._valve_subscriber)
+        self._pump_block.unsubscribe(self._block_subscriber)
+        for number, subscriber in self._humidifier_subscriber.items():
+            self._humidifier[number].unsubscribe(subscriber)
+        for number, subscriber in self._zone_subscriber.items():
+            self._zone[number].unsubscribe(subscriber)
         self._close_all_valves()
 
     def _humidifier_changed(self, number, value):
         """Handle humidifier on/off."""
         if value:
             if self._zone[number].state:
-                if self._loop_unschedule:
+                if self._loop_schedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    main_loop.remove_task(self._loop_unschedule)
+                    main_loop.remove_task(self._loop_schedule)
                 _LOGGER.debug(
                     "Humidifier {} turned on, scheduling duty cycle start".format(
                         number
                     )
                 )
-                self._loop_unschedule = main_loop.schedule_task(
+                self._loop_schedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
                 )
             else:
@@ -94,23 +94,23 @@ class DutyCycle:
                     "Humidifier {} turned on, but its zone is off".format(number)
                 )
         else:
-            if self._loop_unschedule:
+            if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                main_loop.remove_task(self._loop_unschedule)
+                main_loop.remove_task(self._loop_schedule)
             _LOGGER.debug(
                 "Humidifier {} turned off, scheduling duty cycle stop".format(number)
             )
-            self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
+            self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
 
     def _zone_changed(self, number, value):
         """Handle humidifier zone on/off."""
         if value:
-            if self._cancel_pump_timeout is None:
-                if self._loop_unschedule:
+            if self._pump_timeout is None:
+                if self._loop_schedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    main_loop.remove_task(self._loop_unschedule)
+                    main_loop.remove_task(self._loop_schedule)
                 _LOGGER.debug("Zone turned on, scheduling duty cycle start")
-                self._loop_unschedule = main_loop.schedule_task(
+                self._loop_schedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
                 )
         else:
@@ -120,87 +120,85 @@ class DutyCycle:
                     all_off = False
                     break
             if all_off:
-                if self._loop_unschedule:
+                if self._loop_schedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    main_loop.remove_task(self._loop_unschedule)
+                    main_loop.remove_task(self._loop_schedule)
                 _LOGGER.debug("All zones turned off, scheduling duty cycle stop")
-                self._loop_unschedule = main_loop.schedule_task(
-                    lambda: self.stop_cycle()
-                )
+                self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
 
     def _pump_block_changed(self, value):
         """Handle block on/off."""
         if value:
-            if self._loop_unschedule:
+            if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                main_loop.remove_task(self._loop_unschedule)
+                main_loop.remove_task(self._loop_schedule)
             _LOGGER.debug("Pump blocking turned on, scheduling duty cycle stop")
-            self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
+            self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
         else:
-            if self._loop_unschedule:
+            if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                main_loop.remove_task(self._loop_unschedule)
+                main_loop.remove_task(self._loop_schedule)
             _LOGGER.debug("Pump blocking turned off, scheduling duty cycle start")
-            self._loop_unschedule = main_loop.schedule_task(lambda: self.start_cycle())
+            self._loop_schedule = main_loop.schedule_task(lambda: self.start_cycle())
 
     def _pump_changed(self, value):
         """Handle pump on/off."""
         if value and self._pump_block.state:
-            if self._loop_unschedule:
+            if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                main_loop.remove_task(self._loop_unschedule)
+                main_loop.remove_task(self._loop_schedule)
             _LOGGER.warning("Stopping the pump because blocked")
-            self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
+            self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
             return
 
-        if self._cancel_pump_timeout is not None:
+        if self._pump_timeout is not None:
             _LOGGER.debug("Cancelling existing pump timeout schedule")
-            main_loop.remove_task(self._cancel_pump_timeout)
-        if self._cancel_pressure_drop is not None:
+            main_loop.remove_task(self._pump_timeout)
+        if self._pressure_drop is not None:
             _LOGGER.debug("Cancelling pressure drop start")
-            main_loop.remove_task(self._cancel_pressure_drop)
-        if self._cancel_close_valves is not None:
+            main_loop.remove_task(self._pressure_drop)
+        if self._close_valves is not None:
             _LOGGER.debug("Cancelling pressure drop stop")
-            main_loop.remove_task(self._cancel_close_valves)
-            self._cancel_close_valves = None
+            main_loop.remove_task(self._close_valves)
+            self._close_valves = None
 
         if value:
             _LOGGER.debug("Scheduling duty cycle stop after timeout")
-            self._cancel_pump_timeout = main_loop.schedule_task(
+            self._pump_timeout = main_loop.schedule_task(
                 lambda: self._pump_on_timeout(),
                 next_run=ticks_add(ticks_ms(), self._pump_on_timeout_ms),
             )
-            self._cancel_pressure_drop = None
+            self._pressure_drop = None
         else:
             _LOGGER.debug("Scheduling duty cycle start after timeout")
-            self._cancel_pump_timeout = main_loop.schedule_task(
+            self._pump_timeout = main_loop.schedule_task(
                 lambda: self._pump_off_timeout(),
                 next_run=ticks_add(ticks_ms(), self._pump_off_timeout_ms),
             )
             _LOGGER.debug("Scheduling pressure drop after timeout")
-            self._cancel_pressure_drop = main_loop.schedule_task(
+            self._pressure_drop = main_loop.schedule_task(
                 lambda: self._start_pressure_drop(),
                 next_run=ticks_add(ticks_ms(), self._pressure_drop_delay_ms),
             )
 
     def _pressure_drop_valve_changed(self, value):
         """Handle pressure drop valve on/off."""
-        if self._cancel_pressure_drop is not None:
+        if self._pressure_drop is not None:
             _LOGGER.debug("Cancelling schedule for presure drop cycle")
-            main_loop.remove_task(self._cancel_pressure_drop)
-            self._cancel_pressure_drop = None
-        if self._cancel_close_valves is not None:
+            main_loop.remove_task(self._pressure_drop)
+            self._pressure_drop = None
+        if self._close_valves is not None:
             _LOGGER.debug("Cancelling existing schedule to close all valves")
-            main_loop.remove_task(self._cancel_close_valves)
+            main_loop.remove_task(self._close_valves)
 
         if value:
             _LOGGER.debug("Pressure drop valve opened, scheduling closing all valves")
-            self._cancel_close_valves = main_loop.schedule_task(
+            self._close_valves = main_loop.schedule_task(
                 lambda: self._close_all_valves(),
                 next_run=ticks_add(ticks_ms(), self._pressure_drop_time_ms),
             )
         else:
-            self._cancel_close_valves = None
+            self._close_valves = None
 
     def _start_pressure_drop(self):
         """Initiate pressure drop."""
@@ -215,26 +213,26 @@ class DutyCycle:
 
     def _pump_on_timeout(self):
         """Handle pump staying on too long."""
-        if self._cancel_pump_timeout is not None:
+        if self._pump_timeout is not None:
             _LOGGER.debug("Pump timeout, cancelling it")
-            main_loop.remove_task(self._cancel_pump_timeout)
-            self._cancel_pump_timeout = None
+            main_loop.remove_task(self._pump_timeout)
+            self._pump_timeout = None
         _LOGGER.debug("Stopping the cycle")
         self.stop_cycle()
 
     def _pump_off_timeout(self):
         """Handle pump staying off too long."""
-        if self._cancel_pump_timeout is not None:
+        if self._pump_timeout is not None:
             _LOGGER.debug("Pump timeout, cancelling it")
-            main_loop.remove_task(self._cancel_pump_timeout)
-            self._cancel_pump_timeout = None
+            main_loop.remove_task(self._pump_timeout)
+            self._pump_timeout = None
         _LOGGER.debug("Starting the cycle")
         self.start_cycle()
 
     def stop_cycle(self):
         """End duty cycle."""
-        main_loop.remove_task(self._loop_unschedule)
-        self._loop_unschedule = None
+        main_loop.remove_task(self._loop_schedule)
+        self._loop_schedule = None
 
         if not self._pump.state:
             _LOGGER.debug("The pump is already not running")
@@ -245,8 +243,8 @@ class DutyCycle:
 
     def start_cycle(self):
         """Enter duty cycle."""
-        main_loop.remove_task(self._loop_unschedule)
-        self._loop_unschedule = None
+        main_loop.remove_task(self._loop_schedule)
+        self._loop_schedule = None
 
         if self._pump.state:
             _LOGGER.debug("The pump is already running")

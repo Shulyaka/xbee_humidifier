@@ -51,14 +51,14 @@ class GenericHygrostat(Switch):
         self._target_humidity = target_humidity
         self._away_humidity = away_humidity
         self._sensor_stale_duration = sensor_stale_duration
-        self._remove_stale_tracking = None
+        self._stale_tracking = None
         self._is_away = False
         super().__init__(
             value=initial_state if initial_state is not None else False, *args, **kwargs
         )
 
-        self._operate_unschedule = None
-        self._state_unsubscribe = self.subscribe(
+        self._operate_task = None
+        self._state_subscriber = self.subscribe(
             lambda x: self._schedule_operate(force=True)
         )
 
@@ -70,7 +70,7 @@ class GenericHygrostat(Switch):
                 )
             )
 
-        self._sensor_unsubscribe = self._sensor_entity_id.subscribe(
+        self._sensor_subscriber = self._sensor_entity_id.subscribe(
             lambda x: self._sensor_changed(x)
         )
 
@@ -78,10 +78,10 @@ class GenericHygrostat(Switch):
 
     def __del__(self):
         """Cancel callbacks."""
-        self.unsubscribe(self._state_unsubscribe)
-        self._sensor_entity_id.unsubscribe(self._sensor_unsubscribe)
-        main_loop.remove_task(self._remove_stale_tracking)
-        main_loop.remove_task(self._operate_unschedule)
+        self.unsubscribe(self._state_subscriber)
+        self._sensor_entity_id.unsubscribe(self._sensor_subscriber)
+        main_loop.remove_task(self._stale_tracking)
+        main_loop.remove_task(self._operate_task)
 
     @property
     def capability_attributes(self):
@@ -132,8 +132,8 @@ class GenericHygrostat(Switch):
             return
 
         if self._sensor_stale_duration:
-            main_loop.remove_task(self._remove_stale_tracking)
-            self._remove_stale_tracking = main_loop.schedule_task(
+            main_loop.remove_task(self._stale_tracking)
+            self._stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
                 ticks_add(ticks_ms(), self._sensor_stale_duration * 1000),
             )
@@ -163,17 +163,17 @@ class GenericHygrostat(Switch):
                 self._switch_entity_id.state = False
 
     def _schedule_operate(self, force=False):
-        if self._operate_unschedule:
+        if self._operate_task:
             if not force:
                 return
-            main_loop.remove_task(self._operate_unschedule)
-        self._operate_unschedule = main_loop.schedule_task(lambda: self._operate(force))
+            main_loop.remove_task(self._operate_task)
+        self._operate_task = main_loop.schedule_task(lambda: self._operate(force))
 
     def _operate(self, force=False):
         """Check if we need to turn humidifying on or off."""
-        if self._operate_unschedule:
-            main_loop.remove_task(self._operate_unschedule)
-            self._operate_unschedule = None
+        if self._operate_task:
+            main_loop.remove_task(self._operate_task)
+            self._operate_task = None
 
         if not self._active.state and None not in (
             self._cur_humidity,

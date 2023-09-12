@@ -28,8 +28,8 @@ def test_init():
     assert isinstance(flash._pump_block, Sensor)
     assert isinstance(flash._duty_cycle, DutyCycle)
 
-    assert len(flash._unsubscribe_warning) == 3
+    assert len(flash._warning_subscribers) == 3
     flash._sensor[2].state = 55
     main_loop.run_once()
-    assert flash._unsubscribe_warning is None
-    assert flash._cancel_warning_cb is None
+    assert flash._warning_subscribers is None
+    assert flash._warning_cb is None

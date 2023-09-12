@@ -165,8 +165,8 @@ class HumidifierCommands(Commands):
 
         def unbind(entity, binds):
             if target is None:
-                for unbind in binds.values():
-                    entity.unsubscribe(unbind)
+                for bind in binds.values():
+                    entity.unsubscribe(bind)
                 binds.clear()
             elif target in binds:
                 entity.unsubscribe(binds.pop(target))

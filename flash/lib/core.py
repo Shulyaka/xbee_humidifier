@@ -41,15 +41,15 @@ class Sensor:
         self.update()
 
         if self._period is not None:
-            self._stop_updates = main_loop.schedule_task(
+            self._updates = main_loop.schedule_task(
                 lambda: self.update(auto=True), period=self._period
             )
         else:
-            self._stop_updates = None
+            self._updates = None
 
     def __del__(self):
         """Cancel callbacks."""
-        main_loop.remove_task(self._stop_updates)
+        main_loop.remove_task(self._updates)
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
@@ -126,11 +126,11 @@ class Commands:
 
     def __init__(self):
         """Init the module."""
-        self._unschedule = main_loop.schedule_task(lambda: self.update(), period=500)
+        self._updates = main_loop.schedule_task(lambda: self.update(), period=500)
 
     def __del__(self):
         """Cancel callbacks."""
-        main_loop.remove_task(self._unschedule)
+        main_loop.remove_task(self._updates)
 
     def update(self):
         """Receive commands."""
