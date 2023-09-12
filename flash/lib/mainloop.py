@@ -64,10 +64,15 @@ class Loop:
     def schedule_task(self, callback, *args, **kwargs):
         """Add new task."""
         collect()
-        new_task = Task(callback, *args, **kwargs)
-        self._tasks.append(new_task)
+        task = Task(callback, *args, **kwargs)
+        self._tasks.append(task)
         self._task_scheduled = True
-        return lambda: self._tasks.remove(new_task) if new_task in self._tasks else None
+        return task
+
+    def remove_task(self, task):
+        """Remove task if scheduled."""
+        if task is not None and task in self._tasks:
+            self._tasks.remove(task)
 
     def reset(self):
         """Remove all tasks."""

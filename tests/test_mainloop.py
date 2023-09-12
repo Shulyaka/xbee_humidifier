@@ -47,8 +47,8 @@ def test_loop():
     assert loop.next_run == 1000
     assert loop.run_once() is None
     assert loop.next_run is None
-    delete_task()
-    delete_task()
+    loop.remove_task(delete_task)
+    loop.remove_task(delete_task)
     callback.assert_called_once_with()
 
     callback.reset_mock()
@@ -100,7 +100,7 @@ def test_loop():
     assert loop.next_run == 1400
     assert callback.call_count == 0
     assert mock_sleep_ms.call_count == 0
-    _unschedule()
+    loop.remove_task(_unschedule)
     assert loop.next_run is None
 
     callback.reset_mock()

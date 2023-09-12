@@ -61,14 +61,10 @@ class DutyCycle:
     def __del__(self):
         """Cancel callbacks."""
         self.stop_cycle()
-        if self._loop_unschedule:
-            self._loop_unschedule()
-        if self._cancel_pump_timeout:
-            self._cancel_pump_timeout()
-        if self._cancel_close_valves:
-            self._cancel_close_valves()
-        if self._cancel_pressure_drop:
-            self._cancel_pressure_drop()
+        main_loop.remove_task(self._loop_unschedule)
+        main_loop.remove_task(self._cancel_pump_timeout)
+        main_loop.remove_task(self._cancel_close_valves)
+        main_loop.remove_task(self._cancel_pressure_drop)
         self._pump_unsubscribe()
         self._valve_unsubscribe()
         self._block_unsubscribe()
@@ -84,7 +80,7 @@ class DutyCycle:
             if self._zone[number].state:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    self._loop_unschedule()
+                    main_loop.remove_task(self._loop_unschedule)
                 _LOGGER.debug(
                     "Humidifier %s turned on, scheduling duty cycle start", number
                 )
@@ -96,7 +92,7 @@ class DutyCycle:
         else:
             if self._loop_unschedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                self._loop_unschedule()
+                main_loop.remove_task(self._loop_unschedule)
             _LOGGER.debug(
                 "Humidifier %s turned off, scheduling duty cycle stop", number
             )
@@ -108,7 +104,7 @@ class DutyCycle:
             if self._cancel_pump_timeout is None:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    self._loop_unschedule()
+                    main_loop.remove_task(self._loop_unschedule)
                 _LOGGER.debug("Zone turned on, scheduling duty cycle start")
                 self._loop_unschedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
@@ -122,7 +118,7 @@ class DutyCycle:
             if all_off:
                 if self._loop_unschedule:
                     _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    self._loop_unschedule()
+                    main_loop.remove_task(self._loop_unschedule)
                 _LOGGER.debug("All zones turned off, scheduling duty cycle stop")
                 self._loop_unschedule = main_loop.schedule_task(
                     lambda: self.stop_cycle()
@@ -133,13 +129,13 @@ class DutyCycle:
         if value:
             if self._loop_unschedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                self._loop_unschedule()
+                main_loop.remove_task(self._loop_unschedule)
             _LOGGER.debug("Pump blocking turned on, scheduling duty cycle stop")
             self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
         else:
             if self._loop_unschedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                self._loop_unschedule()
+                main_loop.remove_task(self._loop_unschedule)
             _LOGGER.debug("Pump blocking turned off, scheduling duty cycle start")
             self._loop_unschedule = main_loop.schedule_task(lambda: self.start_cycle())
 
@@ -148,20 +144,20 @@ class DutyCycle:
         if value and self._pump_block.state:
             if self._loop_unschedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
-                self._loop_unschedule()
+                main_loop.remove_task(self._loop_unschedule)
             _LOGGER.warning("Stopping the pump because blocked")
             self._loop_unschedule = main_loop.schedule_task(lambda: self.stop_cycle())
             return
 
         if self._cancel_pump_timeout is not None:
             _LOGGER.debug("Cancelling existing pump timeout schedule")
-            self._cancel_pump_timeout()
+            main_loop.remove_task(self._cancel_pump_timeout)
         if self._cancel_pressure_drop is not None:
             _LOGGER.debug("Cancelling pressure drop start")
-            self._cancel_pressure_drop()
+            main_loop.remove_task(self._cancel_pressure_drop)
         if self._cancel_close_valves is not None:
             _LOGGER.debug("Cancelling pressure drop stop")
-            self._cancel_close_valves()
+            main_loop.remove_task(self._cancel_close_valves)
             self._cancel_close_valves = None
 
         if value:
@@ -187,11 +183,11 @@ class DutyCycle:
         """Handle pressure drop valve on/off."""
         if self._cancel_pressure_drop is not None:
             _LOGGER.debug("Cancelling schedule for presure drop cycle")
-            self._cancel_pressure_drop()
+            main_loop.remove_task(self._cancel_pressure_drop)
             self._cancel_pressure_drop = None
         if self._cancel_close_valves is not None:
             _LOGGER.debug("Cancelling existing schedule to close all valves")
-            self._cancel_close_valves()
+            main_loop.remove_task(self._cancel_close_valves)
 
         if value:
             _LOGGER.debug("Pressure drop valve opened, scheduling closing all valves")
@@ -217,7 +213,7 @@ class DutyCycle:
         """Handle pump staying on too long."""
         if self._cancel_pump_timeout is not None:
             _LOGGER.debug("Pump timeout, cancelling it")
-            self._cancel_pump_timeout()
+            main_loop.remove_task(self._cancel_pump_timeout)
             self._cancel_pump_timeout = None
         _LOGGER.debug("Stopping the cycle")
         self.stop_cycle()
@@ -226,16 +222,15 @@ class DutyCycle:
         """Handle pump staying off too long."""
         if self._cancel_pump_timeout is not None:
             _LOGGER.debug("Pump timeout, cancelling it")
-            self._cancel_pump_timeout()
+            main_loop.remove_task(self._cancel_pump_timeout)
             self._cancel_pump_timeout = None
         _LOGGER.debug("Starting the cycle")
         self.start_cycle()
 
     def stop_cycle(self):
         """End duty cycle."""
-        if self._loop_unschedule:
-            self._loop_unschedule()
-            self._loop_unschedule = None
+        main_loop.remove_task(self._loop_unschedule)
+        self._loop_unschedule = None
 
         if not self._pump.state:
             _LOGGER.debug("The pump is already not running")
@@ -246,9 +241,8 @@ class DutyCycle:
 
     def start_cycle(self):
         """Enter duty cycle."""
-        if self._loop_unschedule:
-            self._loop_unschedule()
-            self._loop_unschedule = None
+        main_loop.remove_task(self._loop_unschedule)
+        self._loop_unschedule = None
 
         if self._pump.state:
             _LOGGER.debug("The pump is already running")

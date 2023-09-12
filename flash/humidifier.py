@@ -78,10 +78,8 @@ class GenericHygrostat(Switch):
         """Cancel callbacks."""
         self._state_unsubscribe()
         self._sensor_unsubscribe()
-        if self._remove_stale_tracking:
-            self._remove_stale_tracking()
-        if self._operate_unschedule:
-            self._operate_unschedule()
+        main_loop.remove_task(self._remove_stale_tracking)
+        main_loop.remove_task(self._operate_unschedule)
 
     @property
     def capability_attributes(self):
@@ -132,8 +130,7 @@ class GenericHygrostat(Switch):
             return
 
         if self._sensor_stale_duration:
-            if self._remove_stale_tracking:
-                self._remove_stale_tracking()
+            main_loop.remove_task(self._remove_stale_tracking)
             self._remove_stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
                 ticks_add(ticks_ms(), self._sensor_stale_duration * 1000),
@@ -167,7 +164,7 @@ class GenericHygrostat(Switch):
         if self._operate_unschedule:
             if not force:
                 return
-            self._operate_unschedule()
+            main_loop.remove_task(self._operate_unschedule)
         self._operate_unschedule = main_loop.schedule_task(
             (lambda x: lambda: self._operate(x))(force)
         )
@@ -175,7 +172,7 @@ class GenericHygrostat(Switch):
     def _operate(self, force=False):
         """Check if we need to turn humidifying on or off."""
         if self._operate_unschedule:
-            self._operate_unschedule()
+            main_loop.remove_task(self._operate_unschedule)
             self._operate_unschedule = None
 
         if not self._active.state and None not in (

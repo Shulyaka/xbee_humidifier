@@ -129,7 +129,7 @@ def _cancel_warning(confirm):
     for unsub in _unsubscribe_warning.values():
         unsub()
 
-    _cancel_warning_cb()
+    main_loop.remove_task(_cancel_warning_cb)
 
     _unsubscribe_warning.clear()
     _unsubscribe_warning = None

@@ -49,8 +49,7 @@ class Sensor:
 
     def __del__(self):
         """Cancel callbacks."""
-        if self._stop_updates is not None:
-            self._stop_updates()
+        main_loop.remove_task(self._stop_updates)
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
@@ -127,7 +126,7 @@ class Commands:
 
     def __del__(self):
         """Cancel callbacks."""
-        self._unschedule()
+        main_loop.remove_task(self._unschedule)
 
     def update(self):
         """Receive commands."""
