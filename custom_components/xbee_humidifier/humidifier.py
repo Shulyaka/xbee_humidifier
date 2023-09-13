@@ -109,11 +109,11 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if self._state is None:
             self._state = False
 
-        await self._async_startup(True)  # init the sensor
+        await self._async_startup()  # init the sensor
 
         async def async_log(data):
             if data["msg"] in ("Not initialized", "Main loop started"):
-                await self._async_startup(False)
+                await self._async_startup()
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
 
@@ -146,12 +146,11 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
 
     @callback
-    async def _async_startup(self, cached):
+    async def _async_startup(self):
         """Init on startup."""
-        if cached:
-            resp = self.coordinator.data.get(self._number)
-        if not cached or not resp:
-            resp = await self.coordinator.client.async_command("hum", self._number)
+        resp = self.coordinator.data.get(
+            self._number
+        ) or await self.coordinator.client.async_command("hum", self._number)
 
         self._min_humidity = resp["cap_attr"]["min_hum"]
         self._max_humidity = resp["cap_attr"]["max_hum"]

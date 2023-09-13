@@ -46,6 +46,35 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert "Test log" in caplog.text
 
 
+async def test_refresh(hass, caplog, data_from_device, test_config_entry):
+    """Test config entry reload."""
+
+    commands["bind"].reset_mock()
+    commands["hum"].reset_mock()
+    data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
+    await hass.async_block_till_done()
+    commands["bind"].assert_called_once_with()
+    assert commands["hum"].call_count == 18
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_args_list[3][0][0] == [[0], {"mode": "away"}]
+    assert commands["hum"].call_args_list[4][0][0] == [[0], {"hum": 32}]
+    assert commands["hum"].call_args_list[5][0][0] == [[0], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[6][0][0] == [[0], {"hum": 42}]
+    assert commands["hum"].call_args_list[7][0][0] == [[0], {"is_on": False}]
+    assert commands["hum"].call_args_list[8][0][0] == [[1], {"mode": "away"}]
+    assert commands["hum"].call_args_list[9][0][0] == [[1], {"hum": 32}]
+    assert commands["hum"].call_args_list[10][0][0] == [[1], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[11][0][0] == [[1], {"hum": 42}]
+    assert commands["hum"].call_args_list[12][0][0] == [[1], {"is_on": False}]
+    assert commands["hum"].call_args_list[13][0][0] == [[2], {"mode": "away"}]
+    assert commands["hum"].call_args_list[14][0][0] == [[2], {"hum": 32}]
+    assert commands["hum"].call_args_list[15][0][0] == [[2], {"mode": "normal"}]
+    assert commands["hum"].call_args_list[16][0][0] == [[2], {"hum": 42}]
+    assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
+
+
 def test_reload(hass, caplog, data_from_device, test_config_entry):
     """Test config entry reload."""
 
