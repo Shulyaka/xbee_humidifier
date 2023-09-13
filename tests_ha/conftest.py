@@ -132,11 +132,11 @@ async def test_config_entry(hass):
 
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
 
-    await config_entry.async_setup(hass)
+    await hass.config_entries.async_add(config_entry)
     await hass.async_block_till_done()
 
     yield config_entry
 
     await hass.async_block_till_done()
-    assert await config_entry.async_unload(hass)
+    await hass.config_entries.async_remove(config_entry.entry_id)
     await hass.async_block_till_done()
