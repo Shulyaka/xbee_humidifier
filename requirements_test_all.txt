@@ -20,6 +20,7 @@ zigpy_znp
 zigpy_xbee
 zigpy_deconz
 zigpy_zigate
+universal-silabs-flasher
 aiohttp_cors
 janus
 mpy-cross==1.12
