@@ -118,6 +118,8 @@ def data_from_device_fixture(hass):
 
     yield data_from_device
 
+    hass.services.async_remove("zha", "issue_zigbee_cluster_command")
+
     for x in commands.values():
         x.reset_mock()
 

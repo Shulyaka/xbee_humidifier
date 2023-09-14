@@ -47,7 +47,7 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
 
 
 async def test_refresh(hass, caplog, data_from_device, test_config_entry):
-    """Test config entry reload."""
+    """Test reinitialize on device reset."""
 
     commands["bind"].reset_mock()
     commands["hum"].reset_mock()

@@ -97,10 +97,16 @@ class XBeeHumidifierApiClient:
 
     def command(self, command, *args, **kwargs):
         """Issue xbee humidifier command synchronously."""
-        if self.hass.loop == asyncio.get_running_loop():
-            raise NotImplementedError(
-                "The synchronous function cannot be run from the main hass loop, run from thread instead"
-            )
+        try:
+            if self.hass.loop == asyncio.get_running_loop():
+                raise NotImplementedError(
+                    "The synchronous function cannot be run from the main hass loop, run from thread instead or use async version"
+                )
+        except RuntimeError as e:
+            if str(e) == "no running event loop":
+                pass
+            else:
+                raise
 
         return asyncio.run_coroutine_threadsafe(
             self.async_command(command, *args, **kwargs), self.hass.loop
@@ -134,7 +140,10 @@ class XBeeHumidifierApiClient:
                 )
             except asyncio.TimeoutError:
                 _LOGGER.error("No response to %s command", command)
-                del self._awaiting[command]
+                try:
+                    del self._awaiting[command]
+                except KeyError:
+                    pass
                 raise TimeoutError("No response to %s command" % command)
 
     async def _cmd(self, command, data):
@@ -167,8 +176,6 @@ class XBeeHumidifierApiClient:
         return future
 
     async def _async_data_received(self, data):
-        if data is None:
-            return
         data = json.loads(data)
         for key, value in data.items():
             if key[-5:] == "_resp":
