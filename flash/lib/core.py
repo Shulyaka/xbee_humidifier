@@ -143,6 +143,9 @@ class Commands:
                 cmd = d["cmd"]
                 args = d.get("args")
                 sender_eui64 = x["sender_eui64"]
+                x = None
+                d = None
+                collect()
                 method = "cmd_{}".format(cmd)
                 if hasattr(self, method):
                     method = getattr(self, method)
@@ -161,6 +164,9 @@ class Commands:
                         response = method(sender_eui64, *args)
                     else:
                         response = method(sender_eui64, args)
+                    method = None
+                    args = None
+                    collect()
                     if response is None:
                         response = "OK"
                     response = {"{}_resp".format(cmd): response}
@@ -177,6 +183,10 @@ class Commands:
                     raise ValueError("invalid json")
 
             self._transmit(sender_eui64, json_dumps(response))
+            response = None
+            sender_eui64 = None
+            cmd = None
+            collect()
 
             x = receive()
 

@@ -4,7 +4,7 @@ from .const import IEEE
 
 
 def test_init(hass, caplog, data_from_device, test_config_entry):
-    """Test humidifier services."""
+    """Test component initialization."""
 
     assert len(commands) == 12
     commands["bind"].assert_called_once_with()
