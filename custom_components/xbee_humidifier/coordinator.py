@@ -192,7 +192,8 @@ class XBeeHumidifierApiClient:
                     _LOGGER.debug("%s response: %s", command, value)
                     future.set_result(value)
             elif key in self._callbacks:
-                _LOGGER.debug("%s = %s", key, value)
+                if key != "log":
+                    _LOGGER.debug("%s = %s", key, value)
                 for listener in self._callbacks[key]:
                     try:
                         await listener(value)
