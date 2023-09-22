@@ -21,7 +21,7 @@ class Task:
             self._next_run = ticks_add(ticks_ms(), self._period)
 
     def run(self):
-        """Execute the task."""
+        """Execute the task and return the next scheduled time."""
         try:
             self._callback()
         except Exception as e:
@@ -33,20 +33,19 @@ class Task:
             now = ticks_ms()
             if ticks_diff(self._next_run, now) < 0:
                 self._next_run = ticks_add(now, self._period)
-        else:
-            self._callback = None
+            collect()
+            return self._next_run
 
+        self._callback = None
         collect()
+        return None
 
     @property
     def next_run(self):
-        """Return the time of the next scheduled execution."""
+        """Return the time of the next scheduled execution or None if completed."""
+        if self._callback is None:
+            return None
         return self._next_run if self._next_run is not None else ticks_ms()
-
-    @property
-    def completed(self):
-        """Return whether the task is complete or not."""
-        return True if self._callback is None else False
 
 
 class Loop:
@@ -89,15 +88,11 @@ class Loop:
             if task not in self._tasks:
                 continue
             next_run = task.next_run
-            if ticks_diff(next_run, ticks_ms()) <= 0:
-                task.run()
-                if task.completed:
-                    if task in self._tasks:
-                        self._tasks.remove(task)
-                        collect()
-                    next_run = None
-                else:
-                    next_run = task.next_run
+            if next_run is not None and ticks_diff(next_run, ticks_ms()) <= 0:
+                next_run = task.run()
+                if next_run is None and task in self._tasks:
+                    self._tasks.remove(task)
+                    collect()
 
             if next_run is not None and (
                 next_time is None or ticks_diff(next_run, next_time) < 0
@@ -142,7 +137,9 @@ class Loop:
             if ticks_diff(next_run, now) <= 0:
                 return now
 
-            if next_time is None or ticks_diff(next_run, next_time) < 0:
+            if next_run is not None and (
+                next_time is None or ticks_diff(next_run, next_time) < 0
+            ):
                 next_time = next_run
 
         return next_time

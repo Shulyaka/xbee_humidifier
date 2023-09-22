@@ -12,24 +12,25 @@ def test_task():
     mock_ticks_ms.return_value = 1000
     task = mainloop.Task(callback)
     assert task.next_run == 1000
-    assert not task.completed
     mock_ticks_ms.return_value = 1005
     assert task.next_run == 1005
 
-    task.run()
+    next_run = task.run()
     callback.assert_called_once_with()
-    assert task.completed
+    assert next_run is None
+    assert task.next_run is None
 
     assert mainloop.Task(callback, next_run=1050).next_run == 1050
     assert mainloop.Task(callback, period=100).next_run == 1105
 
     task = mainloop.Task(callback, next_run=1050, period=100)
-    task.run()
-    assert not task.completed
+    next_run = task.run()
+    assert next_run == 1150
     assert task.next_run == 1150
 
     mock_ticks_ms.return_value = 2000
-    task.run()
+    next_run = task.run()
+    assert next_run == 2100
     assert task.next_run == 2100
 
 
