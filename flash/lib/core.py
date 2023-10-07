@@ -203,7 +203,7 @@ class Commands:
                             eui64, data, limit
                         )
                     )(eui64, data, limit - 1),
-                    next_time=ticks_add(ticks_ms(), 50),
+                    next_run=ticks_add(ticks_ms(), 50),
                 )
 
     def cmd_help(self, sender_eui64=None):
