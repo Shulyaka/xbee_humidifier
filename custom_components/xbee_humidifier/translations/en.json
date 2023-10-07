@@ -1,1 +1,51 @@
-../strings.json
+{
+  "config": {
+    "step": {
+      "user": {
+          "title": "Connection details",
+          "data": {
+              "device_ieee": "Device IEEE"
+          },
+          "data_description": {
+              "device_ieee": "XBee Humidifier Zigbee Address"
+          }
+      },
+      "humidifier_0": {
+          "title": "Humidifier 1",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Target humidity",
+              "away_humidity": "Away humidity"
+          },
+          "data_description": {
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      },
+      "humidifier_1": {
+          "title": "Humidifier 2",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Target humidity",
+              "away_humidity": "Away humidity"
+          },
+          "data_description": {
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      },
+      "humidifier_2": {
+          "title": "Humidifier 3",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Target humidity",
+              "away_humidity": "Away humidity"
+          },
+          "data_description": {
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      }
+    }
+  }
+}
