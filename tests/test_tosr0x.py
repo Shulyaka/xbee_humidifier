@@ -17,16 +17,16 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.assert_called_once_with("n")
     mock_stdin.assert_called_once_with()
 
-    assert not tosr.switch0
-    assert not tosr.switch1
-    assert not tosr.switch2
-    assert not tosr.switch3
-    assert not tosr.switch4
+    assert not tosr.get_relay_state(0)
+    assert not tosr.get_relay_state(1)
+    assert not tosr.get_relay_state(2)
+    assert not tosr.get_relay_state(3)
+    assert not tosr.get_relay_state(4)
 
     mock_stdin.reset_mock()
     mock_stdout.reset_mock()
     mock_stdin.return_value = b"\x01"
-    tosr.switch1 = True
+    tosr.set_relay_state(1, True)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "e"
@@ -36,7 +36,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x02"
-    tosr.switch2 = True
+    tosr.set_relay_state(2, True)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "f"
@@ -46,7 +46,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x04"
-    tosr.switch3 = True
+    tosr.set_relay_state(3, True)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "g"
@@ -56,7 +56,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x08"
-    tosr.switch4 = True
+    tosr.set_relay_state(4, True)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "h"
@@ -66,7 +66,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x0f"
-    tosr.switch0 = True
+    tosr.set_relay_state(0, True)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "d"
@@ -76,7 +76,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
-    tosr.switch0 = False
+    tosr.set_relay_state(0, False)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "n"
@@ -86,7 +86,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
-    tosr.switch1 = False
+    tosr.set_relay_state(1, False)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "o"
@@ -96,7 +96,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
-    tosr.switch2 = False
+    tosr.set_relay_state(2, False)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "p"
@@ -106,7 +106,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
-    tosr.switch3 = False
+    tosr.set_relay_state(3, False)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "q"
@@ -116,7 +116,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
-    tosr.switch4 = False
+    tosr.set_relay_state(4, False)
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "r"
@@ -127,7 +127,7 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x00"
     with pytest.raises(RuntimeError) as excinfo:
-        tosr.switch1 = True
+        tosr.set_relay_state(1, True)
     assert str(excinfo.value) == "Failed to update relay state"
     assert mock_stdin.call_count == 20
     assert mock_stdout.call_count == 20
@@ -140,11 +140,11 @@ def test_tosr0x(mock_stdin, mock_stdout):
     mock_stdin.return_value = b"\x0f"
     sleep_ms(1000)
     tosr.update()
-    assert tosr.switch0
-    assert tosr.switch1
-    assert tosr.switch2
-    assert tosr.switch3
-    assert tosr.switch4
+    assert tosr.get_relay_state(0)
+    assert tosr.get_relay_state(1)
+    assert tosr.get_relay_state(2)
+    assert tosr.get_relay_state(3)
+    assert tosr.get_relay_state(4)
     sleep_ms(100)
     tosr.update()
     assert mock_stdin.call_count == 2

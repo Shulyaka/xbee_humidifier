@@ -94,56 +94,6 @@ class Tosr0x:
         temp = int.from_bytes(data, "big")
         return (temp / 16 - 4096) if temp > 32767 else (temp / 16)
 
-    @property
-    def switch0(self):
-        """Get all switches."""
-        return self.get_relay_state(0)
-
-    @switch0.setter
-    def switch0(self, state):
-        """Set all switches."""
-        self.set_relay_state(0, state)
-
-    @property
-    def switch1(self):
-        """Get switch 1."""
-        return self.get_relay_state(1)
-
-    @switch1.setter
-    def switch1(self, state):
-        """Set switch 1."""
-        self.set_relay_state(1, state)
-
-    @property
-    def switch2(self):
-        """Get switch 2."""
-        return self.get_relay_state(2)
-
-    @switch2.setter
-    def switch2(self, state):
-        """Set switch 2."""
-        self.set_relay_state(2, state)
-
-    @property
-    def switch3(self):
-        """Get switch 3."""
-        return self.get_relay_state(3)
-
-    @switch3.setter
-    def switch3(self, state):
-        """Set switch 3."""
-        self.set_relay_state(3, state)
-
-    @property
-    def switch4(self):
-        """Get switch 4."""
-        return self.get_relay_state(4)
-
-    @switch4.setter
-    def switch4(self, state):
-        """Set switch 4."""
-        self.set_relay_state(4, state)
-
 
 def tosr0x_version():
     """Verify TOSR0X presence. Returns firmware version number if found, None if TOSR0X not detected."""
