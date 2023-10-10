@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 try:
     main_loop.run()
-except Exception as e:
+except BaseException as e:
     _LOGGER.error("Mainloop exception: {}: {}".format(type(e).__name__, e))
 else:
     _LOGGER.error("Mainloop exited")
