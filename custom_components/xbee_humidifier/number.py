@@ -63,7 +63,10 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        self._state = await self.coordinator.client.async_command(self._name)
+        try:
+            self._state = await self.coordinator.client.async_command(self._name)
+        except TimeoutError:
+            pass
 
         async def async_update_state(value):
             self._state = value

@@ -130,12 +130,13 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        if self._number is None:
-            self._state = await self.coordinator.client.async_command(self._name)
-        else:
-            self._state = await self.coordinator.client.async_command(
-                self._name, self._number
-            )
+        try:
+            args = tuple()
+            if self._number is not None:
+                args += (self._number,)
+            self._state = await self.coordinator.client.async_command(self._name, *args)
+        except TimeoutError:
+            pass
 
         async def async_update_state(value):
             self._state = value
