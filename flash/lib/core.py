@@ -55,6 +55,7 @@ class Sensor:
         """Call all defined callbacks one by one synchronically."""
         for callback in self._triggers:
             try:
+                collect()
                 callback(value)
                 collect()
             except Exception as e:
@@ -63,12 +64,15 @@ class Sensor:
 
     def subscribe(self, callback):
         """Add new callback."""
+        collect()
         self._triggers.append(callback)
+        collect()
         return callback
 
     def unsubscribe(self, callback):
         """Remove callback."""
         self._triggers.remove(callback)
+        collect()
 
     @property
     def state(self):

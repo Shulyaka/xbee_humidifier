@@ -23,6 +23,7 @@ class Task:
     def run(self):
         """Execute the task and return the next scheduled time."""
         try:
+            collect()
             self._callback()
         except Exception as e:
             _LOGGER.error("mainloop: error with {}".format(self._callback))
@@ -66,12 +67,14 @@ class Loop:
         task = Task(callback, *args, **kwargs)
         self._tasks.append(task)
         self._task_scheduled = True
+        collect()
         return task
 
     def remove_task(self, task):
         """Remove task if scheduled."""
         if task is not None and task in self._tasks:
             self._tasks.remove(task)
+            collect()
 
     def reset(self):
         """Remove all tasks."""
