@@ -81,7 +81,10 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        self._state = await self.coordinator.client.async_command(self._name)
+        value = await self.coordinator.client.async_command(self._name)
+        if self._conversion is not None:
+            value = self._conversion(value)
+        self._state = value
 
         async def async_update_state(value):
             if self._conversion is not None:

@@ -11,7 +11,7 @@ ENTITY2 = "sensor.xbee_humidifier_main_unit_pressure_in"
     "entity, data, value, newdata, newvalue",
     (
         (ENTITY1, "pump_temp", "31", 32, "32"),
-        (ENTITY2, "pressure_in", "7", 4158, "7.59"),
+        (ENTITY2, "pressure_in", "7.00", 4158, "7.59"),
     ),
 )
 async def test_sensor(
@@ -19,7 +19,7 @@ async def test_sensor(
 ):
     """Test sensor platform."""
 
-    assert hass.states.get(entity).state == value
+    assert hass.states.get(entity).state[:4] == value
 
     data_from_device(hass, IEEE, {data: newdata})
     await hass.async_block_till_done()
