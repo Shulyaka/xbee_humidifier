@@ -135,7 +135,7 @@ class XBeeHumidifierApiClient:
         async with self._cmd_lock[command]:
             try:
                 return await asyncio.wait_for(
-                    await self._cmd(command, data),
+                    self._cmd(command, data),
                     timeout=REMOTE_COMMAND_TIMEOUT,
                 )
             except asyncio.TimeoutError:
@@ -173,7 +173,7 @@ class XBeeHumidifierApiClient:
             future.set_exception(e)
             del self._awaiting[command]
 
-        return future
+        return await future
 
     async def _async_data_received(self, data):
         data = json.loads(data)
