@@ -14,5 +14,5 @@ try:
     main_loop.run()
 except BaseException as e:
     _LOGGER.error("Mainloop exception: {}: {}".format(type(e).__name__, e))
-else:
+finally:
     _LOGGER.error("Mainloop exited")

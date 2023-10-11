@@ -1,4 +1,4 @@
-"""Test __main__."""
+"""Test __init__."""
 
 from commands import HumidifierCommands
 from dutycycle import DutyCycle
