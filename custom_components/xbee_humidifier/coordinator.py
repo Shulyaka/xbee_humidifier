@@ -139,7 +139,7 @@ class XBeeHumidifierApiClient:
                     self._cmd(command, data),
                     timeout=REMOTE_COMMAND_TIMEOUT,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 _LOGGER.error(f"No response to {command} command")
                 try:
                     del self._awaiting[command]
