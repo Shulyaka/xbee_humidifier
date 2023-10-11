@@ -93,9 +93,12 @@ class Sensor:
             self._state = value
             self._run_triggers(value)
 
-    def update(self, auto=None):
+    def update(self, auto=False):
         """Get updated state."""
-        self._state = self._get()
+        value = self._get()
+        if self._type is not None:
+            value = self._type(value)
+        self._state = value
         if (
             self._last_callback_value is None
             or not auto
