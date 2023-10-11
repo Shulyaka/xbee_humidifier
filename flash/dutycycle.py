@@ -44,8 +44,8 @@ class DutyCycle:
         for number, humidifier in self._humidifier.items():
             self._humidifier_subscriber[number] = humidifier.subscribe(
                 (
-                    lambda number: lambda x: main_loop.schedule_task(
-                        lambda: self._humidifier_changed(number, x)
+                    lambda n: lambda x: main_loop.schedule_task(
+                        lambda: self._humidifier_changed(n, x)
                     )
                 )(number)
             )
@@ -53,7 +53,7 @@ class DutyCycle:
         self._zone_subscriber = {}
         for number, zone in self._zone.items():
             self._zone_subscriber[number] = zone.subscribe(
-                (lambda number: lambda x: self._zone_changed(number, x))(number)
+                (lambda n: lambda x: self._zone_changed(n, x))(number)
             )
 
         self.start_cycle()
@@ -184,7 +184,7 @@ class DutyCycle:
     def _pressure_drop_valve_changed(self, value):
         """Handle pressure drop valve on/off."""
         if self._pressure_drop is not None:
-            _LOGGER.debug("Cancelling schedule for presure drop cycle")
+            _LOGGER.debug("Cancelling schedule for pressure drop cycle")
             main_loop.remove_task(self._pressure_drop)
             self._pressure_drop = None
         if self._close_valves is not None:

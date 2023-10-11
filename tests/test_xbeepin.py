@@ -141,7 +141,8 @@ def test_analog_input():
     assert sensor.state == 15
     sensor._pin.read.assert_called_once_with()
 
-    # Test that callback is not called if the change is below the lowpass threshold but state returns the correct value
+    # Test that callback is not called if the change is below the lowpass threshold
+    # but state returns the correct value
     callback.reset_mock()
     sensor._pin.read.reset_mock()
     sensor._pin.read.return_value = 19

@@ -15,7 +15,8 @@ try:
     from .const import MOCK_CONFIG
 except ImportError:
     # Do not import unwanted stuff for micropython tests.
-    # Due to pytest bug it stills tries to import this file even for the tests from a separate directory.
+    # Due to pytest bug it stills tries to import this file
+    # even for the tests from a separate directory.
     pass
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -29,9 +30,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
-# This fixture is used to prevent HomeAssistant from attempting to create and dismiss persistent
-# notifications. These calls would fail without this fixture since the persistent_notification
-# integration is never loaded during a test.
+# This fixture is used to prevent HomeAssistant from attempting to create and dismiss
+# persistent notifications. These calls would fail without this fixture since the
+# persistent_notification integration is never loaded during a test.
 @pytest.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
@@ -46,7 +47,8 @@ calls = []
 commands = {
     "hum": MagicMock(return_value="OK"),
     "atcmd": MagicMock(
-        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\rHV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
+        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
+        "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
     ),
     "pump_temp": MagicMock(return_value=31),
     "pressure_in": MagicMock(return_value=3879),
@@ -59,8 +61,8 @@ commands = {
 }
 
 
-# This fixture enables two-way communication with the device. The calls are logged in the calls
-# array. The command responses can be configured with command dict.
+# This fixture enables two-way communication with the device. The calls are logged
+# in the calls array. The command responses can be configured with command dict.
 @pytest.fixture(name="data_from_device")
 def data_from_device_fixture(hass):
     """Configure fake two-way communication."""

@@ -13,7 +13,7 @@ def receive_once(*args, **kwargs):
     """Make the receive mock return the value only once."""
     ret = receive.return_value
     receive.return_value = None
-    return ret
+    return ret  # noqa: R504
 
 
 receive.return_value = None

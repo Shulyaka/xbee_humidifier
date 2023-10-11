@@ -86,12 +86,10 @@ class GenericHygrostat(Switch):
     @property
     def capability_attributes(self):
         """Return capability attributes."""
-        data = {
+        return {
             _ATTR_MIN_HUMIDITY: self._min_humidity,
             _ATTR_MAX_HUMIDITY: self._max_humidity,
         }
-
-        return data
 
     @property
     def state_attributes(self):

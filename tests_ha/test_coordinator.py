@@ -32,7 +32,8 @@ async def test_synchronous_command(hass, data_from_device):
 
     with pytest.raises(
         NotImplementedError,
-        match="The synchronous function cannot be run from the main hass loop, run from thread instead or use async version",
+        match="The synchronous function cannot be run from the main hass loop, "
+        "run from thread instead or use async version",
     ):
         client.command("bind")
 

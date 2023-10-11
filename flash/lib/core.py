@@ -140,7 +140,16 @@ class Commands:
         """Receive commands."""
         x = receive()
         while x is not None:
-            # Example: {'broadcast': False, 'dest_ep': 232, 'sender_eui64': b'\x00\x13\xa2\x00A\xa0n`', 'payload': b'{"command": "test"}', 'sender_nwk': 0, 'source_ep': 232, 'profile': 49413, 'cluster': 17}
+            # Example: {
+            #    "broadcast": False,
+            #    "dest_ep": 232,
+            #    "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
+            #    "payload": b'{"command": "test"}',
+            #    "sender_nwk": 0,
+            #    "source_ep": 232,
+            #    "profile": 49413,
+            #    "cluster": 17,
+            # }
             try:
                 cmd = None
                 d = json_loads(x["payload"])
@@ -195,7 +204,7 @@ class Commands:
             x = receive()
 
     def _transmit(self, eui64, data, limit=3):
-        """Retries sending data on insufficient buffers, packet already queued for target."""
+        """Retries sending data on full transfer buffer."""
         try:
             transmit(eui64, data)
         except Exception as e:

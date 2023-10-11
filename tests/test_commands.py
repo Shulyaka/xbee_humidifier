@@ -312,7 +312,7 @@ def test_commands():
         assert (
             command(
                 "logger",
-                '{"target": "\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"}',
+                '{"target": "\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000"}',  # noqa: E501
             )
             == "OK"
         )

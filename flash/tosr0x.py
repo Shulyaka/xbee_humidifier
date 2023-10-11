@@ -24,7 +24,11 @@ class Tosr0x:
         stdin.buffer.read()
 
     def _read(cmd=None, n=1, timeout=100, retry=1):
-        """Read serial data, returns less data on timeout, may return more than requested if there is more data in read buffer."""
+        """
+        Read serial data, returns less data on timeout.
+
+        May return more than requested if there is more data in read buffer.
+        """
         for _ in range(retry):
             if cmd is not None:
                 stdin.buffer.read()
@@ -96,7 +100,11 @@ class Tosr0x:
 
 
 def tosr0x_version():
-    """Verify TOSR0X presence. Returns firmware version number if found, None if TOSR0X not detected."""
+    """
+    Verify TOSR0X presence.
+
+    Returns firmware version number if found, None if TOSR0X not detected.
+    """
     Tosr0x.tosr0x_reset()
     for _ in range(10):
         data = Tosr0x._read("Z", 2)

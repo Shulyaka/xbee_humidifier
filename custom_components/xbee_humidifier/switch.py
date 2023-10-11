@@ -131,7 +131,7 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         await super().async_added_to_hass()
 
         try:
-            args = tuple()
+            args = ()
             if self._number is not None:
                 args += (self._number,)
             self._state = await self.coordinator.client.async_command(self._name, *args)

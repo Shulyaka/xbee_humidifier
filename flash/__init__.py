@@ -24,7 +24,8 @@ _LOGGER.debug("Reset cause {}".format(reset_cause()))
 
 
 def _setup(debug):
-    global _zone, _sensor, _commands, _available, _humidifier, _pump_block, _duty_cycle, _warning_subscribers, _warning_cb
+    global _zone, _sensor, _commands, _available, _humidifier, _pump_block
+    global _duty_cycle, _warning_subscribers, _warning_cb
     _zone = {x: Switch() for x in range(3)}
     _sensor = {x: Sensor() for x in range(3)}
     _available = {x: Switch() for x in range(3)}
@@ -32,19 +33,19 @@ def _setup(debug):
     if debug:
         for x in range(3):
             _zone[x].subscribe(
-                (lambda x: lambda v: print("ZONE{} = {}".format(x, v)))(x)
+                (lambda n: lambda v: print("ZONE{} = {}".format(n, v)))(x)
             )
             _sensor[x].subscribe(
-                (lambda x: lambda v: print("SENSOR{} = {}".format(x, v)))(x)
+                (lambda n: lambda v: print("SENSOR{} = {}".format(n, v)))(x)
             )
             _available[x].subscribe(
-                (lambda x: lambda v: print("AVAILABLE{} = {}".format(x, v)))(x)
+                (lambda n: lambda v: print("AVAILABLE{} = {}".format(n, v)))(x)
             )
 
         config.pump.subscribe(lambda v: print("PUMP = {}".format(v)))
         for x in range(4):
             config.valve_switch[x].subscribe(
-                (lambda x: lambda v: print("VALVE{} = {}".format(x, v)))(x)
+                (lambda n: lambda v: print("VALVE{} = {}".format(n, v)))(x)
             )
 
         _prev_run_time = main_loop._run_time
@@ -92,7 +93,7 @@ def _setup(debug):
     if debug:
         for x in range(3):
             _humidifier[x].subscribe(
-                (lambda x: lambda v: print("HUMIDIFIER{} = {}".format(x, v)))(x)
+                (lambda n: lambda v: print("HUMIDIFIER{} = {}".format(n, v)))(x)
             )
 
         _pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))

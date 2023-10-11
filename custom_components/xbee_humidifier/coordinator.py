@@ -47,7 +47,7 @@ class XBeeHumidifierApiClient:
         hass: HomeAssistant,
         device_ieee,
     ) -> None:
-        """Inititialize the XBee Humidifier API Client."""
+        """Initialize the XBee Humidifier API Client."""
 
         self.hass = hass
         self.device_ieee = device_ieee
@@ -100,7 +100,8 @@ class XBeeHumidifierApiClient:
         try:
             if self.hass.loop == asyncio.get_running_loop():
                 raise NotImplementedError(
-                    "The synchronous function cannot be run from the main hass loop, run from thread instead or use async version"
+                    "The synchronous function cannot be run from the main hass loop, "
+                    "run from thread instead or use async version"
                 )
         except RuntimeError as e:
             if str(e) == "no running event loop":
@@ -139,12 +140,12 @@ class XBeeHumidifierApiClient:
                     timeout=REMOTE_COMMAND_TIMEOUT,
                 )
             except asyncio.TimeoutError:
-                _LOGGER.error("No response to %s command", command)
+                _LOGGER.error(f"No response to {command} command")
                 try:
                     del self._awaiting[command]
                 except KeyError:
                     pass
-                raise TimeoutError("No response to %s command" % command)
+                raise TimeoutError(f"No response to {command} command")
 
     async def _cmd(self, command, data):
         if command in self._awaiting:
@@ -186,7 +187,7 @@ class XBeeHumidifierApiClient:
                     future = self._awaiting.pop(command)
                     if isinstance(value, dict) and "err" in value:
                         future.set_exception(
-                            RuntimeError("Command response: {}".format(value["err"]))
+                            RuntimeError(f"Command response: {value['err']}")
                         )
                         continue
                     _LOGGER.debug("%s response: %s", command, value)
@@ -222,7 +223,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         client: XBeeHumidifierApiClient,
     ) -> None:
-        """Inititialize the XBee Humidifier Client."""
+        """Initialize the XBee Humidifier Client."""
         super().__init__(
             hass=hass,
             logger=logging.getLogger(__package__),
@@ -277,7 +278,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
             .split("\r")
         )
         version_info = [v.split(": ", 1) for v in version_info]
-        self.version_info = {k: v for k, v in version_info}
+        self.version_info = dict(version_info)
 
     @callback
     async def async_update_data(self):

@@ -289,7 +289,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
         if humidity is None:
-            return
+            return None
         if (
             await self.coordinator.client.async_command(
                 "hum", self._number, hum=humidity
@@ -318,7 +318,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     async def _async_sensor_changed(self, entity_id, old_state, new_state):
         """Handle ambient humidity changes."""
         if new_state is None:
-            return
+            return None
 
         try:
             self._cur_humidity = float(new_state.state)
@@ -334,7 +334,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     async def async_set_mode(self, mode: str):
         """Set new mode."""
         if self._away_humidity is None:
-            return
+            return None
 
         if (
             await self.coordinator.client.async_command("hum", self._number, mode=mode)

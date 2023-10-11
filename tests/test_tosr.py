@@ -86,7 +86,8 @@ def test_tosr_temp():
     assert sensor.state == 15
     mock_temperature.assert_called_once_with()
 
-    # Test that callback is not called if the change is below the lowpass threshold but state returns the correct value
+    # Test that callback is not called if the change is below the lowpass threshold
+    # but state returns the correct value
     callback.reset_mock()
     mock_temperature.reset_mock()
     mock_temperature.return_value = 15.0625

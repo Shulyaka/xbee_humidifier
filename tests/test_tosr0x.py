@@ -1,6 +1,6 @@
 """Test tosr0x lib."""
 
-from time import sleep as mock_sleep, sleep_ms
+from time import sleep_ms
 from unittest.mock import patch
 
 import pytest
@@ -12,7 +12,6 @@ from flash import tosr0x
 @patch("flash.tosr0x.stdin.buffer.read")
 def test_tosr0x(mock_stdin, mock_stdout):
     """Test Tosr0x class."""
-    mock_sleep.reset_mock()
     tosr = tosr0x.Tosr0x()
     mock_stdout.assert_called_once_with("n")
     mock_stdin.assert_called_once_with()
@@ -31,7 +30,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "e"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -41,7 +39,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "f"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -51,7 +48,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "g"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -61,7 +57,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "h"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -71,7 +66,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "d"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -81,7 +75,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "n"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -91,7 +84,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "o"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -101,7 +93,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "p"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -111,7 +102,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "q"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -121,7 +111,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 2
     assert mock_stdout.call_args_list[0][0][0] == "r"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    assert mock_sleep.call_count == 0
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
@@ -133,7 +122,6 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdout.call_count == 20
     assert mock_stdout.call_args_list[0][0][0] == "e"
     assert mock_stdout.call_args_list[1][0][0] == "["
-    mock_sleep.call_count == 10
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()

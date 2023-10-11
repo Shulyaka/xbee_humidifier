@@ -12,7 +12,7 @@ def long_description():
     f = (pathlib.Path(__file__).parent / "README.md").open()
     res = f.read()
     f.close()
-    return res
+    return res  # noqa: R504
 
 
 setup(
