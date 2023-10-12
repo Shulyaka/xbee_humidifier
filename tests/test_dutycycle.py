@@ -218,10 +218,28 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
+    duty_cycle.start_cycle()
+
+    # Check that duty cycle start when it is already running does not stop it
+    assert pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
     pump_block.state = True
     main_loop.run_once()
 
     # Check that the pump block stops the duty cycle
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    duty_cycle.start_cycle()
+
+    # Check that manual duty cycle start is blocked
     assert not pump.state
     assert tosr_switch[0].state
     assert tosr_switch[1].state
@@ -247,3 +265,19 @@ def test_dutycycle():
     assert tosr_switch[1].state
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
+
+    duty_cycle.stop_cycle()
+    main_loop.run_once()
+
+    mock_sleep(5)
+    main_loop.run_once()
+
+    pump.state = True
+    main_loop.run_once()
+
+    # Check that manual pump start is blocked while in the pressure drop
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert tosr_switch[3].state

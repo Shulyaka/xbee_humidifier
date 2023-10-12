@@ -62,7 +62,10 @@ def _setup(debug):
             alloc = mem_alloc()
             print(
                 "CPU {:.2%}, MEM {:.2%}".format(
-                    run_time / (run_time + idle_time), alloc / (alloc + mem_free())
+                    run_time / (run_time + idle_time)
+                    if run_time + idle_time > 0
+                    else 0,
+                    alloc / (alloc + mem_free()),
                 )
             )
 
