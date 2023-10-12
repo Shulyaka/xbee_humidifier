@@ -6,7 +6,7 @@ import pytest
 from lib import core
 
 
-def test_subscription():
+def test_subscription(caplog):
     """Test Sensor class subscriptions."""
     entity = core.Sensor()
     assert entity._triggers == []
@@ -28,6 +28,14 @@ def test_subscription():
         entity.unsubscribe(unsubscribe)
 
     assert str(excinfo.value) == "list.remove(x): x not in list"
+
+    def callback_exception(value):
+        raise RuntimeError("Test callback exception")
+
+    entity.subscribe(callback_exception)
+    entity.state = 84
+
+    assert "Test callback exception" in caplog.text
 
 
 def test_virtual_switch():

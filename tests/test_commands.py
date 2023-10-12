@@ -358,6 +358,19 @@ def test_commands():
         in str(excinfo.value)
     )
 
+    with pytest.raises(RuntimeError) as excinfo:
+        command("do_magic")
+    assert "No such command" in str(excinfo.value)
+
     assert command("soft_reset") == "OK"
     main_loop.run_once()
     mock_soft_reset.assert_called_once_with()
+
+    mock_transmit.side_effect = OSError("EAGAIN")
+
+    with patch("lib.mainloop.main_loop.schedule_task") as mock_schedule_task:
+        command("test")
+
+    mock_schedule_task.assert_called_once()
+
+    mock_transmit.side_effect = None

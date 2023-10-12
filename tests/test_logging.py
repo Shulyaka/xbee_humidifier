@@ -71,3 +71,7 @@ def test_logging():
     assert logger.getEffectiveLevel() == logging.INFO
     logger.debug("Test debug message")
     assert mock_transmit.call_count == 0
+
+    mock_transmit.side_effect = OSError("EAGAIN")
+    logger.info("This message does not raise exception")
+    mock_transmit.side_effect = None

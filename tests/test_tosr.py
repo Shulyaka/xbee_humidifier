@@ -103,3 +103,7 @@ def test_tosr_temp():
     callback.assert_called_once_with(15.0625)
     assert sensor.state == 15.0625
     mock_temperature.assert_called_once_with()
+
+    # Test that manual override is disabled
+    sensor.state = 20
+    assert sensor.state == 15.0625
