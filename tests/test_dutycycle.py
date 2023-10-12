@@ -257,9 +257,31 @@ def test_dutycycle():
     assert not tosr_switch[3].state
 
     pump_block.state = False
+    pump_block.state = True
+    main_loop.run_once()
+
+    # Check that pump unblock and block in quick succession keeps cycle stopped
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    pump_block.state = False
     main_loop.run_once()
 
     # Check that pump unblock starts the cycle back
+    assert pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    pump_block.state = True
+    pump_block.state = False
+    main_loop.run_once()
+
+    # Check that pump block and unblock in quick succession keeps cycle running
     assert pump.state
     assert tosr_switch[0].state
     assert tosr_switch[1].state
@@ -275,9 +297,34 @@ def test_dutycycle():
     pump.state = True
     main_loop.run_once()
 
-    # Check that manual pump start is blocked while in the pressure drop
+    # Check that manual pump start is blocked while in the pressure drop stage
     assert not pump.state
     assert tosr_switch[0].state
     assert tosr_switch[1].state
     assert not tosr_switch[2].state
     assert tosr_switch[3].state
+
+    mock_sleep(55)
+    main_loop.run_once()
+
+    # Check that pressure drop valve is closed
+    assert not pump.state
+    assert not tosr_switch[0].state
+    assert not tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    humidifier[1].state = False
+    main_loop.run_once()
+
+    pump_block.state = True
+    humidifier[1].state = True
+    main_loop.run_once()
+    main_loop.run_once()
+
+    # Check that the pump start has been blocked
+    assert not pump.state
+    assert not tosr_switch[0].state
+    assert not tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state

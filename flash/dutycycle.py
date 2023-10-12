@@ -113,18 +113,12 @@ class DutyCycle:
                 self._loop_schedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
                 )
-        else:
-            all_off = True
-            for zone in self._zone.values():
-                if zone.state:
-                    all_off = False
-                    break
-            if all_off:
-                if self._loop_schedule:
-                    _LOGGER.debug("Cancelling existing duty cycle schedule")
-                    main_loop.remove_task(self._loop_schedule)
-                _LOGGER.debug("All zones turned off, scheduling duty cycle stop")
-                self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
+        elif all(not zone.state for zone in self._zone.values()):
+            if self._loop_schedule:
+                _LOGGER.debug("Cancelling existing duty cycle schedule")
+                main_loop.remove_task(self._loop_schedule)
+            _LOGGER.debug("All zones turned off, scheduling duty cycle stop")
+            self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
 
     def _pump_block_changed(self, value):
         """Handle block on/off."""
@@ -143,13 +137,27 @@ class DutyCycle:
 
     def _pump_changed(self, value):
         """Handle pump on/off."""
-        if value and (self._pump_block.state or self._valve_switch[3].state):
+        if value and (
+            self._pump_block.state
+            or self._valve_switch[3].state
+            or (
+                not self._valve_switch[0].state
+                and not self._valve_switch[1].state
+                and not self._valve_switch[2].state
+            )
+        ):
             if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
                 main_loop.remove_task(self._loop_schedule)
             _LOGGER.warning(
                 "Stopping the pump because {}".format(
-                    "blocked" if self._pump_block.state else "pressure drop valve open"
+                    "blocked"
+                    if self._pump_block.state
+                    else (
+                        "pressure drop valve open"
+                        if self._valve_switch[3].state
+                        else "all valves closed"
+                    )
                 )
             )
             self._loop_schedule = main_loop.schedule_task(lambda: self.stop_cycle())
@@ -161,7 +169,7 @@ class DutyCycle:
         if self._pressure_drop is not None:
             _LOGGER.debug("Cancelling pressure drop start")
             main_loop.remove_task(self._pressure_drop)
-        if self._close_valves is not None:
+        if value and self._close_valves is not None:
             _LOGGER.debug("Cancelling pressure drop stop")
             main_loop.remove_task(self._close_valves)
             self._close_valves = None
