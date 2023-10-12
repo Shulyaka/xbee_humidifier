@@ -145,6 +145,18 @@ def test_tosr0x(mock_stdin, mock_stdout):
 
     mock_stdout.reset_mock()
     mock_stdin.reset_mock()
+    mock_stdin.return_value = b"\x01\x02"
+    sleep_ms(300)
+    with pytest.raises(RuntimeError) as excinfo:
+        tosr.update()
+    assert str(excinfo.value) == "Failed to get relay state: b'\\x01\\x02'"
+    assert mock_stdin.call_count == 20
+    assert mock_stdout.call_count == 10
+    for x in range(10):
+        assert mock_stdout.call_args_list[x][0][0] == "["
+
+    mock_stdout.reset_mock()
+    mock_stdin.reset_mock()
     mock_stdin.return_value = b"\x01\x23"
     assert tosr.temperature == 18.1875
     assert mock_stdin.call_count == 2
@@ -158,3 +170,53 @@ def test_tosr0x(mock_stdin, mock_stdout):
     assert mock_stdin.call_count == 2
     assert mock_stdout.call_count == 1
     assert mock_stdout.call_args_list[0][0][0] == "a"
+
+    mock_stdout.reset_mock()
+    mock_stdin.reset_mock()
+    mock_stdin.return_value = b"\x01\x02\x03"
+    with pytest.raises(RuntimeError) as excinfo:
+        tosr.temperature
+    assert str(excinfo.value) == "Failed to get temperature: b'\\x01\\x02\\x03'"
+    assert mock_stdin.call_count == 20
+    assert mock_stdout.call_count == 10
+    for x in range(10):
+        assert mock_stdout.call_args_list[x][0][0] == "a"
+
+
+@patch("flash.tosr0x.stdout.buffer.write")
+@patch("flash.tosr0x.stdin.buffer.read")
+def test_tosr0x_version(mock_stdin, mock_stdout):
+    """Test Tosr0x version."""
+    sleep_ms.reset_mock()
+    mock_stdout.reset_mock()
+    mock_stdin.reset_mock()
+    mock_stdin.return_value = b"\x0f\x12"
+    assert tosr0x.tosr0x_version() == 0x12
+    assert mock_stdout.call_count == 2
+    assert mock_stdout.call_args_list[0][0][0] == "n"
+    assert mock_stdout.call_args_list[1][0][0] == "Z"
+    assert mock_stdin.call_count == 3
+    assert sleep_ms.call_count == 1
+
+    sleep_ms.reset_mock()
+    mock_stdout.reset_mock()
+    mock_stdin.reset_mock()
+    mock_stdin.return_value = b"\x0f"
+    assert tosr0x.tosr0x_version() == 0x0F
+    assert mock_stdout.call_count == 2
+    assert mock_stdout.call_args_list[0][0][0] == "n"
+    assert mock_stdout.call_args_list[1][0][0] == "Z"
+    assert mock_stdin.call_count == 4
+    assert sleep_ms.call_count == 1
+
+    sleep_ms.reset_mock()
+    mock_stdout.reset_mock()
+    mock_stdin.reset_mock()
+    mock_stdin.return_value = b"\x00"
+    assert tosr0x.tosr0x_version() is None
+    assert mock_stdout.call_count == 11
+    assert mock_stdout.call_args_list[0][0][0] == "n"
+    for x in range(1, 11):
+        assert mock_stdout.call_args_list[x][0][0] == "Z"
+    assert mock_stdin.call_count == 31
+    assert sleep_ms.call_count == 11

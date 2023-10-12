@@ -1,11 +1,27 @@
 """Test tosr lib."""
 
+import importlib
 from time import sleep_ms
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from lib.mainloop import main_loop
 from tosr import TosrSwitch, TosrTemp, tosr_switch, tosr_temp
 from tosr0x import mock_temperature, mock_tosr
+
+
+def test_tosr_import_error(caplog):
+    """Test tosr import error on exception in tosr0x.Tosr0x init."""
+    import tosr
+
+    with patch(
+        "tosr0x.Tosr0x", side_effect=RuntimeError("Test exception on Tosr0x")
+    ) as mock_tosr_2:
+        with pytest.raises(RuntimeError) as excinfo:
+            importlib.reload(tosr)
+    assert "Test exception on Tosr0x" in str(excinfo.value)
+    assert "RuntimeError: Test exception on Tosr0x" in caplog.text
+    mock_tosr_2.tosr0x_reset.assert_called_once_with()
 
 
 def test_tosr_switch():
