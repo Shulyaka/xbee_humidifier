@@ -124,6 +124,7 @@ def test_commands():
         "valve",
     ]
 
+    mock_atcmd.reset_mock()
     assert command("bind") == "OK"
     assert command("bind") == "OK"
     assert command("unique_id") == "0102030405060708"
@@ -362,6 +363,7 @@ def test_commands():
         command("do_magic")
     assert "No such command" in str(excinfo.value)
 
+    mock_soft_reset.reset_mock()
     assert command("soft_reset") == "OK"
     main_loop.run_once()
     mock_soft_reset.assert_called_once_with()

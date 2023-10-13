@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock
 
 chdir = MagicMock()
+getcwd = MagicMock()
 compile = MagicMock()  # noqa: PBP113
 remove = MagicMock()
 sync = MagicMock()
