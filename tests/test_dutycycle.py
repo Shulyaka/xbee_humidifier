@@ -288,6 +288,16 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
+    humidifier_sensor[1].state = 55
+    main_loop.run_once()
+
+    # Check that single zone off does not stop the cycle if there are open zones
+    assert pump.state
+    assert tosr_switch[0].state
+    assert tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
     duty_cycle.stop_cycle()
     main_loop.run_once()
 
@@ -320,9 +330,35 @@ def test_dutycycle():
     pump_block.state = True
     humidifier[1].state = True
     main_loop.run_once()
-    main_loop.run_once()
 
     # Check that the pump start has been blocked
+    assert not pump.state
+    assert not tosr_switch[0].state
+    assert not tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    pump_block.state = False
+    humidifier_sensor[0].state = 55
+    main_loop.run_once()
+    main_loop.run_once()
+
+    # Check that the cycle has started, then stopped
+    assert not pump.state
+    assert tosr_switch[0].state
+    assert not tosr_switch[1].state
+    assert not tosr_switch[2].state
+    assert not tosr_switch[3].state
+
+    mock_sleep(5)
+    main_loop.run_once()
+    mock_sleep(55)
+    main_loop.run_once()
+
+    pump.state = True
+    main_loop.run_once()
+
+    # Check that manual pump start is blocked while all valves are closed
     assert not pump.state
     assert not tosr_switch[0].state
     assert not tosr_switch[1].state

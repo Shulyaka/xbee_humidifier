@@ -118,27 +118,27 @@ def test_loop():
 
     # Test task removal from within the loop
     callback.reset_mock()
-    _unschedule = None
-    loop.schedule_task(lambda: loop.remove_task(_unschedule))
-    _unschedule = loop.schedule_task(callback)
+    task = None
+    loop.schedule_task(lambda: loop.remove_task(task))
+    task = loop.schedule_task(callback)
     assert loop.run_once() is None
     assert loop.next_run is None
     assert callback.call_count == 0
 
     # Test task remaining after stop
     callback.reset_mock()
-    _unschedule = loop.schedule_task(callback, period=100)
+    task = loop.schedule_task(callback, period=100)
     loop.schedule_task(lambda: loop.schedule_task(lambda: loop.stop()))
     assert loop.run() == 1500
     assert loop.next_run == 1500
     assert callback.call_count == 0
     assert mock_sleep_ms.call_count == 0
-    loop.remove_task(_unschedule)
+    loop.remove_task(task)
     assert loop.next_run is None
 
     # Test mainloop with periodic task
     callback.reset_mock()
-    loop.schedule_task(callback, period=100)
+    task = loop.schedule_task(callback, period=100)
     mock_ticks_ms.return_value = 2300
     assert loop.run_once() == 2400
     assert callback.call_count == 1
@@ -151,10 +151,20 @@ def test_loop():
     assert loop.run_once() == 2600
     assert callback.call_count == 3
 
+    loop.remove_task(task)
+    assert loop.next_run is None
+
     # Test task scheduling for the next iteration
     callback.reset_mock()
     loop.schedule_task(lambda: loop.schedule_task(callback))
     assert loop.run_once() == 2500
     assert callback.call_count == 0
-    assert loop.run_once() == 2600
+    assert loop.run_once() is None
+    assert callback.call_count == 1
+
+    # Test callback with exception does not break the loop
+    callback.reset_mock()
+    callback.side_effect = RuntimeError("Test exception in callback")
+    loop.schedule_task(callback)
+    assert loop.run_once() is None
     assert callback.call_count == 1
