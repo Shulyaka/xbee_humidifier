@@ -21,14 +21,8 @@ _bundle_list = [
 
 atcmd("AP", 0)
 
-_all_compiled = True
-for file in uos.listdir() + uos.listdir("lib"):
-    if file.endswith(".py"):
-        _all_compiled = False
-        break
-
 # First stage: compile files
-if not _all_compiled:
+if any(file.endswith(".py") for file in uos.listdir() + uos.listdir("lib")):
     opt_level(3)
 
     def compile_file(name):
