@@ -36,14 +36,13 @@ class GenericHygrostat(Switch):
         self._sensor = sensor
         self._dry_tolerance = dry_tolerance
         self._wet_tolerance = wet_tolerance
-        self._saved_humidity = away_humidity or target_humidity
+        self._saved_humidity = away_humidity
         self._active = available_sensor
         self._active.state = False
         self._cur_humidity = None
         self._min_humidity = min_humidity
         self._max_humidity = max_humidity
         self._target_humidity = target_humidity
-        self._away_humidity = away_humidity
         self._stale_duration = sensor_stale_duration
         self._stale_tracking = None
         self._is_away = False
@@ -184,7 +183,7 @@ class GenericHygrostat(Switch):
     @property
     def mode(self):
         """Return the current mode."""
-        if self._away_humidity is None:
+        if self._saved_humidity is None:
             return None
         if self._is_away:
             return _MODE_AWAY
@@ -193,19 +192,10 @@ class GenericHygrostat(Switch):
     @mode.setter
     def mode(self, mode: str):
         """Set new mode."""
-        if self._away_humidity is None:
+        if self._saved_humidity is None:
             return
-        if mode == _MODE_AWAY and not self._is_away:
-            self._is_away = True
-            if not self._saved_humidity:
-                self._saved_humidity = self._away_humidity
-            self._saved_humidity, self._target_humidity = (
-                self._target_humidity,
-                self._saved_humidity,
-            )
-            self._schedule_operate(force=True)
-        elif mode == _MODE_NORMAL and self._is_away:
-            self._is_away = False
+        if (mode == _MODE_AWAY) != self._is_away:
+            self._is_away = mode == _MODE_AWAY
             self._saved_humidity, self._target_humidity = (
                 self._target_humidity,
                 self._saved_humidity,
