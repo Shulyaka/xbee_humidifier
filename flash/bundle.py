@@ -13,10 +13,9 @@ _bundle_list = [
     "lib/mainloop.mpy",
     "lib/xbeepin.mpy",
     "tosr0x.mpy",
-    "tosr.mpy",
     "humidifier.mpy",
     "dutycycle.mpy",
-    "config.mpy",
+    "commands.mpy",
 ]
 
 atcmd("AP", 0)
