@@ -8,10 +8,6 @@ from lib.mainloop import main_loop
 
 _LOGGER = logging.getLogger(__name__)
 
-_ATTR_MAX_HUMIDITY = "max_hum"
-_ATTR_MIN_HUMIDITY = "min_hum"
-_ATTR_SAVED_HUMIDITY = "sav_hum"
-
 _MODE_NORMAL = "normal"
 _MODE_AWAY = "away"
 
@@ -82,24 +78,18 @@ class GenericHygrostat(Switch):
         main_loop.remove_task(self._operate_task)
 
     @property
-    def capability_attributes(self):
-        """Return capability attributes."""
+    def attributes(self):
+        """Return attributes."""
         return {
-            _ATTR_MIN_HUMIDITY: self._min_humidity,
-            _ATTR_MAX_HUMIDITY: self._max_humidity,
+            "min_hum": self._min_humidity,
+            "max_hum": self._max_humidity,
+            "sav_hum": self._saved_target_humidity,
         }
 
     @property
     def humidity(self):
         """Return the target humidity."""
         return self._target_humidity
-
-    @property
-    def extra_state_attributes(self):
-        """Return the optional state attributes."""
-        if self._saved_target_humidity:
-            return {_ATTR_SAVED_HUMIDITY: self._saved_target_humidity}
-        return None
 
     @property
     def mode(self):

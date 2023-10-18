@@ -83,7 +83,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
 
     assert len(calls) == 1
     calls.clear()
-    commands["hum"].assert_called_once_with([[1], {"is_on": True}])
+    commands["hum"].assert_called_once_with([1, True])
     assert hass.states.get(ENTITY).state == "on"
     assert hass.states.get(ENTITY).attributes["action"] == "idle"
 
@@ -102,7 +102,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
 
     assert len(calls) == 1
     calls.clear()
-    commands["hum"].assert_called_once_with([[1], {"is_on": False}])
+    commands["hum"].assert_called_once_with([1, False])
 
     commands["target_hum"].reset_mock()
     commands["target_hum"].return_value = "OK"

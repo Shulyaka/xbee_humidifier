@@ -71,9 +71,10 @@ def data_from_device_fixture(hass):
     """Configure fake two-way communication."""
 
     hum_resp = {
-        "extra_state_attr": {"sav_hum": 35},
+        "sav_hum": 35,
         "is_on": False,
-        "cap_attr": {"min_hum": 15, "max_hum": 80},
+        "min_hum": 15,
+        "max_hum": 80,
         "available": False,
         "working": False,
     }

@@ -50,9 +50,9 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
     assert commands["hum"].call_args_list[2][0][0] == 2
-    assert commands["hum"].call_args_list[3][0][0] == [[0], {"is_on": False}]
-    assert commands["hum"].call_args_list[4][0][0] == [[1], {"is_on": False}]
-    assert commands["hum"].call_args_list[5][0][0] == [[2], {"is_on": False}]
+    assert commands["hum"].call_args_list[3][0][0] == [0, False]
+    assert commands["hum"].call_args_list[4][0][0] == [1, False]
+    assert commands["hum"].call_args_list[5][0][0] == [2, False]
 
     data_from_device(hass, IEEE, {"log": {"msg": "Test log", "sev": 20}})
     assert "Test log" in caplog.text
@@ -92,9 +92,9 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
     assert commands["hum"].call_args_list[2][0][0] == 2
-    assert commands["hum"].call_args_list[3][0][0] == [[0], {"is_on": False}]
-    assert commands["hum"].call_args_list[4][0][0] == [[1], {"is_on": False}]
-    assert commands["hum"].call_args_list[5][0][0] == [[2], {"is_on": False}]
+    assert commands["hum"].call_args_list[3][0][0] == [0, False]
+    assert commands["hum"].call_args_list[4][0][0] == [1, False]
+    assert commands["hum"].call_args_list[5][0][0] == [2, False]
 
 
 def test_reload(hass, caplog, data_from_device, test_config_entry):

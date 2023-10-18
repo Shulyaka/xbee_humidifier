@@ -163,7 +163,7 @@ class XBeeHumidifierConfigFlowHandler(
                         CONF_TARGET_HUMIDITY: await client.async_command(
                             "target_hum", number
                         ),
-                        CONF_AWAY_HUMIDITY: hum["extra_state_attr"].get("sav_hum"),
+                        CONF_AWAY_HUMIDITY: hum.get("sav_hum"),
                     }
                 client.stop()
             except Exception as err:

@@ -259,11 +259,9 @@ def test_commands():
 
     assert command("hum", 2) == {
         "available": False,
-        "cap_attr": {
-            "max_hum": 100,
-            "min_hum": 15,
-        },
-        "extra_state_attr": {"sav_hum": 35},
+        "max_hum": 100,
+        "min_hum": 15,
+        "sav_hum": 35,
         "is_on": False,
         "working": False,
     }
@@ -277,11 +275,9 @@ def test_commands():
     main_loop.run_once()
     assert command("hum", 2) == {
         "available": True,
-        "cap_attr": {
-            "max_hum": 100,
-            "min_hum": 15,
-        },
-        "extra_state_attr": {"sav_hum": 50},
+        "max_hum": 100,
+        "min_hum": 15,
+        "sav_hum": 50,
         "is_on": True,
         "working": True,
     }
