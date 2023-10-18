@@ -32,7 +32,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     humidifiers = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 3):
-        config = entry.data["humidifier_" + str(number)]
+        config = entry.options["humidifier_" + str(number)]
         sensor_entity_id = config[CONF_SENSOR]
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
         away_humidity = config.get(CONF_AWAY_HUMIDITY)

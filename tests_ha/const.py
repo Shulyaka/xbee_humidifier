@@ -11,6 +11,9 @@ IEEE = "00:11:22:33:44:55:66:77"
 # Mock config data to be used across multiple tests
 MOCK_CONFIG = {
     CONF_DEVICE_IEEE: IEEE,
+}
+
+MOCK_OPTIONS = {
     "humidifier_0": {
         CONF_SENSOR: "sensor.test1",
         CONF_TARGET_HUMIDITY: 42,

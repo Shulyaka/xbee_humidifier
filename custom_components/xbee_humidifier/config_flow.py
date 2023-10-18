@@ -83,6 +83,8 @@ class XBeeHumidifierFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 title=self.device_ieee,
                 data={
                     CONF_DEVICE_IEEE: self.device_ieee,
+                },
+                options={
                     "humidifier_0": self.humidifier[0],
                     "humidifier_1": self.humidifier[1],
                     "humidifier_2": self.humidifier[2],

@@ -12,7 +12,7 @@ try:
 
     from custom_components.xbee_humidifier.const import DOMAIN
 
-    from .const import MOCK_CONFIG
+    from .const import MOCK_CONFIG, MOCK_OPTIONS
 except ImportError:
     # Do not import unwanted stuff for micropython tests.
     # Due to pytest bug it stills tries to import this file
@@ -134,7 +134,9 @@ def data_from_device_fixture(hass):
 async def test_config_entry(hass):
     """Load and unload hass config entry."""
 
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, data=MOCK_CONFIG, options=MOCK_OPTIONS, entry_id="test"
+    )
 
     await hass.config_entries.async_add(config_entry)
     await hass.async_block_till_done()
