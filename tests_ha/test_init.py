@@ -6,7 +6,7 @@ from .const import IEEE
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 13
+    assert len(commands) == 14
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
@@ -26,25 +26,29 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["cur_hum"].call_args_list[0][0][0] == 0
     assert commands["cur_hum"].call_args_list[1][0][0] == 1
     assert commands["cur_hum"].call_args_list[2][0][0] == 2
-    assert commands["hum"].call_count == 18
+    assert commands["mode"].call_count == 9
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_args_list[3][0][0] == [0, "away"]
+    assert commands["mode"].call_args_list[4][0][0] == [1, "away"]
+    assert commands["mode"].call_args_list[5][0][0] == [2, "away"]
+    assert commands["mode"].call_args_list[6][0][0] == [0, "normal"]
+    assert commands["mode"].call_args_list[7][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[8][0][0] == [2, "normal"]
+    assert commands["hum"].call_count == 12
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
     assert commands["hum"].call_args_list[2][0][0] == 2
-    assert commands["hum"].call_args_list[3][0][0] == [[0], {"mode": "away"}]
-    assert commands["hum"].call_args_list[4][0][0] == [[1], {"mode": "away"}]
-    assert commands["hum"].call_args_list[5][0][0] == [[2], {"mode": "away"}]
-    assert commands["hum"].call_args_list[6][0][0] == [[0], {"hum": 32}]
-    assert commands["hum"].call_args_list[7][0][0] == [[1], {"hum": 32}]
-    assert commands["hum"].call_args_list[8][0][0] == [[2], {"hum": 32}]
-    assert commands["hum"].call_args_list[9][0][0] == [[0], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[10][0][0] == [[1], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[11][0][0] == [[2], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[12][0][0] == [[0], {"hum": 42}]
-    assert commands["hum"].call_args_list[13][0][0] == [[1], {"hum": 42}]
-    assert commands["hum"].call_args_list[14][0][0] == [[2], {"hum": 42}]
-    assert commands["hum"].call_args_list[15][0][0] == [[0], {"is_on": False}]
-    assert commands["hum"].call_args_list[16][0][0] == [[1], {"is_on": False}]
-    assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
+    assert commands["hum"].call_args_list[3][0][0] == [[0], {"hum": 32}]
+    assert commands["hum"].call_args_list[4][0][0] == [[1], {"hum": 32}]
+    assert commands["hum"].call_args_list[5][0][0] == [[2], {"hum": 32}]
+    assert commands["hum"].call_args_list[6][0][0] == [[0], {"hum": 42}]
+    assert commands["hum"].call_args_list[7][0][0] == [[0], {"is_on": False}]
+    assert commands["hum"].call_args_list[8][0][0] == [[1], {"hum": 42}]
+    assert commands["hum"].call_args_list[9][0][0] == [[2], {"hum": 42}]
+    assert commands["hum"].call_args_list[10][0][0] == [[1], {"is_on": False}]
+    assert commands["hum"].call_args_list[11][0][0] == [[2], {"is_on": False}]
 
     data_from_device(hass, IEEE, {"log": {"msg": "Test log", "sev": 20}})
     assert "Test log" in caplog.text
@@ -55,28 +59,33 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
 
     commands["bind"].reset_mock()
     commands["hum"].reset_mock()
+    commands["mode"].reset_mock()
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
     await hass.async_block_till_done()
     commands["bind"].assert_called_once_with()
-    assert commands["hum"].call_count == 18
+    assert commands["mode"].call_count == 9
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_args_list[3][0][0] == [0, "away"]
+    assert commands["mode"].call_args_list[4][0][0] == [0, "normal"]
+    assert commands["mode"].call_args_list[5][0][0] == [1, "away"]
+    assert commands["mode"].call_args_list[6][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[7][0][0] == [2, "away"]
+    assert commands["mode"].call_args_list[8][0][0] == [2, "normal"]
+    assert commands["hum"].call_count == 12
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
     assert commands["hum"].call_args_list[2][0][0] == 2
-    assert commands["hum"].call_args_list[3][0][0] == [[0], {"mode": "away"}]
-    assert commands["hum"].call_args_list[4][0][0] == [[0], {"hum": 32}]
-    assert commands["hum"].call_args_list[5][0][0] == [[0], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[6][0][0] == [[0], {"hum": 42}]
-    assert commands["hum"].call_args_list[7][0][0] == [[0], {"is_on": False}]
-    assert commands["hum"].call_args_list[8][0][0] == [[1], {"mode": "away"}]
-    assert commands["hum"].call_args_list[9][0][0] == [[1], {"hum": 32}]
-    assert commands["hum"].call_args_list[10][0][0] == [[1], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[11][0][0] == [[1], {"hum": 42}]
-    assert commands["hum"].call_args_list[12][0][0] == [[1], {"is_on": False}]
-    assert commands["hum"].call_args_list[13][0][0] == [[2], {"mode": "away"}]
-    assert commands["hum"].call_args_list[14][0][0] == [[2], {"hum": 32}]
-    assert commands["hum"].call_args_list[15][0][0] == [[2], {"mode": "normal"}]
-    assert commands["hum"].call_args_list[16][0][0] == [[2], {"hum": 42}]
-    assert commands["hum"].call_args_list[17][0][0] == [[2], {"is_on": False}]
+    assert commands["hum"].call_args_list[3][0][0] == [[0], {"hum": 32}]
+    assert commands["hum"].call_args_list[4][0][0] == [[0], {"hum": 42}]
+    assert commands["hum"].call_args_list[5][0][0] == [[0], {"is_on": False}]
+    assert commands["hum"].call_args_list[6][0][0] == [[1], {"hum": 32}]
+    assert commands["hum"].call_args_list[7][0][0] == [[1], {"hum": 42}]
+    assert commands["hum"].call_args_list[8][0][0] == [[1], {"is_on": False}]
+    assert commands["hum"].call_args_list[9][0][0] == [[2], {"hum": 32}]
+    assert commands["hum"].call_args_list[10][0][0] == [[2], {"hum": 42}]
+    assert commands["hum"].call_args_list[11][0][0] == [[2], {"is_on": False}]
 
 
 def test_reload(hass, caplog, data_from_device, test_config_entry):

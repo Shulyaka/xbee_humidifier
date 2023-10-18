@@ -113,6 +113,7 @@ def test_commands():
         "help",
         "hum",
         "logger",
+        "mode",
         "pressure_in",
         "pump",
         "pump_block",
@@ -263,12 +264,13 @@ def test_commands():
         },
         "extra_state_attr": {"sav_hum": 35},
         "is_on": False,
-        "state_attr": {"hum": 50, "mode": "normal"},
+        "state_attr": {"hum": 50},
         "working": False,
     }
+    assert command("mode", 2) == "normal"
     assert command("cur_hum", 2) is None
     assert command("cur_hum", '{"number": 2, "state": 45.5}') == "OK"
-    assert command("hum", '{"number": 2, "mode": "away"}') == "OK"
+    assert command("mode", '{"number": 2, "mode": "away"}') == "OK"
     assert command("hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "is_on": true}') == "OK"
     main_loop.run_once()
@@ -280,9 +282,10 @@ def test_commands():
         },
         "extra_state_attr": {"sav_hum": 50},
         "is_on": True,
-        "state_attr": {"hum": 51, "mode": "away"},
+        "state_attr": {"hum": 51},
         "working": True,
     }
+    assert command("mode", 2) == "away"
     assert command("cur_hum", 2) == 45.5
 
     assert humidifier_zone[1].state
@@ -292,7 +295,7 @@ def test_commands():
     assert (
         command(
             "hum",
-            '{"number": 2, "is_on": false, "mode": "away", "hum": 51}',
+            '{"number": 2, "is_on": false, "hum": 51}',
         )
         == "OK"
     )

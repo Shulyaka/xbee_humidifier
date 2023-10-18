@@ -12,7 +12,6 @@ _ATTR_HUMIDITY = "hum"
 _ATTR_MAX_HUMIDITY = "max_hum"
 _ATTR_MIN_HUMIDITY = "min_hum"
 _ATTR_SAVED_HUMIDITY = "sav_hum"
-_ATTR_MODE = "mode"
 
 _MODE_NORMAL = "normal"
 _MODE_AWAY = "away"
@@ -98,8 +97,6 @@ class GenericHygrostat(Switch):
 
         if self._target_humidity is not None:
             data[_ATTR_HUMIDITY] = self._target_humidity
-
-        data[_ATTR_MODE] = self.mode
 
         return data
 
@@ -208,7 +205,8 @@ class GenericHygrostat(Switch):
             if too_dry:
                 self._switch_entity_id.state = True
 
-    def set_mode(self, mode: str):
+    @mode.setter
+    def mode(self, mode: str):
         """Set new mode."""
         if self._away_humidity is None:
             return

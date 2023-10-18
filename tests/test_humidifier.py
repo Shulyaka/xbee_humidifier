@@ -173,7 +173,7 @@ def test_set_away_mode(setup_comp_2):
     """Test the setting away mode."""
     humidifier = setup_comp_2
     humidifier.set_humidity(44)
-    humidifier.set_mode(MODE_AWAY)
+    humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
     humidifier.state = False
     main_loop.run_once()
@@ -186,9 +186,9 @@ def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
     """
     humidifier = setup_comp_2
     humidifier.set_humidity(44)
-    humidifier.set_mode(MODE_AWAY)
+    humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
-    humidifier.set_mode(MODE_NORMAL)
+    humidifier.mode = MODE_NORMAL
     assert humidifier._target_humidity == 44
     humidifier.state = False
     main_loop.run_once()
@@ -201,10 +201,10 @@ def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
     """
     humidifier = setup_comp_2
     humidifier.set_humidity(44)
-    humidifier.set_mode(MODE_AWAY)
-    humidifier.set_mode(MODE_AWAY)
+    humidifier.mode = MODE_AWAY
+    humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
-    humidifier.set_mode(MODE_NORMAL)
+    humidifier.mode = MODE_NORMAL
     assert humidifier._target_humidity == 44
     humidifier.state = False
     main_loop.run_once()

@@ -46,6 +46,7 @@ def skip_notifications_fixture():
 calls = []
 commands = {
     "hum": MagicMock(return_value="OK"),
+    "mode": MagicMock(return_value="normal"),
     "cur_hum": MagicMock(return_value=None),
     "atcmd": MagicMock(
         return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
@@ -74,9 +75,10 @@ def data_from_device_fixture(hass):
         "cap_attr": {"min_hum": 15, "max_hum": 80},
         "available": False,
         "working": False,
-        "state_attr": {"mode": "normal", "hum": 50},
+        "state_attr": {"hum": 50},
     }
     commands["hum"].return_value = hum_resp
+    commands["mode"].return_value = "normal"
     commands["cur_hum"].return_value = None
     commands["pump_temp"].return_value = 31
     commands["pressure_in"].return_value = 3879

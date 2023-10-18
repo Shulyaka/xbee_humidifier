@@ -288,4 +288,5 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         for number in range(0, 3):
             data[number] = await self.client.async_command("hum", number)
             data[number]["cur_hum"] = await self.client.async_command("cur_hum", number)
+            data[number]["mode"] = await self.client.async_command("mode", number)
         return data
