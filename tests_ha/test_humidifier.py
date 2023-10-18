@@ -104,7 +104,8 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     calls.clear()
     commands["hum"].assert_called_once_with([[1], {"is_on": False}])
 
-    commands["hum"].reset_mock()
+    commands["target_hum"].reset_mock()
+    commands["target_hum"].return_value = "OK"
     await hass.services.async_call(
         HUMIDIFIER,
         SERVICE_SET_HUMIDITY,
@@ -114,7 +115,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
 
     assert len(calls) == 1
     calls.clear()
-    commands["hum"].assert_called_once_with([[1], {"hum": 44}])
+    commands["target_hum"].assert_called_once_with([1, 44])
     assert hass.states.get(ENTITY).attributes["humidity"] == 44
 
     commands["mode"].reset_mock()

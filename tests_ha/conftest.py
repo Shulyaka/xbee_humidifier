@@ -46,6 +46,7 @@ def skip_notifications_fixture():
 calls = []
 commands = {
     "hum": MagicMock(return_value="OK"),
+    "target_hum": MagicMock(return_value=50),
     "mode": MagicMock(return_value="normal"),
     "cur_hum": MagicMock(return_value=None),
     "atcmd": MagicMock(
@@ -75,9 +76,9 @@ def data_from_device_fixture(hass):
         "cap_attr": {"min_hum": 15, "max_hum": 80},
         "available": False,
         "working": False,
-        "state_attr": {"hum": 50},
     }
     commands["hum"].return_value = hum_resp
+    commands["target_hum"].return_value = 50
     commands["mode"].return_value = "normal"
     commands["cur_hum"].return_value = None
     commands["pump_temp"].return_value = 31

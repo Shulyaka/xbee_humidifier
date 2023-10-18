@@ -78,7 +78,7 @@ def test_humidifier_switch():
 
     _setup_sensor(23)
 
-    humidifier.set_humidity(32)
+    humidifier.humidity = 32
     main_loop.run_once()
 
     assert humidifier_switch.state
@@ -158,12 +158,12 @@ def test_default_setup_params(setup_comp_2):
 def test_set_target_humidity(setup_comp_2):
     """Test the setting of the target humidity."""
     humidifier = setup_comp_2
-    humidifier.set_humidity(40)
+    humidifier.humidity = 40
     assert humidifier._target_humidity == 40
     with pytest.raises(TypeError):
-        humidifier.set_humidity(None)
+        humidifier.humidity = None
     with pytest.raises(ValueError):
-        humidifier.set_humidity("str")
+        humidifier.humidity = "str"
     assert humidifier._target_humidity == 40
     humidifier.state = False
     main_loop.run_once()
@@ -172,7 +172,7 @@ def test_set_target_humidity(setup_comp_2):
 def test_set_away_mode(setup_comp_2):
     """Test the setting away mode."""
     humidifier = setup_comp_2
-    humidifier.set_humidity(44)
+    humidifier.humidity = 44
     humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
     humidifier.state = False
@@ -185,7 +185,7 @@ def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
     Verify original humidity is restored.
     """
     humidifier = setup_comp_2
-    humidifier.set_humidity(44)
+    humidifier.humidity = 44
     humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
     humidifier.mode = MODE_NORMAL
@@ -200,7 +200,7 @@ def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
     Verify original humidity is restored.
     """
     humidifier = setup_comp_2
-    humidifier.set_humidity(44)
+    humidifier.humidity = 44
     humidifier.mode = MODE_AWAY
     humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
@@ -215,7 +215,7 @@ def test_set_target_humidity_humidifier_on(setup_comp_2):
     humidifier = setup_comp_2
     _setup_switch(False)
     _setup_sensor(36)
-    humidifier.set_humidity(45)
+    humidifier.humidity = 45
     assert len(calls) == 0
     main_loop.run_once()
     assert len(calls) == 1
@@ -230,7 +230,7 @@ def test_set_target_humidity_humidifier_off(setup_comp_2):
     humidifier = setup_comp_2
     _setup_switch(True)
     _setup_sensor(45)
-    humidifier.set_humidity(36)
+    humidifier.humidity = 36
     assert len(calls) == 0
     main_loop.run_once()
     assert len(calls) == 1
@@ -244,7 +244,7 @@ def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
     """Test if humidity change doesn't turn on within tolerance."""
     humidifier = setup_comp_2
     _setup_switch(False)
-    humidifier.set_humidity(44)
+    humidifier.humidity = 44
     main_loop.run_once()
     _setup_sensor(43)
     main_loop.run_once()
@@ -257,7 +257,7 @@ def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
     """Test if humidity change turn humidifier on outside dry tolerance."""
     humidifier = setup_comp_2
     _setup_switch(False)
-    humidifier.set_humidity(44)
+    humidifier.humidity = 44
     _setup_sensor(42)
     assert len(calls) == 0
     main_loop.run_once()
@@ -272,7 +272,7 @@ def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
     """Test if humidity change doesn't turn off within tolerance."""
     humidifier = setup_comp_2
     _setup_switch(True)
-    humidifier.set_humidity(46)
+    humidifier.humidity = 46
     main_loop.run_once()
     _setup_sensor(48)
     main_loop.run_once()
@@ -285,7 +285,7 @@ def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
     """Test if humidity change turn humidifier off outside wet tolerance."""
     humidifier = setup_comp_2
     _setup_switch(True)
-    humidifier.set_humidity(46)
+    humidifier.humidity = 46
     _setup_sensor(50)
     assert len(calls) == 0
     main_loop.run_once()
@@ -303,7 +303,7 @@ def test_operation_mode_humidify(setup_comp_2):
     """
     humidifier = setup_comp_2
     humidifier.state = False
-    humidifier.set_humidity(45)
+    humidifier.humidity = 45
     _setup_sensor(40)
     _setup_switch(False)
     humidifier.state = True
@@ -491,7 +491,7 @@ def test_sensor_stale_duration(caplog):
 
     assert not humidifier_switch.state
 
-    humidifier.set_humidity(32)
+    humidifier.humidity = 32
     main_loop.run_once()
 
     assert humidifier_switch.state

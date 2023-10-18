@@ -120,6 +120,7 @@ def test_commands():
         "pump_speed",
         "pump_temp",
         "soft_reset",
+        "target_hum",
         "test",
         "unbind",
         "unique_id",
@@ -264,14 +265,14 @@ def test_commands():
         },
         "extra_state_attr": {"sav_hum": 35},
         "is_on": False,
-        "state_attr": {"hum": 50},
         "working": False,
     }
+    assert command("target_hum", 2) == 50
     assert command("mode", 2) == "normal"
     assert command("cur_hum", 2) is None
     assert command("cur_hum", '{"number": 2, "state": 45.5}') == "OK"
     assert command("mode", '{"number": 2, "mode": "away"}') == "OK"
-    assert command("hum", '{"number": 2, "hum": 51}') == "OK"
+    assert command("target_hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "is_on": true}') == "OK"
     main_loop.run_once()
     assert command("hum", 2) == {
@@ -282,9 +283,9 @@ def test_commands():
         },
         "extra_state_attr": {"sav_hum": 50},
         "is_on": True,
-        "state_attr": {"hum": 51},
         "working": True,
     }
+    assert command("target_hum", 2) == 51
     assert command("mode", 2) == "away"
     assert command("cur_hum", 2) == 45.5
 
@@ -295,7 +296,7 @@ def test_commands():
     assert (
         command(
             "hum",
-            '{"number": 2, "is_on": false, "hum": 51}',
+            '{"number": 2, "is_on": false}',
         )
         == "OK"
     )
