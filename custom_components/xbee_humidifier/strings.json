@@ -50,5 +50,48 @@
           }
       }
     }
+  },
+  "options": {
+    "step": {
+      "humidifier_0": {
+          "title": "Humidifier 1",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Fallback target humidity",
+              "away_humidity": "Fallback away humidity"
+          },
+          "data_description": {
+              "target_humidity": "Used when last used target humidity is not available",
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      },
+      "humidifier_1": {
+          "title": "Humidifier 2",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Fallback target humidity",
+              "away_humidity": "Fallback away humidity"
+          },
+          "data_description": {
+              "target_humidity": "Used when last used target humidity is not available",
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      },
+      "humidifier_2": {
+          "title": "Humidifier 3",
+          "data": {
+              "name": "Name",
+              "target_sensor": "Target sensor",
+              "target_humidity": "Fallback target humidity",
+              "away_humidity": "Fallback away humidity"
+          },
+          "data_description": {
+              "target_humidity": "Used when last used target humidity is not available",
+              "away_humidity": "Leave the field empty to disable away mode"
+          }
+      }
+    }
   }
 }
