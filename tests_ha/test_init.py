@@ -78,9 +78,11 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
 def test_reload(hass, caplog, data_from_device, test_config_entry):
     """Test config entry reload."""
 
-    new_data = test_config_entry.data.copy()
-    new_data["humidifier_0"] = test_config_entry.data["humidifier_0"].copy()
-    new_data["humidifier_0"]["target_sensor"] = "sensor.test4"
+    new_options = test_config_entry.options.copy()
+    new_options["humidifier_0"] = test_config_entry.options["humidifier_0"].copy()
+    new_options["humidifier_0"]["target_sensor"] = "sensor.test4"
 
-    assert test_config_entry.data != new_data
-    assert hass.config_entries.async_update_entry(test_config_entry, data=new_data)
+    assert test_config_entry.options != new_options
+    assert hass.config_entries.async_update_entry(
+        test_config_entry, options=new_options
+    )
