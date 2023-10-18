@@ -23,9 +23,9 @@ def test_commands():
 
     humidifier = {
         x: GenericHygrostat(
-            switch_entity_id=humidifier_zone[x],
-            sensor_entity_id=humidifier_sensor[x],
-            available_sensor_id=humidifier_available[x],
+            switch=humidifier_zone[x],
+            sensor=humidifier_sensor[x],
+            available_sensor=humidifier_available[x],
             min_humidity=15,
             max_humidity=100,
             target_humidity=50,

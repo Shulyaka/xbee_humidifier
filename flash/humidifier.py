@@ -17,9 +17,9 @@ class GenericHygrostat(Switch):
 
     def __init__(
         self,
-        switch_entity_id,
-        sensor_entity_id,
-        available_sensor_id,
+        switch,
+        sensor,
+        available_sensor,
         min_humidity=0,
         max_humidity=100,
         target_humidity=None,
@@ -32,19 +32,19 @@ class GenericHygrostat(Switch):
         **kwargs
     ):
         """Initialize the hygrostat."""
-        self._switch_entity_id = switch_entity_id
-        self._sensor_entity_id = sensor_entity_id
+        self._switch = switch
+        self._sensor = sensor
         self._dry_tolerance = dry_tolerance
         self._wet_tolerance = wet_tolerance
-        self._saved_target_humidity = away_humidity or target_humidity
-        self._active = available_sensor_id
+        self._saved_humidity = away_humidity or target_humidity
+        self._active = available_sensor
         self._active.state = False
         self._cur_humidity = None
         self._min_humidity = min_humidity
         self._max_humidity = max_humidity
         self._target_humidity = target_humidity
         self._away_humidity = away_humidity
-        self._sensor_stale_duration = sensor_stale_duration
+        self._stale_duration = sensor_stale_duration
         self._stale_tracking = None
         self._is_away = False
         super().__init__(
@@ -64,58 +64,29 @@ class GenericHygrostat(Switch):
                 )
             )
 
-        self._sensor_subscriber = self._sensor_entity_id.subscribe(
+        self._sensor_subscriber = self._sensor.subscribe(
             lambda x: self._sensor_changed(x)
         )
 
-        self._sensor_changed(self._sensor_entity_id.state)
+        self._sensor_changed(self._sensor.state)
 
     def __del__(self):
         """Cancel callbacks."""
         self.unsubscribe(self._state_subscriber)
-        self._sensor_entity_id.unsubscribe(self._sensor_subscriber)
+        self._sensor.unsubscribe(self._sensor_subscriber)
         main_loop.remove_task(self._stale_tracking)
         main_loop.remove_task(self._operate_task)
-
-    @property
-    def attributes(self):
-        """Return attributes."""
-        return {
-            "min_hum": self._min_humidity,
-            "max_hum": self._max_humidity,
-            "sav_hum": self._saved_target_humidity,
-        }
-
-    @property
-    def humidity(self):
-        """Return the target humidity."""
-        return self._target_humidity
-
-    @property
-    def mode(self):
-        """Return the current mode."""
-        if self._away_humidity is None:
-            return None
-        if self._is_away:
-            return _MODE_AWAY
-        return _MODE_NORMAL
-
-    @humidity.setter
-    def humidity(self, humidity):
-        """Set new target humidity."""
-        self._target_humidity = int(humidity)
-        self._schedule_operate()
 
     def _sensor_changed(self, new_state):
         """Handle ambient humidity changes."""
         if new_state is None:
             return
 
-        if self._sensor_stale_duration:
+        if self._stale_duration:
             main_loop.remove_task(self._stale_tracking)
             self._stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
-                ticks_add(ticks_ms(), self._sensor_stale_duration * 1000),
+                ticks_add(ticks_ms(), self._stale_duration * 1000),
             )
 
         self._update_humidity(new_state)
@@ -139,8 +110,8 @@ class GenericHygrostat(Switch):
             _LOGGER.warning("{}: {}: {}".format(type(ex).__name__, ex, humidity))
             self._cur_humidity = None
             self._active.state = False
-            if self._switch_entity_id.state:
-                self._switch_entity_id.state = False
+            if self._switch.state:
+                self._switch.state = False
 
     def _schedule_operate(self, force=False):
         if self._operate_task:
@@ -170,7 +141,7 @@ class GenericHygrostat(Switch):
 
         if not self._active.state or not self._state:
             if force:
-                self._switch_entity_id.state = False
+                self._switch.state = False
             return
 
         if force:
@@ -183,12 +154,41 @@ class GenericHygrostat(Switch):
 
         too_dry = self._target_humidity - self._cur_humidity >= dry_tolerance
         too_wet = self._cur_humidity - self._target_humidity >= wet_tolerance
-        if self._switch_entity_id.state:
+        if self._switch.state:
             if too_wet:
-                self._switch_entity_id.state = False
+                self._switch.state = False
         else:
             if too_dry:
-                self._switch_entity_id.state = True
+                self._switch.state = True
+
+    @property
+    def attributes(self):
+        """Return attributes."""
+        return {
+            "min_hum": self._min_humidity,
+            "max_hum": self._max_humidity,
+            "sav_hum": self._saved_humidity,
+        }
+
+    @property
+    def humidity(self):
+        """Return the target humidity."""
+        return self._target_humidity
+
+    @humidity.setter
+    def humidity(self, humidity):
+        """Set new target humidity."""
+        self._target_humidity = int(humidity)
+        self._schedule_operate()
+
+    @property
+    def mode(self):
+        """Return the current mode."""
+        if self._away_humidity is None:
+            return None
+        if self._is_away:
+            return _MODE_AWAY
+        return _MODE_NORMAL
 
     @mode.setter
     def mode(self, mode: str):
@@ -197,17 +197,17 @@ class GenericHygrostat(Switch):
             return
         if mode == _MODE_AWAY and not self._is_away:
             self._is_away = True
-            if not self._saved_target_humidity:
-                self._saved_target_humidity = self._away_humidity
-            self._saved_target_humidity, self._target_humidity = (
+            if not self._saved_humidity:
+                self._saved_humidity = self._away_humidity
+            self._saved_humidity, self._target_humidity = (
                 self._target_humidity,
-                self._saved_target_humidity,
+                self._saved_humidity,
             )
             self._schedule_operate(force=True)
         elif mode == _MODE_NORMAL and self._is_away:
             self._is_away = False
-            self._saved_target_humidity, self._target_humidity = (
+            self._saved_humidity, self._target_humidity = (
                 self._target_humidity,
-                self._saved_target_humidity,
+                self._saved_humidity,
             )
             self._schedule_operate(force=True)
