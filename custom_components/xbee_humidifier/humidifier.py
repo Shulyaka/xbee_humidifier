@@ -327,7 +327,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._cur_humidity = new_state.state
 
         await self.coordinator.client.async_command(
-            "hum", self._number, cur_hum=new_state.state
+            "hum", self._number, cur_hum=self._cur_humidity
         )
         return self.async_write_ha_state()
 

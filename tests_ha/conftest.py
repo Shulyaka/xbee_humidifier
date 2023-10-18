@@ -74,7 +74,6 @@ def data_from_device_fixture(hass):
         "cap_attr": {"min_hum": 15, "max_hum": 80},
         "available": False,
         "working": False,
-        "number": 1,
         "state_attr": {"mode": "normal", "hum": 50},
     }
     commands["hum"].return_value = hum_resp
