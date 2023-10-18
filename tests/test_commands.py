@@ -108,6 +108,7 @@ def test_commands():
         "atcmd",
         "aux_led",
         "bind",
+        "cur_hum",
         "fan",
         "help",
         "hum",
@@ -264,9 +265,9 @@ def test_commands():
         "is_on": False,
         "state_attr": {"hum": 50, "mode": "normal"},
         "working": False,
-        "cur_hum": None,
     }
-    assert command("hum", '{"number": 2, "cur_hum": 45.5}') == "OK"
+    assert command("cur_hum", 2) is None
+    assert command("cur_hum", '{"number": 2, "state": 45.5}') == "OK"
     assert command("hum", '{"number": 2, "mode": "away"}') == "OK"
     assert command("hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "is_on": true}') == "OK"
@@ -281,8 +282,8 @@ def test_commands():
         "is_on": True,
         "state_attr": {"hum": 51, "mode": "away"},
         "working": True,
-        "cur_hum": 45.5,
     }
+    assert command("cur_hum", 2) == 45.5
 
     assert humidifier_zone[1].state
     assert command("hum", '{"number": 1, "working": false}') == "OK"
@@ -291,7 +292,7 @@ def test_commands():
     assert (
         command(
             "hum",
-            '{"number": 2, "is_on": false, "cur_hum": 45.5, "mode": "away", "hum": 51}',
+            '{"number": 2, "is_on": false, "mode": "away", "hum": 51}',
         )
         == "OK"
     )

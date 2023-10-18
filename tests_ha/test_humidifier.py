@@ -41,12 +41,12 @@ def _setup_sensor(hass, humidity):
 async def test_humidifier_services(hass, data_from_device, test_config_entry):
     """Test humidifier services."""
 
-    commands["hum"].reset_mock()
+    commands["cur_hum"].reset_mock()
 
     _setup_sensor(hass, 50)
     await hass.async_block_till_done()
 
-    commands["hum"].assert_called_once_with([[1], {"cur_hum": 50.0}])
+    commands["cur_hum"].assert_called_once_with([1, 50.0])
 
     commands["hum"].reset_mock()
     commands["hum"].return_value = "OK"
@@ -133,11 +133,11 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY).attributes["mode"] == "away"
     assert hass.states.get(ENTITY).attributes["action"] == "off"
 
-    commands["hum"].reset_mock()
+    commands["cur_hum"].reset_mock()
     _setup_sensor(hass, 49)
     await hass.async_block_till_done()
 
     assert len(calls) == 1
     calls.clear()
-    commands["hum"].assert_called_once_with([[1], {"cur_hum": 49.0}])
+    commands["cur_hum"].assert_called_once_with([1, 49.0])
     assert hass.states.get(ENTITY).attributes["current_humidity"] == 49

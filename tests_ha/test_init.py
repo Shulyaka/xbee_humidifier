@@ -6,7 +6,7 @@ from .const import IEEE
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 12
+    assert len(commands) == 13
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
@@ -22,6 +22,10 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["valve"].call_args_list[1][0][0] == 1
     assert commands["valve"].call_args_list[2][0][0] == 2
     assert commands["valve"].call_args_list[3][0][0] == 3
+    assert commands["cur_hum"].call_count == 3
+    assert commands["cur_hum"].call_args_list[0][0][0] == 0
+    assert commands["cur_hum"].call_args_list[1][0][0] == 1
+    assert commands["cur_hum"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 18
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1

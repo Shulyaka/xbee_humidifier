@@ -148,9 +148,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     @callback
     async def _async_startup(self):
         """Init on startup."""
-        resp = self.coordinator.data.get(
-            self._number
-        ) or await self.coordinator.client.async_command("hum", self._number)
+        resp = self.coordinator.data.get(self._number)
 
         self._min_humidity = resp["cap_attr"]["min_hum"]
         self._max_humidity = resp["cap_attr"]["max_hum"]
@@ -327,7 +325,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._cur_humidity = new_state.state
 
         await self.coordinator.client.async_command(
-            "hum", self._number, cur_hum=self._cur_humidity
+            "cur_hum", self._number, self._cur_humidity
         )
         return self.async_write_ha_state()
 

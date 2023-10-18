@@ -64,7 +64,6 @@ class HumidifierCommands(Commands):
                 "cap_attr": self._humidifier[number].capability_attributes,
                 "state_attr": self._humidifier[number].state_attributes,
                 "extra_state_attr": self._humidifier[number].extra_state_attributes,
-                "cur_hum": self._sensor[number].state,
             }
 
         if is_on is not None:
@@ -75,9 +74,14 @@ class HumidifierCommands(Commands):
             self._humidifier[number].set_mode(mode)
         if hum is not None:
             self._humidifier[number].set_humidity(hum)
-        if cur_hum is not None:
-            self._sensor[number].state = cur_hum
-        return None
+        return "OK"
+
+    def cmd_cur_hum(self, sender_eui64, number, state=None):
+        """Get or set current humidity."""
+        if state is None:
+            return self._sensor[number].state
+        self._sensor[number].state = state
+        return "OK"
 
     def cmd_pressure_in(self, sender_eui64=None):
         """Get current inbound pressure."""
@@ -88,35 +92,35 @@ class HumidifierCommands(Commands):
         if state is None:
             return config.pump.state
         config.pump.state = state
-        return None
+        return "OK"
 
     def cmd_pump_block(self, sender_eui64=None, state=None):
         """Get or set the status of pump block."""
         if state is None:
             return self._pump_block.state
         self._pump_block.state = state
-        return None
+        return "OK"
 
     def cmd_pump_speed(self, sender_eui64=None, state=None):
         """Get or set the pump speed."""
         if state is None:
             return config.pump_speed.state
         config.pump_speed.state = state
-        return None
+        return "OK"
 
     def cmd_fan(self, sender_eui64=None, state=None):
         """Get or set the fan state."""
         if state is None:
             return config.fan.state
         config.fan.state = state
-        return None
+        return "OK"
 
     def cmd_aux_led(self, sender_eui64=None, state=None):
         """Get or set the AUX LED state."""
         if state is None:
             return config.aux_led.state
         config.aux_led.state = state
-        return None
+        return "OK"
 
     def cmd_pump_temp(self, sender_eui64=None):
         """Get current pump temperature."""
@@ -127,7 +131,7 @@ class HumidifierCommands(Commands):
         if state is None:
             return config.valve_switch[number].state
         config.valve_switch[number].state = state
-        return None
+        return "OK"
 
     def cmd_bind(self, sender_eui64, target=None):
         """Subscribe to updates."""
@@ -160,6 +164,7 @@ class HumidifierCommands(Commands):
                 self._binds["zone"][number],
                 "working_{}".format(number),
             )
+        return "OK"
 
     def cmd_unbind(self, sender_eui64=None, target=None):
         """Unsubscribe to updates."""
@@ -182,3 +187,4 @@ class HumidifierCommands(Commands):
         for number in range(3):
             unbind(self._available[number], self._binds["available"][number])
             unbind(self._zone[number], self._binds["zone"][number])
+        return "OK"
