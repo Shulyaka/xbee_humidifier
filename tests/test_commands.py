@@ -289,10 +289,6 @@ def test_commands():
     assert command("mode", 2) == "away"
     assert command("cur_hum", 2) == 45.5
 
-    assert humidifier_zone[1].state
-    assert command("hum", '{"number": 1, "working": false}') == "OK"
-    assert not humidifier_zone[1].state
-
     assert (
         command(
             "hum",

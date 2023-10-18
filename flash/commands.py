@@ -44,10 +44,9 @@ class HumidifierCommands(Commands):
         sender_eui64,
         number,
         is_on=None,
-        working=None,
     ):
         """Get or set the humidifier state."""
-        if is_on is None and working is None:
+        if is_on is None:
             return {
                 "available": self._available[number].state,
                 "is_on": self._humidifier[number].state,
@@ -58,8 +57,6 @@ class HumidifierCommands(Commands):
 
         if is_on is not None:
             self._humidifier[number].state = is_on
-        if working is not None:
-            self._zone[number].state = working
         return "OK"
 
     def cmd_target_hum(self, sender_eui64, number, hum=None):
