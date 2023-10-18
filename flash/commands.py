@@ -39,21 +39,18 @@ class HumidifierCommands(Commands):
         super().__del__()
         self.cmd_unbind()
 
-    def cmd_hum(
-        self,
-        sender_eui64,
-        number,
-        is_on=None,
-    ):
-        """Get or set the humidifier state."""
-        if is_on is None:
-            attr = self._humidifier[number].attributes
-            attr["available"] = self._available[number].state
-            attr["working"] = self._zone[number].state
-            attr["is_on"] = self._humidifier[number].state
-            return attr
+    def cmd_hum_attr(self, sender_eui64, number):
+        """Get humidifier attributes."""
+        attr = self._humidifier[number].attributes
+        attr["available"] = self._available[number].state
+        attr["working"] = self._zone[number].state
+        return attr
 
-        self._humidifier[number].state = is_on
+    def cmd_hum(self, sender_eui64, number, state=None):
+        """Get or set the humidifier state."""
+        if state is None:
+            return self._humidifier[number].state
+        self._humidifier[number].state = state
         return "OK"
 
     def cmd_target_hum(self, sender_eui64, number, hum=None):

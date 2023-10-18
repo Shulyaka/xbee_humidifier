@@ -158,12 +158,12 @@ class XBeeHumidifierConfigFlowHandler(
 
                 self.hum = {}
                 for number in range(0, 3):
-                    hum = await client.async_command("hum", number)
+                    hum_attr = await client.async_command("hum_attr", number)
                     self.hum[number] = {
                         CONF_TARGET_HUMIDITY: await client.async_command(
                             "target_hum", number
                         ),
-                        CONF_AWAY_HUMIDITY: hum.get("sav_hum"),
+                        CONF_AWAY_HUMIDITY: hum_attr.get("sav_hum"),
                     }
                 client.stop()
             except Exception as err:

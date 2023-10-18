@@ -45,7 +45,8 @@ def skip_notifications_fixture():
 # This is used to access calls and configure command responses
 calls = []
 commands = {
-    "hum": MagicMock(return_value="OK"),
+    "hum_attr": MagicMock(),
+    "hum": MagicMock(return_value=False),
     "target_hum": MagicMock(return_value=50),
     "mode": MagicMock(return_value="normal"),
     "cur_hum": MagicMock(return_value=None),
@@ -70,15 +71,15 @@ commands = {
 def data_from_device_fixture(hass):
     """Configure fake two-way communication."""
 
-    hum_resp = {
+    hum_attr = {
         "sav_hum": 35,
-        "is_on": False,
         "min_hum": 15,
         "max_hum": 80,
         "available": False,
         "working": False,
     }
-    commands["hum"].return_value = hum_resp
+    commands["hum_attr"].return_value = hum_attr
+    commands["hum"].return_value = False
     commands["target_hum"].return_value = 50
     commands["mode"].return_value = "normal"
     commands["cur_hum"].return_value = None
@@ -129,7 +130,7 @@ def data_from_device_fixture(hass):
     for x in commands.values():
         x.reset_mock()
 
-    commands["hum"].return_value = hum_resp
+    commands["hum_attr"].return_value = hum_attr
     calls.clear()
 
 

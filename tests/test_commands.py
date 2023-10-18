@@ -112,6 +112,7 @@ def test_commands():
         "fan",
         "help",
         "hum",
+        "hum_attr",
         "logger",
         "mode",
         "pressure_in",
@@ -257,41 +258,36 @@ def test_commands():
     pump_block.state = True
     assert command("pump_block")
 
-    assert command("hum", 2) == {
+    assert command("hum_attr", 2) == {
         "available": False,
         "max_hum": 100,
         "min_hum": 15,
         "sav_hum": 35,
-        "is_on": False,
         "working": False,
     }
+    assert not command("hum", 2)
     assert command("target_hum", 2) == 50
     assert command("mode", 2) == "normal"
     assert command("cur_hum", 2) is None
     assert command("cur_hum", '{"number": 2, "state": 45.5}') == "OK"
     assert command("mode", '{"number": 2, "mode": "away"}') == "OK"
     assert command("target_hum", '{"number": 2, "hum": 51}') == "OK"
-    assert command("hum", '{"number": 2, "is_on": true}') == "OK"
+    assert command("hum", '{"number": 2, "state": true}') == "OK"
     main_loop.run_once()
-    assert command("hum", 2) == {
+    assert command("hum_attr", 2) == {
         "available": True,
         "max_hum": 100,
         "min_hum": 15,
         "sav_hum": 50,
-        "is_on": True,
         "working": True,
     }
+    assert command("hum", 2)
     assert command("target_hum", 2) == 51
     assert command("mode", 2) == "away"
     assert command("cur_hum", 2) == 45.5
 
-    assert (
-        command(
-            "hum",
-            '{"number": 2, "is_on": false}',
-        )
-        == "OK"
-    )
+    assert command("hum", '{"number": 2, "state": false}') == "OK"
+
     assert not humidifier[2].state
 
     assert logging.getLogger().getEffectiveLevel() == logging.WARNING

@@ -6,7 +6,7 @@ from .const import IEEE
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 15
+    assert len(commands) == 16
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
@@ -46,6 +46,10 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["mode"].call_args_list[6][0][0] == [0, "normal"]
     assert commands["mode"].call_args_list[7][0][0] == [1, "normal"]
     assert commands["mode"].call_args_list[8][0][0] == [2, "normal"]
+    assert commands["hum_attr"].call_count == 3
+    assert commands["hum_attr"].call_args_list[0][0][0] == 0
+    assert commands["hum_attr"].call_args_list[1][0][0] == 1
+    assert commands["hum_attr"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 6
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
@@ -63,6 +67,7 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
 
     commands["bind"].reset_mock()
     commands["hum"].reset_mock()
+    commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["mode"].reset_mock()
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
@@ -88,6 +93,10 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["target_hum"].call_args_list[6][0][0] == [1, 42]
     assert commands["target_hum"].call_args_list[7][0][0] == [2, 32]
     assert commands["target_hum"].call_args_list[8][0][0] == [2, 42]
+    assert commands["hum_attr"].call_count == 3
+    assert commands["hum_attr"].call_args_list[0][0][0] == 0
+    assert commands["hum_attr"].call_args_list[1][0][0] == 1
+    assert commands["hum_attr"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 6
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
