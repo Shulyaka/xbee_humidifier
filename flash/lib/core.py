@@ -183,8 +183,6 @@ class Commands:
                     method = None
                     args = None
                     collect()
-                    if response is None:
-                        response = "OK"
                     response = {"{}_resp".format(cmd): response}
                 else:
                     raise AttributeError("No such command")
@@ -239,10 +237,12 @@ class Commands:
                 bytes(target, encoding="utf-8") if target is not None else sender_eui64
             )
             logging.getLogger().setTarget(target)
+        return "OK"
 
     def cmd_soft_reset(self, sender_eui64=None):
         """Schedule soft reset."""
         main_loop.schedule_task(soft_reset)
+        return "OK"
 
     def cmd_unique_id(self, sender_eui64=None):
         """Return the unique identifier for the processor."""

@@ -45,7 +45,11 @@ def skip_notifications_fixture():
 # This is used to access calls and configure command responses
 calls = []
 commands = {
-    "hum": MagicMock(return_value="OK"),
+    "hum_attr": MagicMock(),
+    "hum": MagicMock(return_value=False),
+    "target_hum": MagicMock(return_value=50),
+    "mode": MagicMock(return_value="normal"),
+    "cur_hum": MagicMock(return_value=None),
     "atcmd": MagicMock(
         return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
         "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
@@ -67,17 +71,18 @@ commands = {
 def data_from_device_fixture(hass):
     """Configure fake two-way communication."""
 
-    hum_resp = {
-        "extra_state_attr": {"sav_hum": 35},
-        "is_on": False,
-        "cur_hum": None,
-        "cap_attr": {"min_hum": 15, "max_hum": 80},
+    hum_attr = {
+        "sav_hum": 35,
+        "min_hum": 15,
+        "max_hum": 80,
         "available": False,
         "working": False,
-        "number": 1,
-        "state_attr": {"mode": "normal", "hum": 50},
     }
-    commands["hum"].return_value = hum_resp
+    commands["hum_attr"].return_value = hum_attr
+    commands["hum"].return_value = False
+    commands["target_hum"].return_value = 50
+    commands["mode"].return_value = "normal"
+    commands["cur_hum"].return_value = None
     commands["pump_temp"].return_value = 31
     commands["pressure_in"].return_value = 3879
     commands["valve"].return_value = False
@@ -125,7 +130,7 @@ def data_from_device_fixture(hass):
     for x in commands.values():
         x.reset_mock()
 
-    commands["hum"].return_value = hum_resp
+    commands["hum_attr"].return_value = hum_attr
     calls.clear()
 
 

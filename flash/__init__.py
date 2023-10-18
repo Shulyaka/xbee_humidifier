@@ -74,9 +74,9 @@ def _setup(debug):
 
     _humidifier = {
         x: GenericHygrostat(
-            switch_entity_id=_zone[x],
-            sensor_entity_id=_sensor[x],
-            available_sensor_id=_available[x],
+            switch=_zone[x],
+            sensor=_sensor[x],
+            available_sensor=_available[x],
             min_humidity=15,
             max_humidity=100,
             target_humidity=50,
