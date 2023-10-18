@@ -58,7 +58,6 @@ class HumidifierCommands(Commands):
             and cur_hum is None
         ):
             return {
-                "number": number,
                 "available": self._available[number].state,
                 "is_on": self._humidifier[number].state,
                 "working": self._zone[number].state,
