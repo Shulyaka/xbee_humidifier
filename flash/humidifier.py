@@ -23,7 +23,7 @@ class GenericHygrostat(Switch):
         target_humidity=50,
         dry_tolerance=3,
         wet_tolerance=3,
-        away_humidity=None,
+        away_humidity=35,
         sensor_stale_duration=None,
         *args,
         **kwargs
@@ -166,8 +166,6 @@ class GenericHygrostat(Switch):
     @property
     def mode(self):
         """Return the current mode."""
-        if self._saved_humidity is None:
-            return None
         if self._is_away:
             return _MODE_AWAY
         return _MODE_NORMAL
@@ -175,8 +173,6 @@ class GenericHygrostat(Switch):
     @mode.setter
     def mode(self, mode: str):
         """Set new mode."""
-        if self._saved_humidity is None:
-            return
         if (mode == _MODE_AWAY) != self._is_away:
             self._is_away = mode == _MODE_AWAY
             self._saved_humidity, self._target_humidity = (

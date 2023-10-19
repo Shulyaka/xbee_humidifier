@@ -87,13 +87,12 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         super().__init__(coordinator, number)
         self._number = number
         self._sensor_entity_id = sensor_entity_id
-        self._saved_target_humidity = away_humidity or target_humidity
+        self._saved_target_humidity = away_humidity
         self._active = False
         self._target_humidity = target_humidity
         self._attr_supported_features = 0
         if away_humidity:
             self._attr_supported_features |= HumidifierEntityFeature.MODES
-        self._away_humidity = away_humidity
         self._is_away = False
         self._state = None
         self._min_humidity = min_humidity
@@ -106,13 +105,20 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         await super().async_added_to_hass()
 
         if (old_state := await self.async_get_last_state()) is not None:
-            if old_state.attributes.get(ATTR_MODE) == MODE_AWAY:
+            if (
+                self._saved_target_humidity is not None
+                and old_state.attributes.get(ATTR_MODE) == MODE_AWAY
+            ):
                 self._is_away = True
-                self._saved_target_humidity = self._target_humidity
-                self._target_humidity = self._away_humidity or self._target_humidity
+                self._target_humidity, self._saved_target_humidity = (
+                    self._saved_target_humidity,
+                    self._target_humidity,
+                )
             if old_state.attributes.get(ATTR_HUMIDITY):
                 self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
-            if old_state.attributes.get(ATTR_SAVED_HUMIDITY):
+            if self._saved_target_humidity is not None and old_state.attributes.get(
+                ATTR_SAVED_HUMIDITY
+            ):
                 self._saved_target_humidity = int(
                     old_state.attributes[ATTR_SAVED_HUMIDITY]
                 )
@@ -166,7 +172,8 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._state = resp["is_on"]
             self._is_away = resp["mode"] == "away"
             self._target_humidity = resp["target_hum"]
-            self._saved_target_humidity = resp["sav_hum"]
+            if self._saved_target_humidity is not None:
+                self._saved_target_humidity = resp["sav_hum"]
             self._active = resp["available"]
             self._attr_action = (
                 HumidifierAction.HUMIDIFYING
@@ -255,7 +262,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     @property
     def mode(self):
         """Return the current mode."""
-        if self._away_humidity is None:
+        if self._saved_target_humidity is None:
             return None
         if self._is_away:
             return MODE_AWAY
@@ -264,9 +271,9 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     @property
     def available_modes(self):
         """Return a list of available modes."""
-        if self._away_humidity:
-            return [MODE_NORMAL, MODE_AWAY]
-        return None
+        if self._saved_target_humidity is None:
+            return None
+        return [MODE_NORMAL, MODE_AWAY]
 
     @property
     def device_class(self):
@@ -338,7 +345,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
-        if self._away_humidity is None:
+        if self._saved_target_humidity is None:
             return None
 
         if (

@@ -33,7 +33,6 @@ MOCK_OPTIONS = {
     "humidifier_2": {
         CONF_SENSOR: "sensor.test3",
         CONF_TARGET_HUMIDITY: 42,
-        CONF_AWAY_HUMIDITY: 32,
         CONF_MIN_HUMIDITY: 15,
         CONF_MAX_HUMIDITY: 80,
     },
