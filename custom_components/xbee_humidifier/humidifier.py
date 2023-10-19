@@ -125,7 +125,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
         async def async_log(data):
             if data["msg"] in ("Not initialized", "Main loop started"):
-                await self._async_startup()
+                await self._async_startup(device_restarted=True)
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
 
@@ -158,11 +158,11 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
 
     @callback
-    async def _async_startup(self):
+    async def _async_startup(self, device_restarted=False):
         """Init on startup."""
         resp = self.coordinator.data.get(self._number)
 
-        if resp["cur_hum"] is not None:
+        if resp["cur_hum"] is not None and not device_restarted:
             self._state = resp["is_on"]
             self._is_away = resp["mode"] == "away"
             self._target_humidity = resp["target_hum"]

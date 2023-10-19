@@ -1,6 +1,11 @@
 """Test xbee_humidifier."""
+from homeassistant.components.humidifier import DOMAIN as HUMIDIFIER, SERVICE_SET_MODE
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
+
 from .conftest import commands
 from .const import IEEE
+
+ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 
 
 def test_init(hass, caplog, data_from_device, test_config_entry):
@@ -65,11 +70,23 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
 async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     """Test reinitialize on device reset."""
 
+    data_from_device(hass, IEEE, {"available_1": True})
+    await hass.async_block_till_done()
+
+    commands["mode"].return_value = "OK"
+    await hass.services.async_call(
+        HUMIDIFIER,
+        SERVICE_SET_MODE,
+        service_data={ATTR_ENTITY_ID: ENTITY, ATTR_MODE: "away"},
+        blocking=True,
+    )
+
     commands["bind"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["mode"].reset_mock()
+    commands["mode"].return_value = "normal"
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
     await hass.async_block_till_done()
     commands["bind"].assert_called_once_with()
@@ -79,8 +96,8 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["mode"].call_args_list[2][0][0] == 2
     assert commands["mode"].call_args_list[3][0][0] == [0, "away"]
     assert commands["mode"].call_args_list[4][0][0] == [0, "normal"]
-    assert commands["mode"].call_args_list[5][0][0] == [1, "away"]
-    assert commands["mode"].call_args_list[6][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[5][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[6][0][0] == [1, "away"]
     assert commands["mode"].call_args_list[7][0][0] == [2, "away"]
     assert commands["mode"].call_args_list[8][0][0] == [2, "normal"]
     assert commands["target_hum"].call_count == 9
@@ -89,8 +106,8 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["target_hum"].call_args_list[2][0][0] == 2
     assert commands["target_hum"].call_args_list[3][0][0] == [0, 32]
     assert commands["target_hum"].call_args_list[4][0][0] == [0, 42]
-    assert commands["target_hum"].call_args_list[5][0][0] == [1, 32]
-    assert commands["target_hum"].call_args_list[6][0][0] == [1, 42]
+    assert commands["target_hum"].call_args_list[5][0][0] == [1, 42]
+    assert commands["target_hum"].call_args_list[6][0][0] == [1, 32]
     assert commands["target_hum"].call_args_list[7][0][0] == [2, 32]
     assert commands["target_hum"].call_args_list[8][0][0] == [2, 42]
     assert commands["hum_attr"].call_count == 3
@@ -106,8 +123,16 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[5][0][0] == [2, False]
 
 
-def test_reload(hass, caplog, data_from_device, test_config_entry):
+async def test_reload(hass, caplog, data_from_device, test_config_entry):
     """Test config entry reload."""
+
+    commands["bind"].reset_mock()
+    commands["hum"].reset_mock()
+    commands["hum_attr"].reset_mock()
+    commands["target_hum"].reset_mock()
+    commands["mode"].reset_mock()
+    commands["cur_hum"].reset_mock()
+    commands["cur_hum"].return_value = 41.0
 
     new_options = test_config_entry.options.copy()
     new_options["humidifier_0"] = test_config_entry.options["humidifier_0"].copy()
@@ -117,3 +142,26 @@ def test_reload(hass, caplog, data_from_device, test_config_entry):
     assert hass.config_entries.async_update_entry(
         test_config_entry, options=new_options
     )
+    await hass.async_block_till_done()
+
+    commands["bind"].assert_called_once_with()
+    assert commands["hum_attr"].call_count == 3
+    assert commands["hum_attr"].call_args_list[0][0][0] == 0
+    assert commands["hum_attr"].call_args_list[1][0][0] == 1
+    assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_count == 3
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["cur_hum"].call_count == 3
+    assert commands["cur_hum"].call_args_list[0][0][0] == 0
+    assert commands["cur_hum"].call_args_list[1][0][0] == 1
+    assert commands["cur_hum"].call_args_list[2][0][0] == 2
+    assert commands["target_hum"].call_count == 3
+    assert commands["target_hum"].call_args_list[0][0][0] == 0
+    assert commands["target_hum"].call_args_list[1][0][0] == 1
+    assert commands["target_hum"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_count == 3
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2

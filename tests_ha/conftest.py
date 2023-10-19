@@ -146,6 +146,5 @@ async def test_config_entry(hass):
 
     yield config_entry
 
-    await hass.async_block_till_done()
     await hass.config_entries.async_remove(config_entry.entry_id)
     await hass.async_block_till_done()
