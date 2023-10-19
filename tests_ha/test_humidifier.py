@@ -1,13 +1,17 @@
 """Test xbee_humidifier."""
+from unittest.mock import patch
+
 from homeassistant.components.humidifier import (
     ATTR_HUMIDITY,
     DOMAIN as HUMIDIFIER,
+    MODE_AWAY,
     SERVICE_SET_HUMIDITY,
     SERVICE_SET_MODE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
 )
-from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE, STATE_OFF
+from homeassistant.core import State
 
 from .conftest import calls, commands
 from .const import IEEE
@@ -16,6 +20,7 @@ ENTITY1 = "humidifier.xbee_humidifier_1_humidifier"
 ENTITY2 = "humidifier.xbee_humidifier_2_humidifier"
 ENTITY3 = "humidifier.xbee_humidifier_3_humidifier"
 ENT_SENSOR = "sensor.test2"
+ATTR_SAVED_HUMIDITY = "saved_humidity"
 
 
 def test_humidifier_init(hass, data_from_device, test_config_entry):
@@ -149,6 +154,69 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert state.attributes.get("device_class") == "humidifier"
     assert state.attributes.get("friendly_name") == "XBee Humidifier 3 Humidifier"
     assert state.attributes.get("humidity") == 42
+    assert state.attributes.get("current_humidity") is None
+    assert state.attributes.get("min_humidity") == 15
+    assert state.attributes.get("max_humidity") == 80
+    assert state.attributes.get("mode") is None
+    assert state.attributes.get("saved_humidity") is None
+    assert state.attributes.get("supported_features") == 0
+    assert state.attributes.get("action") == "off"
+
+
+@patch(
+    "homeassistant.helpers.restore_state.RestoreEntity.async_get_last_state",
+    return_value=State(
+        ENTITY1,
+        STATE_OFF,
+        {
+            ATTR_ENTITY_ID: ENTITY1,
+            ATTR_HUMIDITY: "40",
+            ATTR_MODE: MODE_AWAY,
+            ATTR_SAVED_HUMIDITY: "34",
+        },
+    ),
+)
+async def test_restore_state(
+    mock_get_last_state, hass, data_from_device, test_config_entry
+):
+    """Test config entry reload."""
+
+    new_options = test_config_entry.options.copy()
+    new_options["humidifier_0"] = test_config_entry.options["humidifier_0"].copy()
+    new_options["humidifier_0"]["target_sensor"] = "sensor.test4"
+
+    assert test_config_entry.options != new_options
+    assert hass.config_entries.async_update_entry(
+        test_config_entry, options=new_options
+    )
+    await hass.async_block_till_done()
+
+    data_from_device(hass, IEEE, {"available_1": True})
+    data_from_device(hass, IEEE, {"available_2": True})
+    await hass.async_block_till_done()
+
+    state = hass.states.get(ENTITY2)
+    assert state.state == "off"
+
+    assert state.attributes.get("available_modes") == ["normal", "away"]
+    assert state.attributes.get("device_class") == "humidifier"
+    assert state.attributes.get("friendly_name") == "XBee Humidifier 2 Humidifier"
+    assert state.attributes.get("humidity") == 40
+    assert state.attributes.get("current_humidity") is None
+    assert state.attributes.get("min_humidity") == 15
+    assert state.attributes.get("max_humidity") == 80
+    assert state.attributes.get("mode") == "away"
+    assert state.attributes.get("saved_humidity") == 34
+    assert state.attributes.get("supported_features") == 1
+    assert state.attributes.get("action") == "off"
+
+    state = hass.states.get(ENTITY3)
+    assert state.state == "off"
+
+    assert state.attributes.get("available_modes") is None
+    assert state.attributes.get("device_class") == "humidifier"
+    assert state.attributes.get("friendly_name") == "XBee Humidifier 3 Humidifier"
+    assert state.attributes.get("humidity") == 40
     assert state.attributes.get("current_humidity") is None
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80

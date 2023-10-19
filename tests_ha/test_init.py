@@ -65,7 +65,7 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert "Test log" in caplog.text
 
 
-async def test_refresh(hass, caplog, data_from_device, test_config_entry):
+async def test_refresh(hass, data_from_device, test_config_entry):
     """Test reinitialize on device reset."""
 
     data_from_device(hass, IEEE, {"available_1": True})
@@ -119,7 +119,7 @@ async def test_refresh(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[5][0][0] == [1, False]
 
 
-async def test_reload(hass, caplog, data_from_device, test_config_entry):
+async def test_reload(hass, data_from_device, test_config_entry):
     """Test config entry reload."""
 
     commands["bind"].reset_mock()
