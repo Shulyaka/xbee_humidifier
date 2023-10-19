@@ -19,7 +19,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Target humidity",
-              "away_humidity": "Away humidity"
+              "away_humidity": "Away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "away_humidity": "Leave the field empty to disable away mode"
@@ -31,7 +33,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Target humidity",
-              "away_humidity": "Away humidity"
+              "away_humidity": "Away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "away_humidity": "Leave the field empty to disable away mode"
@@ -43,7 +47,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Target humidity",
-              "away_humidity": "Away humidity"
+              "away_humidity": "Away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "away_humidity": "Leave the field empty to disable away mode"
@@ -59,7 +65,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Fallback target humidity",
-              "away_humidity": "Fallback away humidity"
+              "away_humidity": "Fallback away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "target_humidity": "Used when last used target humidity is not available",
@@ -72,7 +80,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Fallback target humidity",
-              "away_humidity": "Fallback away humidity"
+              "away_humidity": "Fallback away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "target_humidity": "Used when last used target humidity is not available",
@@ -85,7 +95,9 @@
               "name": "Name",
               "target_sensor": "Target sensor",
               "target_humidity": "Fallback target humidity",
-              "away_humidity": "Fallback away humidity"
+              "away_humidity": "Fallback away humidity",
+              "min_humidity": "Minimum humidity",
+              "max_humidity": "Maximum humidity"
           },
           "data_description": {
               "target_humidity": "Used when last used target humidity is not available",

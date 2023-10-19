@@ -12,7 +12,7 @@ The first Proof-of-Concept approach was a centralized solution implementing with
 
 This repo is the second approach implementing local in-device control with high-level commands (such as change target humidity, update measured humidity, etc), allowing several hosts to control the same device, and a custom component for Home Assistant.
 
-You may find parts of this repo useful for your own MicroPython projects, such as:
+### You may find parts of this repo useful for your own MicroPython projects, such as:
 1. Main loop implementation with task scheduling. Be careful with the stack size, which is very small on XBees, if you experience unexplained software reboots, then refactor your code scheduling tasks into the main loop instead of calling them directly because that would use the stack
 2. Hardware abstraction layer for different kinds of inputs/outputs (virtual, gpio, external relay boards, binary or analog) with low pass filter and trigger callbacks support
 3. JSON command interface with the host over ZigBee
@@ -28,6 +28,10 @@ Hardware:
 5. The XBee3 module with zigbee3 stack capable of running MicroPython
 6. A single-board computer capable of hosting Home Assistant with ZigBee stick
 7. Zigbee humidity and water leak sensors (I use Aqara)
+
+Software:
+1. Home Assistant
+2. XCTU (optional, for initial configuration)
 
 ![image](https://github.com/Shulyaka/xbee_humidifier/assets/2741408/1bde427c-6b78-420a-9ca6-a9678a8affea)
 ![image](https://github.com/Shulyaka/xbee_humidifier/assets/2741408/1ffda79b-5865-4031-8e36-aac3dec9fee7)

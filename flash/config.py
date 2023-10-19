@@ -14,7 +14,7 @@ if tosr0x_version() is None:
     pump = Switch()
     pump_temp = Sensor(37)
     valve_switch = {x: Switch() for x in range(4)}
-    pressure_in = Sensor(7)
+    pressure_in = Sensor(1234)
     pressure_out = Sensor(59)  # Ignored for now
     water_temperature = Sensor(14)  # Ignored for now
     aux_din = Switch(False)  # Ignored for now
