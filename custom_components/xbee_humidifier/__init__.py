@@ -11,6 +11,8 @@ CONF_SENSOR = "target_sensor"
 CONF_TARGET_HUMIDITY = "target_humidity"
 CONF_AWAY_HUMIDITY = "away_humidity"
 CONF_DEVICE_IEEE = "device_ieee"
+CONF_MIN_HUMIDITY = "min_humidity"
+CONF_MAX_HUMIDITY = "max_humidity"
 
 
 PLATFORMS: list[Platform] = [

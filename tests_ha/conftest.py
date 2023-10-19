@@ -73,8 +73,6 @@ def data_from_device_fixture(hass):
 
     hum_attr = {
         "sav_hum": 35,
-        "min_hum": 15,
-        "max_hum": 80,
         "available": False,
         "working": False,
     }

@@ -18,7 +18,13 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from . import CONF_AWAY_HUMIDITY, CONF_SENSOR, CONF_TARGET_HUMIDITY
+from . import (
+    CONF_AWAY_HUMIDITY,
+    CONF_MAX_HUMIDITY,
+    CONF_MIN_HUMIDITY,
+    CONF_SENSOR,
+    CONF_TARGET_HUMIDITY,
+)
 from .const import DOMAIN
 from .entity import XBeeHumidifierEntity
 
@@ -36,6 +42,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         sensor_entity_id = config[CONF_SENSOR]
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
         away_humidity = config.get(CONF_AWAY_HUMIDITY)
+        min_humidity = config.get(CONF_MIN_HUMIDITY)
+        max_humidity = config.get(CONF_MAX_HUMIDITY)
         entity_description = HumidifierEntityDescription(
             key="xbee_humidifier_" + str(number + 1),
             name="Humidifier",
@@ -49,6 +57,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 sensor_entity_id,
                 target_humidity,
                 away_humidity,
+                min_humidity,
+                max_humidity,
                 entity_description,
                 coordinator,
             )
@@ -66,6 +76,8 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         sensor_entity_id,
         target_humidity,
         away_humidity,
+        min_humidity,
+        max_humidity,
         entity_description,
         coordinator,
     ):
@@ -84,8 +96,8 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self._away_humidity = away_humidity
         self._is_away = False
         self._state = None
-        self._min_humidity = None
-        self._max_humidity = None
+        self._min_humidity = min_humidity
+        self._max_humidity = max_humidity
         self._remove_sensor_tracking = None
         self._cur_humidity = None
 
@@ -149,9 +161,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     async def _async_startup(self):
         """Init on startup."""
         resp = self.coordinator.data.get(self._number)
-
-        self._min_humidity = resp["min_hum"]
-        self._max_humidity = resp["max_hum"]
 
         if resp["cur_hum"] is not None:
             self._state = resp["is_on"]

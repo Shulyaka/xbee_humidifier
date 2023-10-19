@@ -20,12 +20,10 @@ class GenericHygrostat(Switch):
         switch,
         sensor,
         available_sensor,
-        min_humidity=0,
-        max_humidity=100,
-        target_humidity=None,
+        target_humidity=50,
         dry_tolerance=3,
         wet_tolerance=3,
-        initial_state=None,
+        initial_state=False,
         away_humidity=None,
         sensor_stale_duration=None,
         *args,
@@ -40,28 +38,16 @@ class GenericHygrostat(Switch):
         self._active = available_sensor
         self._active.state = False
         self._cur_humidity = None
-        self._min_humidity = min_humidity
-        self._max_humidity = max_humidity
         self._target_humidity = target_humidity
         self._stale_duration = sensor_stale_duration
         self._stale_tracking = None
         self._is_away = False
-        super().__init__(
-            value=initial_state if initial_state is not None else False, *args, **kwargs
-        )
+        super().__init__(value=initial_state, *args, **kwargs)
 
         self._operate_task = None
         self._state_subscriber = self.subscribe(
             lambda x: self._schedule_operate(force=True)
         )
-
-        if self._target_humidity is None:
-            self._target_humidity = self._min_humidity
-            _LOGGER.warning(
-                "No previously saved humidity, setting to {}".format(
-                    self._target_humidity
-                )
-            )
 
         self._sensor_subscriber = self._sensor.subscribe(
             lambda x: self._sensor_changed(x)
@@ -164,8 +150,6 @@ class GenericHygrostat(Switch):
     def attributes(self):
         """Return attributes."""
         return {
-            "min_hum": self._min_humidity,
-            "max_hum": self._max_humidity,
             "sav_hum": self._saved_humidity,
         }
 

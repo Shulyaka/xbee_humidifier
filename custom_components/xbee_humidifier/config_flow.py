@@ -9,7 +9,14 @@ from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from . import CONF_AWAY_HUMIDITY, CONF_DEVICE_IEEE, CONF_SENSOR, CONF_TARGET_HUMIDITY
+from . import (
+    CONF_AWAY_HUMIDITY,
+    CONF_DEVICE_IEEE,
+    CONF_MAX_HUMIDITY,
+    CONF_MIN_HUMIDITY,
+    CONF_SENSOR,
+    CONF_TARGET_HUMIDITY,
+)
 from .const import DOMAIN
 from .coordinator import XBeeHumidifierApiClient
 
@@ -23,6 +30,12 @@ XBEE_HUMIDIFIER_SCHEMA = {
         selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
     ),
     vol.Optional(CONF_AWAY_HUMIDITY): selector.NumberSelector(
+        selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
+    ),
+    vol.Optional(CONF_MIN_HUMIDITY): selector.NumberSelector(
+        selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
+    ),
+    vol.Optional(CONF_MAX_HUMIDITY): selector.NumberSelector(
         selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
     ),
 }
@@ -115,6 +128,12 @@ class XBeeHumidifierOptionsFlowHandler(
                 CONF_AWAY_HUMIDITY: self.config_entry.options.get(
                     "humidifier_" + str(number), {}
                 ).get(CONF_AWAY_HUMIDITY),
+                CONF_MIN_HUMIDITY: self.config_entry.options.get(
+                    "humidifier_" + str(number), {}
+                ).get(CONF_MIN_HUMIDITY),
+                CONF_MAX_HUMIDITY: self.config_entry.options.get(
+                    "humidifier_" + str(number), {}
+                ).get(CONF_MAX_HUMIDITY),
             }
 
         return await self.async_step_humidifier_0(user_input=user_input)
@@ -164,6 +183,8 @@ class XBeeHumidifierConfigFlowHandler(
                             "target_hum", number
                         ),
                         CONF_AWAY_HUMIDITY: hum_attr.get("sav_hum"),
+                        CONF_MIN_HUMIDITY: 15,
+                        CONF_MAX_HUMIDITY: 100,
                     }
                 client.stop()
             except Exception as err:

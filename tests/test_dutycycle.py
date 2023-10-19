@@ -22,8 +22,6 @@ def test_dutycycle():
             switch=humidifier_switch[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],
-            min_humidity=15,
-            max_humidity=100,
             target_humidity=50,
             dry_tolerance=3,
             wet_tolerance=0,

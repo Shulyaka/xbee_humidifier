@@ -26,8 +26,6 @@ def test_commands():
             switch=humidifier_zone[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],
-            min_humidity=15,
-            max_humidity=100,
             target_humidity=50,
             dry_tolerance=3,
             wet_tolerance=0,
@@ -260,8 +258,6 @@ def test_commands():
 
     assert command("hum_attr", 2) == {
         "available": False,
-        "max_hum": 100,
-        "min_hum": 15,
         "sav_hum": 35,
         "working": False,
     }
@@ -276,8 +272,6 @@ def test_commands():
     main_loop.run_once()
     assert command("hum_attr", 2) == {
         "available": True,
-        "max_hum": 100,
-        "min_hum": 15,
         "sav_hum": 50,
         "working": True,
     }

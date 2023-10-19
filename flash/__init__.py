@@ -77,8 +77,6 @@ def _setup(debug):
             switch=_zone[x],
             sensor=_sensor[x],
             available_sensor=_available[x],
-            min_humidity=15,
-            max_humidity=100,
             target_humidity=50,
             dry_tolerance=3,
             wet_tolerance=0,

@@ -11,8 +11,6 @@ from humidifier import (
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 
-MIN_HUMIDITY = 20
-MAX_HUMIDITY = 65
 TARGET_HUMIDITY = 42
 
 humidifier_switch = Switch()
@@ -29,8 +27,6 @@ def test_heneric_hygrostat():
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=humidifier_available,
-        min_humidity=15,
-        max_humidity=100,
         target_humidity=50,
         dry_tolerance=3,
         wet_tolerance=0,
@@ -148,9 +144,7 @@ def test_unavailable_state():
 def test_default_setup_params(setup_comp_2):
     """Test the setup with default parameters."""
     humidifier = setup_comp_2
-    assert humidifier._min_humidity == 0
-    assert humidifier._max_humidity == 100
-    assert humidifier._target_humidity == 0
+    assert humidifier._target_humidity == 50
     humidifier.state = False
     main_loop.run_once()
 
@@ -464,12 +458,8 @@ def test_custom_setup_params():
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
-        min_humidity=MIN_HUMIDITY,
-        max_humidity=MAX_HUMIDITY,
         target_humidity=TARGET_HUMIDITY,
     )
-    assert humidifier._min_humidity == MIN_HUMIDITY
-    assert humidifier._max_humidity == MAX_HUMIDITY
     assert humidifier._target_humidity == TARGET_HUMIDITY
     humidifier.state = False
     main_loop.run_once()
@@ -482,6 +472,7 @@ def test_sensor_stale_duration(caplog):
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
+        target_humidity=10,
         initial_state=True,
         sensor_stale_duration=10 * 60,
     )
