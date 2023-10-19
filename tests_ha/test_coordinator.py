@@ -10,6 +10,7 @@ from homeassistant.exceptions import ServiceNotFound
 
 from custom_components.xbee_humidifier.coordinator import XBeeHumidifierApiClient
 
+from .conftest import commands
 from .const import IEEE
 
 
@@ -55,8 +56,18 @@ async def test_asynchronous_command(hass, data_from_device):
 
     client = XBeeHumidifierApiClient(hass, IEEE)
 
+    # No args
     assert await client.async_command("bind") == "OK"
-    assert not await client.async_command("valve", number=3)
+    # One arg
+    assert await client.async_command("mode", 0) == "normal"
+    # Two args
+    commands["target_hum"].return_value = "OK"
+    assert await client.async_command("target_hum", 1, 55) == "OK"
+    # With kwargs
+    assert not await client.async_command("hum", number=2)
+    # Both args and kwargs
+    commands["valve"].return_value = "OK"
+    assert await client.async_command("valve", 3, state=True) == "OK"
 
 
 async def test_double_command(hass, data_from_device):
