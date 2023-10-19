@@ -23,7 +23,6 @@ class GenericHygrostat(Switch):
         target_humidity=50,
         dry_tolerance=3,
         wet_tolerance=3,
-        initial_state=False,
         away_humidity=None,
         sensor_stale_duration=None,
         *args,
@@ -42,7 +41,7 @@ class GenericHygrostat(Switch):
         self._stale_duration = sensor_stale_duration
         self._stale_tracking = None
         self._is_away = False
-        super().__init__(value=initial_state, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._operate_task = None
         self._state_subscriber = self.subscribe(

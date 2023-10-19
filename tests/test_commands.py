@@ -29,7 +29,6 @@ def test_commands():
             target_humidity=50,
             dry_tolerance=3,
             wet_tolerance=0,
-            initial_state=None,
             away_humidity=35,
             sensor_stale_duration=30 * 60,
         )

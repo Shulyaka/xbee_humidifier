@@ -30,7 +30,6 @@ def test_heneric_hygrostat():
         target_humidity=50,
         dry_tolerance=3,
         wet_tolerance=0,
-        initial_state=None,
         away_humidity=35,
         sensor_stale_duration=30 * 60,
     )
@@ -67,8 +66,8 @@ def test_humidifier_switch():
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
-        initial_state=True,
     )
+    humidifier.state = True
 
     assert not humidifier_switch.state
 
@@ -88,35 +87,22 @@ def _setup_sensor(humidity):
 
 
 @pytest.fixture
-def setup_comp_0():
-    """Initialize components."""
-    _setup_sensor(45)
-    humidifier_switch.state = False
-    return GenericHygrostat(
-        switch=humidifier_switch,
-        sensor=humidifier_sensor,
-        available_sensor=Switch(),
-        dry_tolerance=2,
-        wet_tolerance=4,
-        initial_state=True,
-        away_humidity=35,
-    )
-
-
-@pytest.fixture
 def setup_comp_2():
     """Initialize components."""
     _setup_sensor(45)
 
-    return GenericHygrostat(
+    humidifier = GenericHygrostat(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
         dry_tolerance=2,
         wet_tolerance=4,
-        initial_state=True,
         away_humidity=35,
     )
+    humidifier.state = True
+    yield humidifier
+    humidifier.state = False
+    main_loop.run_once()
 
 
 def test_unavailable_state():
@@ -145,8 +131,6 @@ def test_default_setup_params(setup_comp_2):
     """Test the setup with default parameters."""
     humidifier = setup_comp_2
     assert humidifier._target_humidity == 50
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_target_humidity(setup_comp_2):
@@ -159,8 +143,6 @@ def test_set_target_humidity(setup_comp_2):
     with pytest.raises(ValueError):
         humidifier.humidity = "str"
     assert humidifier._target_humidity == 40
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_away_mode(setup_comp_2):
@@ -169,8 +151,6 @@ def test_set_away_mode(setup_comp_2):
     humidifier.humidity = 44
     humidifier.mode = MODE_AWAY
     assert humidifier._target_humidity == 35
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
@@ -184,8 +164,6 @@ def test_set_away_mode_and_restore_prev_humidity(setup_comp_2):
     assert humidifier._target_humidity == 35
     humidifier.mode = MODE_NORMAL
     assert humidifier._target_humidity == 44
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
@@ -200,8 +178,6 @@ def test_set_away_mode_twice_and_restore_prev_humidity(setup_comp_2):
     assert humidifier._target_humidity == 35
     humidifier.mode = MODE_NORMAL
     assert humidifier._target_humidity == 44
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_target_humidity_humidifier_on(setup_comp_2):
@@ -215,8 +191,6 @@ def test_set_target_humidity_humidifier_on(setup_comp_2):
     assert len(calls) == 1
     call = calls[0]
     assert call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_set_target_humidity_humidifier_off(setup_comp_2):
@@ -230,8 +204,6 @@ def test_set_target_humidity_humidifier_off(setup_comp_2):
     assert len(calls) == 1
     call = calls[0]
     assert not call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
@@ -243,8 +215,6 @@ def test_humidity_change_humidifier_on_within_tolerance(setup_comp_2):
     _setup_sensor(43)
     main_loop.run_once()
     assert len(calls) == 0
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
@@ -258,8 +228,6 @@ def test_humidity_change_humidifier_on_outside_tolerance(setup_comp_2):
     assert len(calls) == 1
     call = calls[0]
     assert call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
@@ -271,8 +239,6 @@ def test_humidity_change_humidifier_off_within_tolerance(setup_comp_2):
     _setup_sensor(48)
     main_loop.run_once()
     assert len(calls) == 0
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
@@ -286,8 +252,6 @@ def test_humidity_change_humidifier_off_outside_tolerance(setup_comp_2):
     assert len(calls) == 1
     call = calls[0]
     assert not call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_operation_mode_humidify(setup_comp_2):
@@ -306,8 +270,6 @@ def test_operation_mode_humidify(setup_comp_2):
     assert len(calls) == 1
     call = calls[0]
     assert call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def _setup_switch(is_on):
@@ -327,9 +289,9 @@ def test_init_ignores_tolerance():
         target_humidity=40,
         dry_tolerance=4,
         wet_tolerance=2,
-        initial_state=True,
         away_humidity=30,
     )
+    humidifier.state = True
     main_loop.run_once()
     assert len(calls) == 1
     call = calls[0]
@@ -365,15 +327,18 @@ def test_no_state_change_when_operation_mode_off(setup_comp_2):
 @pytest.fixture
 def setup_comp_4():
     """Initialize components."""
-    return GenericHygrostat(
+    humidifier = GenericHygrostat(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
         target_humidity=40,
         dry_tolerance=3,
         wet_tolerance=3,
-        initial_state=True,
     )
+    humidifier.state = True
+    yield humidifier
+    humidifier.state = False
+    main_loop.run_once()
 
 
 def test_mode_change_humidifier_trigger_off_not_long_enough(setup_comp_4):
@@ -405,8 +370,6 @@ def test_mode_change_humidifier_trigger_on_not_long_enough(setup_comp_4):
     assert len(calls) == 1
     call = calls[0]
     assert call
-    humidifier.state = False
-    main_loop.run_once()
 
 
 def test_float_tolerance_values():
@@ -417,8 +380,8 @@ def test_float_tolerance_values():
         available_sensor=Switch(),
         target_humidity=40,
         wet_tolerance=0.2,
-        initial_state=True,
     )
+    humidifier.state = True
     _setup_switch(True)
     main_loop.run_once()
     _setup_sensor(35)
@@ -438,8 +401,8 @@ def test_float_tolerance_values_2():
         available_sensor=Switch(),
         target_humidity=40,
         wet_tolerance=0.2,
-        initial_state=True,
     )
+    humidifier.state = True
     _setup_switch(True)
     _setup_sensor(40.3)
     assert len(calls) == 0
@@ -473,9 +436,9 @@ def test_sensor_stale_duration(caplog):
         sensor=humidifier_sensor,
         available_sensor=Switch(),
         target_humidity=10,
-        initial_state=True,
         sensor_stale_duration=10 * 60,
     )
+    humidifier.state = True
 
     _setup_sensor(23)
     main_loop.run_once()
