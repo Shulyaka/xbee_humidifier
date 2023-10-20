@@ -94,7 +94,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if away_humidity:
             self._attr_supported_features |= HumidifierEntityFeature.MODES
         self._is_away = False
-        self._state = None
+        self._state = False
         self._min_humidity = min_humidity
         self._max_humidity = max_humidity
         self._remove_sensor_tracking = None
@@ -104,34 +104,50 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        if (old_state := await self.async_get_last_state()) is not None:
-            if (
-                self._saved_target_humidity is not None
-                and old_state.attributes.get(ATTR_MODE) == MODE_AWAY
-            ):
-                self._is_away = True
-                self._target_humidity, self._saved_target_humidity = (
-                    self._saved_target_humidity,
-                    self._target_humidity,
-                )
-            if old_state.attributes.get(ATTR_HUMIDITY):
-                self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
-            if self._saved_target_humidity is not None and old_state.attributes.get(
-                ATTR_SAVED_HUMIDITY
-            ):
-                self._saved_target_humidity = int(
-                    old_state.attributes[ATTR_SAVED_HUMIDITY]
-                )
-            if old_state.state:
-                self._state = old_state.state == STATE_ON
-        if self._state is None:
-            self._state = False
+        if self.coordinator.data.get(self._number)["cur_hum"] is not None:
+            self._handle_coordinator_update()
+        else:
+            if (old_state := await self.async_get_last_state()) is not None:
+                if (
+                    self._saved_target_humidity is not None
+                    and old_state.attributes.get(ATTR_MODE) == MODE_AWAY
+                ):
+                    self._is_away = True
+                    self._target_humidity, self._saved_target_humidity = (
+                        self._saved_target_humidity,
+                        self._target_humidity,
+                    )
+                if old_state.attributes.get(ATTR_HUMIDITY):
+                    self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
+                if (
+                    self._saved_target_humidity is not None
+                    and old_state.attributes.get(ATTR_SAVED_HUMIDITY)
+                ):
+                    self._saved_target_humidity = int(
+                        old_state.attributes[ATTR_SAVED_HUMIDITY]
+                    )
+                if old_state.state:
+                    self._state = old_state.state == STATE_ON
 
-        await self._async_startup()  # init the sensor
+            await self._update_device()
+
+        sensor_state = self.hass.states.get(self._sensor_entity_id)
+        if sensor_state is not None and sensor_state.state not in (
+            STATE_UNKNOWN,
+            STATE_UNAVAILABLE,
+        ):
+            await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
+
+        # Add listener
+        if self._remove_sensor_tracking is None:
+            self._remove_sensor_tracking = async_track_state_change(
+                self.hass, self._sensor_entity_id, self._async_sensor_changed
+            )
+            self.async_on_remove(self._remove_sensor_tracking)
 
         async def async_log(data):
             if data["msg"] == "Not initialized":
-                await self._async_startup(device_restarted=True)
+                await self._update_device()
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
 
@@ -164,73 +180,59 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
 
     @callback
-    async def _async_startup(self, device_restarted=False):
-        """Init on startup."""
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         resp = self.coordinator.data.get(self._number)
 
-        if resp["cur_hum"] is not None and not device_restarted:
-            self._state = resp["is_on"]
-            self._is_away = resp["mode"] == "away"
-            self._target_humidity = resp["target_hum"]
-            if self._saved_target_humidity is not None:
-                self._saved_target_humidity = resp["sav_hum"]
-            self._active = resp["available"]
-            self._attr_action = (
-                HumidifierAction.HUMIDIFYING
-                if resp["working"]
-                else HumidifierAction.IDLE
-            )
-        elif self._target_humidity is not None:
-            if self._is_away:
-                await self.coordinator.client.async_command(
-                    "mode", self._number, MODE_NORMAL
-                )
-                await self.coordinator.client.async_command(
-                    "target_hum", self._number, self._saved_target_humidity
-                )
-                await self.coordinator.client.async_command(
-                    "mode", self._number, MODE_AWAY
-                )
-                await self.coordinator.client.async_command(
-                    "target_hum", self._number, self._target_humidity
-                )
-            elif self._saved_target_humidity is not None:
-                await self.coordinator.client.async_command(
-                    "mode", self._number, MODE_AWAY
-                )
-                await self.coordinator.client.async_command(
-                    "target_hum", self._number, self._saved_target_humidity
-                )
-                await self.coordinator.client.async_command(
-                    "mode", self._number, MODE_NORMAL
-                )
-                await self.coordinator.client.async_command(
-                    "target_hum", self._number, self._target_humidity
-                )
-            else:
-                await self.coordinator.client.async_command(
-                    "mode", self._number, MODE_NORMAL
-                )
-                await self.coordinator.client.async_command(
-                    "target_hum", self._number, self._target_humidity
-                )
+        self._state = resp["is_on"]
+        self._is_away = resp["mode"] == "away"
+        self._target_humidity = resp["target_hum"]
+        if self._saved_target_humidity is not None:
+            self._saved_target_humidity = resp["sav_hum"]
+        self._active = resp["available"]
+        self._attr_action = (
+            HumidifierAction.HUMIDIFYING if resp["working"] else HumidifierAction.IDLE
+        )
+        if self._sensor_entity_id is None:
+            self._cur_humidity = resp["cur_hum"]
+
+        self.async_write_ha_state()
+
+    async def _update_device(self):
+        if self._is_away:
             await self.coordinator.client.async_command(
-                "hum", self._number, self._state
+                "mode", self._number, MODE_NORMAL
             )
-
-        sensor_state = self.hass.states.get(self._sensor_entity_id)
-        if sensor_state is not None and sensor_state.state not in (
-            STATE_UNKNOWN,
-            STATE_UNAVAILABLE,
-        ):
-            await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
-
-        # Add listener
-        if self._remove_sensor_tracking is None:
-            self._remove_sensor_tracking = async_track_state_change(
-                self.hass, self._sensor_entity_id, self._async_sensor_changed
+            await self.coordinator.client.async_command(
+                "target_hum", self._number, self._saved_target_humidity
             )
-            self.async_on_remove(self._remove_sensor_tracking)
+            await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
+            await self.coordinator.client.async_command(
+                "target_hum", self._number, self._target_humidity
+            )
+        elif self._saved_target_humidity is not None:
+            await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
+            await self.coordinator.client.async_command(
+                "target_hum", self._number, self._saved_target_humidity
+            )
+            await self.coordinator.client.async_command(
+                "mode", self._number, MODE_NORMAL
+            )
+            await self.coordinator.client.async_command(
+                "target_hum", self._number, self._target_humidity
+            )
+        else:
+            await self.coordinator.client.async_command(
+                "mode", self._number, MODE_NORMAL
+            )
+            await self.coordinator.client.async_command(
+                "target_hum", self._number, self._target_humidity
+            )
+        await self.coordinator.client.async_command("hum", self._number, self._state)
+
+    @callback
+    async def _async_startup(self):
+        """Init on startup."""
 
     @property
     def available(self):

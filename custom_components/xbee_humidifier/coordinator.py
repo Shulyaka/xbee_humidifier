@@ -239,7 +239,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
             if data["msg"] == "Not initialized":
-                await self.async_request_refresh()
+                await self._bind()
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
 
@@ -280,10 +280,13 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         version_info = [v.split(": ", 1) for v in version_info]
         self.version_info = dict(version_info)
 
+    async def _bind(self):
+        await self.client.async_command("bind")
+
     @callback
     async def async_update_data(self):
         """Update data."""
-        await self.client.async_command("bind")
+        await self._bind()
         data = {}
         for number in range(0, 3):
             data[number] = await self.client.async_command("hum_attr", number)
