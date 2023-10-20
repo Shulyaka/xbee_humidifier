@@ -130,7 +130,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         await self._async_startup()  # init the sensor
 
         async def async_log(data):
-            if data["msg"] in ("Not initialized", "Main loop started"):
+            if data["msg"] == "Not initialized":
                 await self._async_startup(device_restarted=True)
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
