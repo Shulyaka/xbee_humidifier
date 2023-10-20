@@ -23,7 +23,7 @@ from .coordinator import XBeeHumidifierApiClient
 DEFAULT_NAME = "XBee Humidifier"
 
 XBEE_HUMIDIFIER_SCHEMA = {
-    vol.Required(CONF_SENSOR): selector.EntitySelector(
+    vol.Optional(CONF_SENSOR): selector.EntitySelector(
         selector.EntitySelectorConfig(domain=SENSOR_DOMAIN)
     ),
     vol.Optional(CONF_TARGET_HUMIDITY): selector.NumberSelector(

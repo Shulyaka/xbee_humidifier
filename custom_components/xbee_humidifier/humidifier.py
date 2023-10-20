@@ -53,14 +53,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
         humidifiers.append(
             XBeeHumidifier(
+                entity_description,
+                coordinator,
                 number,
                 sensor_entity_id,
                 target_humidity,
                 away_humidity,
                 min_humidity,
                 max_humidity,
-                entity_description,
-                coordinator,
             )
         )
 
@@ -72,14 +72,14 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     def __init__(
         self,
-        number,
-        sensor_entity_id,
-        target_humidity,
-        away_humidity,
-        min_humidity,
-        max_humidity,
         entity_description,
         coordinator,
+        number,
+        sensor_entity_id=None,
+        target_humidity=50,
+        away_humidity=35,
+        min_humidity=None,
+        max_humidity=None,
     ):
         """Initialize the hygrostat."""
         self.entity_description = entity_description
@@ -131,19 +131,22 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
             await self._update_device()
 
-        sensor_state = self.hass.states.get(self._sensor_entity_id)
-        if sensor_state is not None and sensor_state.state not in (
-            STATE_UNKNOWN,
-            STATE_UNAVAILABLE,
-        ):
-            await self._async_sensor_changed(self._sensor_entity_id, None, sensor_state)
+        if self._sensor_entity_id is not None:
+            sensor_state = self.hass.states.get(self._sensor_entity_id)
+            if sensor_state is not None and sensor_state.state not in (
+                STATE_UNKNOWN,
+                STATE_UNAVAILABLE,
+            ):
+                await self._async_sensor_changed(
+                    self._sensor_entity_id, None, sensor_state
+                )
 
-        # Add listener
-        if self._remove_sensor_tracking is None:
-            self._remove_sensor_tracking = async_track_state_change(
-                self.hass, self._sensor_entity_id, self._async_sensor_changed
-            )
-            self.async_on_remove(self._remove_sensor_tracking)
+            # Add listener
+            if self._remove_sensor_tracking is None:
+                self._remove_sensor_tracking = async_track_state_change(
+                    self.hass, self._sensor_entity_id, self._async_sensor_changed
+                )
+                self.async_on_remove(self._remove_sensor_tracking)
 
         async def async_log(data):
             if data["msg"] == "Not initialized":

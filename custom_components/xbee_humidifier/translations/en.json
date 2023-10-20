@@ -24,6 +24,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "away_humidity": "Leave the field empty to disable away mode"
           }
       },
@@ -38,6 +39,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "away_humidity": "Leave the field empty to disable away mode"
           }
       },
@@ -52,6 +54,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "away_humidity": "Leave the field empty to disable away mode"
           }
       }
@@ -70,6 +73,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "target_humidity": "Used when last used target humidity is not available",
               "away_humidity": "Leave the field empty to disable away mode"
           }
@@ -85,6 +89,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "target_humidity": "Used when last used target humidity is not available",
               "away_humidity": "Leave the field empty to disable away mode"
           }
@@ -100,6 +105,7 @@
               "max_humidity": "Maximum humidity"
           },
           "data_description": {
+              "target_sensor": "Can be empty for a secondary HA instance",
               "target_humidity": "Used when last used target humidity is not available",
               "away_humidity": "Leave the field empty to disable away mode"
           }
