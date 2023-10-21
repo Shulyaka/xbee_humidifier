@@ -196,21 +196,13 @@ class XBeeHumidifierApiClient:
                 if key != "log":
                     _LOGGER.debug("%s = %s", key, value)
                 for listener in self._callbacks[key]:
-                    try:
-                        await listener(value)
-                    except Exception as e:
-                        _LOGGER.error("callback error for %s", listener)
-                        _LOGGER.error(type(e).__name__ + ": " + str(e))
+                    self.hass.async_create_task(listener(value))
             else:
                 _LOGGER.warning("No callback for %s", {key: value})
 
         if "data_received" in self._callbacks:
             for listener in self._callbacks["data_received"]:
-                try:
-                    await listener(data)
-                except Exception as e:
-                    _LOGGER.error("callback error for %s", listener)
-                    _LOGGER.error(type(e).__name__ + ": " + str(e))
+                self.hass.async_create_task(listener(data))
 
         if (
             key == "log"
@@ -218,11 +210,7 @@ class XBeeHumidifierApiClient:
             and "device_reset" in self._callbacks
         ):
             for listener in self._callbacks["device_reset"]:
-                try:
-                    await listener()
-                except Exception as e:
-                    _LOGGER.error("callback error for %s", listener)
-                    _LOGGER.error(type(e).__name__ + ": " + str(e))
+                self.hass.async_create_task(listener())
 
 
 class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
@@ -246,14 +234,17 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self.client = client
 
+        self.humidifier_lock = asyncio.Lock()
+
         self._xbee_logger = logging.getLogger("xbee_humidifier")
 
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
+
         self._remove_device_reset_handler = self.client.add_subscriber(
-            "device_reset", self._subscribe
+            "device_reset", self.async_request_refresh
         )
 
         async def async_data_received(data):
@@ -296,30 +287,28 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         version_info = [v.split(": ", 1) for v in version_info]
         self.version_info = dict(version_info)
 
-    async def _subscribe(self):
-        await self.client.async_command("bind")
-
     @callback
     async def async_update_data(self):
         """Update data."""
-        await self._subscribe()
+        await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
-        for number in range(0, 3):
-            data["humidifier"][number] = await self.client.async_command(
-                "hum_attr", number
-            )
-            data["humidifier"][number]["is_on"] = await self.client.async_command(
-                "hum", number
-            )
-            data["humidifier"][number]["cur_hum"] = await self.client.async_command(
-                "cur_hum", number
-            )
-            data["humidifier"][number]["target_hum"] = await self.client.async_command(
-                "target_hum", number
-            )
-            data["humidifier"][number]["mode"] = await self.client.async_command(
-                "mode", number
-            )
+        async with self.humidifier_lock:
+            for number in range(0, 3):
+                data["humidifier"][number] = await self.client.async_command(
+                    "hum_attr", number
+                )
+                data["humidifier"][number]["is_on"] = await self.client.async_command(
+                    "hum", number
+                )
+                data["humidifier"][number]["cur_hum"] = await self.client.async_command(
+                    "cur_hum", number
+                )
+                data["humidifier"][number][
+                    "target_hum"
+                ] = await self.client.async_command("target_hum", number)
+                data["humidifier"][number]["mode"] = await self.client.async_command(
+                    "mode", number
+                )
         for number in range(0, 4):
             data["valve"][number] = await self.client.async_command("valve", number)
         data["pump"] = await self.client.async_command("pump")

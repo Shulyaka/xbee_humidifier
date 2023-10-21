@@ -205,38 +205,43 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self.async_write_ha_state()
 
     async def _update_device(self):
-        if self._attr_mode == MODE_AWAY:
+        async with self.coordinator.humidifier_lock:
+            if self._attr_mode == MODE_AWAY:
+                await self.coordinator.client.async_command(
+                    "mode", self._number, MODE_NORMAL
+                )
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, self._attr_saved_target_humidity
+                )
+                await self.coordinator.client.async_command(
+                    "mode", self._number, MODE_AWAY
+                )
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, self._attr_target_humidity
+                )
+            elif self._attr_saved_target_humidity is not None:
+                await self.coordinator.client.async_command(
+                    "mode", self._number, MODE_AWAY
+                )
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, self._attr_saved_target_humidity
+                )
+                await self.coordinator.client.async_command(
+                    "mode", self._number, MODE_NORMAL
+                )
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, self._attr_target_humidity
+                )
+            else:
+                await self.coordinator.client.async_command(
+                    "mode", self._number, MODE_NORMAL
+                )
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, self._attr_target_humidity
+                )
             await self.coordinator.client.async_command(
-                "mode", self._number, MODE_NORMAL
+                "hum", self._number, self._attr_is_on
             )
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, self._attr_saved_target_humidity
-            )
-            await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, self._attr_target_humidity
-            )
-        elif self._attr_saved_target_humidity is not None:
-            await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, self._attr_saved_target_humidity
-            )
-            await self.coordinator.client.async_command(
-                "mode", self._number, MODE_NORMAL
-            )
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, self._attr_target_humidity
-            )
-        else:
-            await self.coordinator.client.async_command(
-                "mode", self._number, MODE_NORMAL
-            )
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, self._attr_target_humidity
-            )
-        await self.coordinator.client.async_command(
-            "hum", self._number, self._attr_is_on
-        )
 
     @property
     def available(self):
