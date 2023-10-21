@@ -56,7 +56,6 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         super().__init__(coordinator)
         self.entity_description = entity_description
         self._name = name
-        self._state = None
         self._attr_mode = NumberMode.SLIDER
         self._attr_unique_id = coordinator.unique_id + name
 
@@ -67,25 +66,20 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         self._handle_coordinator_update()
 
         async def async_update_state(value):
-            self._state = value
-            self.async_schedule_update_ha_state()
+            self._attr_native_value = value
+            self.async_write_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(self._name, async_update_state)
         )
-
-    @property
-    def native_value(self) -> str:
-        """Return the native value of the sensor."""
-        return self._state
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         value = int(value)
         resp = await self.coordinator.client.async_command(self._name, value)
         if resp == "OK":
-            self._state = value
-            self.async_schedule_update_ha_state()
+            self._attr_native_value = value
+            self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -93,6 +87,6 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         value = self.coordinator.data.get(self._name)
         if value is None:
             return
-        self._state = value
+        self._attr_native_value = value
 
         self.async_write_ha_state()

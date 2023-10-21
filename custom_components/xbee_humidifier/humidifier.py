@@ -88,18 +88,19 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         super().__init__(coordinator, number)
         self._number = number
         self._sensor_entity_id = sensor_entity_id
-        self._saved_target_humidity = away_humidity
-        self._active = False
-        self._target_humidity = target_humidity
-        self._attr_supported_features = 0
+        self._attr_saved_target_humidity = away_humidity
+        self._attr_target_humidity = target_humidity
+        self._attr_available = False
+        self._attr_is_on = False
         if away_humidity:
             self._attr_supported_features |= HumidifierEntityFeature.MODES
-        self._is_away = False
-        self._state = False
-        self._min_humidity = min_humidity
-        self._max_humidity = max_humidity
+            self._attr_available_modes = [MODE_NORMAL, MODE_AWAY]
+        self._attr_mode = MODE_NORMAL
+        if min_humidity is not None:
+            self._attr_min_humidity = min_humidity
+        if max_humidity is not None:
+            self._attr_max_humidity = max_humidity
         self._remove_sensor_tracking = None
-        self._cur_humidity = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -115,27 +116,29 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         else:
             if (old_state := await self.async_get_last_state()) is not None:
                 if (
-                    self._saved_target_humidity is not None
+                    self._attr_saved_target_humidity is not None
                     and old_state.attributes.get(ATTR_MODE) == MODE_AWAY
                 ):
-                    self._is_away = True
-                    self._target_humidity, self._saved_target_humidity = (
-                        self._saved_target_humidity,
-                        self._target_humidity,
+                    self._attr_mode = MODE_AWAY
+                    self._attr_target_humidity, self._attr_saved_target_humidity = (
+                        self._attr_saved_target_humidity,
+                        self._attr_target_humidity,
                     )
                 if old_state.attributes.get(ATTR_HUMIDITY) is not None:
-                    self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
+                    self._attr_target_humidity = int(
+                        old_state.attributes[ATTR_HUMIDITY]
+                    )
                 if (
-                    self._saved_target_humidity is not None
+                    self._attr_saved_target_humidity is not None
                     and old_state.attributes.get(ATTR_SAVED_HUMIDITY) is not None
                 ):
-                    self._saved_target_humidity = int(
+                    self._attr_saved_target_humidity = int(
                         old_state.attributes[ATTR_SAVED_HUMIDITY]
                     )
                 if old_state.attributes.get(ATTR_ACTION) is not None:
                     self._attr_action = old_state.attributes[ATTR_ACTION]
                 if old_state.state is not None:
-                    self._state = old_state.state == STATE_ON
+                    self._attr_is_on = old_state.state == STATE_ON
 
             await self._update_device()
 
@@ -163,7 +166,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))
 
         async def async_update_available(value):
-            self._active = value
+            self._attr_available = value
             return self.async_write_ha_state()
 
         self.async_on_remove(
@@ -176,7 +179,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._attr_action = (
                 HumidifierAction.HUMIDIFYING if value else HumidifierAction.IDLE
             )
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(
@@ -191,117 +194,82 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if resp is None:
             return
 
-        self._state = resp["is_on"]
-        self._is_away = resp["mode"] == "away"
-        self._target_humidity = resp["target_hum"]
-        if self._saved_target_humidity is not None:
-            self._saved_target_humidity = resp["sav_hum"]
-        self._active = resp["available"]
+        self._attr_is_on = resp["is_on"]
+        self._attr_mode = resp["mode"]
+        self._attr_target_humidity = resp["target_hum"]
+        if self._attr_saved_target_humidity is not None:
+            self._attr_saved_target_humidity = resp["sav_hum"]
+        self._attr_available = resp["available"]
         self._attr_action = (
             HumidifierAction.HUMIDIFYING if resp["working"] else HumidifierAction.IDLE
         )
         if self._sensor_entity_id is None:
-            self._cur_humidity = resp["cur_hum"]
+            self._attr_current_humidity = resp["cur_hum"]
 
         self.async_write_ha_state()
 
     async def _update_device(self):
-        if self._is_away:
+        if self._attr_mode == MODE_AWAY:
             await self.coordinator.client.async_command(
                 "mode", self._number, MODE_NORMAL
             )
             await self.coordinator.client.async_command(
-                "target_hum", self._number, self._saved_target_humidity
+                "target_hum", self._number, self._attr_saved_target_humidity
             )
             await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
             await self.coordinator.client.async_command(
-                "target_hum", self._number, self._target_humidity
+                "target_hum", self._number, self._attr_target_humidity
             )
-        elif self._saved_target_humidity is not None:
+        elif self._attr_saved_target_humidity is not None:
             await self.coordinator.client.async_command("mode", self._number, MODE_AWAY)
             await self.coordinator.client.async_command(
-                "target_hum", self._number, self._saved_target_humidity
+                "target_hum", self._number, self._attr_saved_target_humidity
             )
             await self.coordinator.client.async_command(
                 "mode", self._number, MODE_NORMAL
             )
             await self.coordinator.client.async_command(
-                "target_hum", self._number, self._target_humidity
+                "target_hum", self._number, self._attr_target_humidity
             )
         else:
             await self.coordinator.client.async_command(
                 "mode", self._number, MODE_NORMAL
             )
             await self.coordinator.client.async_command(
-                "target_hum", self._number, self._target_humidity
+                "target_hum", self._number, self._attr_target_humidity
             )
-        await self.coordinator.client.async_command("hum", self._number, self._state)
+        await self.coordinator.client.async_command(
+            "hum", self._number, self._attr_is_on
+        )
 
     @property
     def available(self):
         """Return True if entity is available."""
-        return self._active and super().available
+        return self._attr_available and super().available
 
     @property
     def extra_state_attributes(self):
         """Return the optional state attributes."""
-        if self._saved_target_humidity:
-            return {ATTR_SAVED_HUMIDITY: self._saved_target_humidity}
+        if self._attr_saved_target_humidity:
+            return {ATTR_SAVED_HUMIDITY: self._attr_saved_target_humidity}
         return None
 
-    @property
-    def is_on(self):
-        """Return true if the hygrostat is on."""
-        return self._state
-
-    @property
-    def current_humidity(self):
-        """Return the measured humidity."""
-        return self._cur_humidity
-
-    @property
-    def target_humidity(self):
-        """Return the humidity we try to reach."""
-        return self._target_humidity
-
-    @property
-    def mode(self):
-        """Return the current mode."""
-        if self._saved_target_humidity is None:
-            return None
-        if self._is_away:
-            return MODE_AWAY
-        return MODE_NORMAL
-
-    @property
-    def available_modes(self):
-        """Return a list of available modes."""
-        if self._saved_target_humidity is None:
-            return None
-        return [MODE_NORMAL, MODE_AWAY]
-
-    @property
-    def device_class(self):
-        """Return the device class of the humidifier."""
-        return HumidifierDeviceClass.HUMIDIFIER
-
-    async def async_turn_on(self, **kwargs):
-        """Turn hygrostat on."""
+    async def _turn(self, is_on: bool) -> None:
+        """Turn on or off."""
         if (
-            await self.coordinator.client.async_command("hum", self._number, True)
+            await self.coordinator.client.async_command("hum", self._number, is_on)
             == "OK"
         ):
-            self._state = True
-        return self.async_write_ha_state()
+            self._attr_is_on = is_on
+            self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Turn hygrostat on."""
+        await self._turn(True)
 
     async def async_turn_off(self, **kwargs):
         """Turn hygrostat off."""
-        if (
-            await self.coordinator.client.async_command("hum", self._number, False)
-            == "OK"
-        ):
-            self._state = False
-        return self.async_write_ha_state()
+        await self._turn(False)
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
@@ -313,24 +281,8 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             )
             == "OK"
         ):
-            self._target_humidity = humidity
+            self._attr_target_humidity = humidity
         return self.async_write_ha_state()
-
-    @property
-    def min_humidity(self):
-        """Return the minimum humidity."""
-        if self._min_humidity:
-            return self._min_humidity
-
-        return super().min_humidity
-
-    @property
-    def max_humidity(self):
-        """Return the maximum humidity."""
-        if self._max_humidity:
-            return self._max_humidity
-
-        return super().max_humidity
 
     async def _async_sensor_changed(self, entity_id, old_state, new_state):
         """Handle ambient humidity changes."""
@@ -338,29 +290,29 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             return None
 
         try:
-            self._cur_humidity = float(new_state.state)
+            self._attr_current_humidity = float(new_state.state)
         except ValueError as ex:
             _LOGGER.warning("Unable to update from sensor: %s", ex)
-            self._cur_humidity = new_state.state
+            self._attr_current_humidity = new_state.state
 
         await self.coordinator.client.async_command(
-            "cur_hum", self._number, self._cur_humidity
+            "cur_hum", self._number, self._attr_current_humidity
         )
         return self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
-        if self._saved_target_humidity is None:
+        if self._attr_saved_target_humidity is None:
             return None
 
         if (
             await self.coordinator.client.async_command("mode", self._number, mode)
             == "OK"
         ):
-            if self._is_away != (mode == MODE_AWAY):
-                self._target_humidity, self._saved_target_humidity = (
-                    self._saved_target_humidity,
-                    self._target_humidity,
+            if self._attr_mode != mode:
+                self._attr_target_humidity, self._attr_saved_target_humidity = (
+                    self._attr_saved_target_humidity,
+                    self._attr_target_humidity,
                 )
-            self._is_away = mode == MODE_AWAY
+            self._attr_mode = mode
         return self.async_write_ha_state()

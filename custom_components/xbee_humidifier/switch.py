@@ -125,7 +125,6 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         super().__init__(coordinator, number if number != 3 else None)
         self._name = name
         self._number = number
-        self._state = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -134,8 +133,8 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         self._handle_coordinator_update()
 
         async def async_update_state(value):
-            self._state = value
-            self.async_schedule_update_ha_state()
+            self._attr_is_on = value
+            self.async_write_ha_state()
 
         subscriber_name = (
             self._name if self._number is None else self._name + "_" + str(self._number)
@@ -144,36 +143,26 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
             self.coordinator.client.add_subscriber(subscriber_name, async_update_state)
         )
 
-    @property
-    def is_on(self) -> bool:
-        """Return true if the hygrostat is currently working."""
-        return self._state
+    async def _turn(self, is_on: bool) -> None:
+        """Turn on or off the switch."""
+        if self._number is None:
+            resp = await self.coordinator.client.async_command(self._name, is_on)
+        else:
+            resp = await self.coordinator.client.async_command(
+                self._name, self._number, is_on
+            )
+
+        if resp == "OK":
+            self._attr_is_on = is_on
+            self.async_write_ha_state()
 
     async def async_turn_on(self, **_: any) -> None:
         """Turn on the switch."""
-        if self._number is None:
-            resp = await self.coordinator.client.async_command(self._name, True)
-        else:
-            resp = await self.coordinator.client.async_command(
-                self._name, self._number, True
-            )
-
-        if resp == "OK":
-            self._state = True
-            self.async_schedule_update_ha_state()
+        await self._turn(True)
 
     async def async_turn_off(self, **_: any) -> None:
         """Turn off the switch."""
-        if self._number is None:
-            resp = await self.coordinator.client.async_command(self._name, False)
-        else:
-            resp = await self.coordinator.client.async_command(
-                self._name, self._number, False
-            )
-
-        if resp == "OK":
-            self._state = False
-            self.async_schedule_update_ha_state()
+        await self._turn(False)
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -183,6 +172,6 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
             data = data.get(self._number)
         if data is None:
             return
-        self._state = data
+        self._attr_is_on = data
 
         self.async_write_ha_state()

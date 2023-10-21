@@ -74,7 +74,6 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         super().__init__(coordinator)
         self.entity_description = entity_description
         self._name = name
-        self._state = None
         self._attr_unique_id = coordinator.unique_id + name
         self._conversion = conversion
 
@@ -87,17 +86,12 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         async def async_update_state(value):
             if self._conversion is not None:
                 value = self._conversion(value)
-            self._state = value
-            self.async_schedule_update_ha_state()
+            self._attr_native_value = value
+            self.async_write_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(self._name, async_update_state)
         )
-
-    @property
-    def native_value(self) -> str:
-        """Return the native value of the sensor."""
-        return self._state
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -107,6 +101,6 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
             return
         if self._conversion is not None:
             value = self._conversion(value)
-        self._state = value
+        self._attr_native_value = value
 
         self.async_write_ha_state()
