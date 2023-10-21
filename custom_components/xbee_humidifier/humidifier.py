@@ -269,8 +269,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
-        if humidity is None:
-            return None
         if (
             await self.coordinator.client.async_command(
                 "target_hum", self._number, humidity
@@ -282,18 +280,17 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def _async_sensor_changed(self, entity_id, old_state, new_state):
         """Handle ambient humidity changes."""
-        if new_state is None:
-            return None
+        if new_state is not None:
+            new_state = new_state.state
 
         try:
-            self._attr_current_humidity = float(new_state.state)
+            new_state = float(new_state)
+            self._attr_current_humidity = new_state
         except ValueError as ex:
             _LOGGER.warning("Unable to update from sensor: %s", ex)
-            self._attr_current_humidity = new_state.state
+            self._attr_current_humidity = None
 
-        await self.coordinator.client.async_command(
-            "cur_hum", self._number, self._attr_current_humidity
-        )
+        await self.coordinator.client.async_command("cur_hum", self._number, new_state)
         return self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str):
