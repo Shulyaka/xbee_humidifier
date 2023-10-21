@@ -238,7 +238,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
-            if data["msg"] == "Not initialized":
+            if data["msg"] in ("Not initialized", "Main loop started"):
                 await self._subscribe()
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)

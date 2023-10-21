@@ -160,7 +160,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                 self.async_on_remove(self._remove_sensor_tracking)
 
         async def async_log(data):
-            if data["msg"] == "Not initialized":
+            if data["msg"] in ("Not initialized", "Main loop started"):
                 await self._update_device()
 
         self.async_on_remove(self.coordinator.client.add_subscriber("log", async_log))

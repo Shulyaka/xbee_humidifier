@@ -184,7 +184,7 @@ async def test_timeout(cmd_mock, hass):
 
     client = XBeeHumidifierApiClient(hass, IEEE)
 
-    cmd_mock.side_effect = asyncio.TimeoutError
+    cmd_mock.side_effect = TimeoutError
 
     with pytest.raises(TimeoutError, match="No response to bind command"):
         await client.async_command("bind")
