@@ -127,6 +127,7 @@ def data_from_device_fixture(hass):
 
     for x in commands.values():
         x.reset_mock()
+        x.side_effect = None
 
     commands["hum_attr"].return_value = hum_attr
     calls.clear()

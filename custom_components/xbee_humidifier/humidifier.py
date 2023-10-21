@@ -40,7 +40,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     for number in range(0, 3):
         config = entry.options["humidifier_" + str(number)]
-        sensor_entity_id = config[CONF_SENSOR]
+        sensor_entity_id = config.get(CONF_SENSOR)
         target_humidity = config.get(CONF_TARGET_HUMIDITY)
         away_humidity = config.get(CONF_AWAY_HUMIDITY)
         min_humidity = config.get(CONF_MIN_HUMIDITY)
@@ -295,9 +295,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
-        if self._attr_saved_target_humidity is None:
-            return None
-
         if (
             await self.coordinator.client.async_command("mode", self._number, mode)
             == "OK"

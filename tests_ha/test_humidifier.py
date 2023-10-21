@@ -206,10 +206,15 @@ async def test_restore_state(
     """Test config entry reload."""
 
     new_options = test_config_entry.options.copy()
-    new_options["humidifier_0"] = test_config_entry.options["humidifier_0"].copy()
-    new_options["humidifier_0"]["target_sensor"] = "sensor.test4"
+    new_options["humidifier_1"] = test_config_entry.options["humidifier_1"].copy()
+    new_options["humidifier_1"]["target_sensor"] = "sensor.test4"
 
     hass.states.async_set("sensor.test4", 47)
+
+    def cmd_cur_hum(number):
+        return 30 if number == 0 else None
+
+    commands["cur_hum"].side_effect = cmd_cur_hum
 
     assert test_config_entry.options != new_options
     assert hass.config_entries.async_update_entry(
@@ -228,12 +233,12 @@ async def test_restore_state(
     assert state.attributes.get("available_modes") == ["normal", "away"]
     assert state.attributes.get("device_class") == "humidifier"
     assert state.attributes.get("friendly_name") == "XBee Humidifier 1 Humidifier"
-    assert state.attributes.get("humidity") == 40
-    assert state.attributes.get("current_humidity") == 47
+    assert state.attributes.get("humidity") == 50
+    assert state.attributes.get("current_humidity") == 30
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80
-    assert state.attributes.get("mode") == "away"
-    assert state.attributes.get("saved_humidity") == 34
+    assert state.attributes.get("mode") == "normal"
+    assert state.attributes.get("saved_humidity") == 35
     assert state.attributes.get("supported_features") == 1
     assert state.attributes.get("action") == "off"
 
@@ -244,7 +249,7 @@ async def test_restore_state(
     assert state.attributes.get("device_class") == "humidifier"
     assert state.attributes.get("friendly_name") == "XBee Humidifier 2 Humidifier"
     assert state.attributes.get("humidity") == 40
-    assert state.attributes.get("current_humidity") is None
+    assert state.attributes.get("current_humidity") == 47
     assert state.attributes.get("min_humidity") == 15
     assert state.attributes.get("max_humidity") == 80
     assert state.attributes.get("mode") == "away"
