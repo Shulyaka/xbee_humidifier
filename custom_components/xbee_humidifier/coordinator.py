@@ -212,6 +212,18 @@ class XBeeHumidifierApiClient:
                     _LOGGER.error("callback error for %s", listener)
                     _LOGGER.error(type(e).__name__ + ": " + str(e))
 
+        if (
+            key == "log"
+            and value["msg"] in ("Not initialized", "Main loop started")
+            and "device_reset" in self._callbacks
+        ):
+            for listener in self._callbacks["device_reset"]:
+                try:
+                    await listener()
+                except Exception as e:
+                    _LOGGER.error("callback error for %s", listener)
+                    _LOGGER.error(type(e).__name__ + ": " + str(e))
+
 
 class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from XBeeHumidifier."""
@@ -238,10 +250,11 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
-            if data["msg"] in ("Not initialized", "Main loop started"):
-                await self._subscribe()
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
+        self._remove_device_reset_handler = self.client.add_subscriber(
+            "device_reset", self._subscribe
+        )
 
         async def async_data_received(data):
             self.last_update_success = True
@@ -257,12 +270,15 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     def stop(self):
         """Unsubscribe events."""
         self.client.stop()
-        if self._remove_log_handler:
+        if self._remove_log_handler is not None:
             self._remove_log_handler()
             self._remove_log_handler = None
-        if self._remove_data_received_handler:
+        if self._remove_data_received_handler is not None:
             self._remove_data_received_handler()
             self._remove_data_received_handler = None
+        if self._remove_device_reset_handler is not None:
+            self._remove_device_reset_handler()
+            self._remove_device_reset_handler = None
 
     async def async_config_entry_first_refresh(self) -> None:
         """Refresh data for the first time when a config entry is setup."""
