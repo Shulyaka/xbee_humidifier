@@ -148,18 +148,28 @@ async def test_subscribers(hass, caplog, data_from_device):
 
     listener = MagicMock()
     listener_all = MagicMock()
+    listener_reset = MagicMock()
     client.add_subscriber("test_data", listener)
     client.add_subscriber("data_received", listener_all)
+    client.add_subscriber("device_reset", listener_reset)
 
     data_from_device(hass, IEEE, {"test_data": "test_value"})
     data_from_device(hass, IEEE, {"test_data2": "test_value2"})
+    data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
     await hass.async_block_till_done()
 
     listener.assert_called_once_with("test_value")
-    assert listener_all.call_count == 2
+    listener_reset.assert_called_once_with()
+    assert listener_all.call_count == 3
     assert listener_all.call_args_list[0][0][0] == {"test_data": "test_value"}
     assert listener_all.call_args_list[1][0][0] == {"test_data2": "test_value2"}
+    assert listener_all.call_args_list[2][0][0] == {
+        "log": {"msg": "Not initialized", "sev": 20}
+    }
     assert "No callback for {'test_data2': 'test_value2'}" in caplog.text
+    assert (
+        "No callback for {'log': {'msg': 'Not initialized', 'sev': 20}}" in caplog.text
+    )
 
     listener.side_effect = KeyError("foo")
 
@@ -176,6 +186,14 @@ async def test_subscribers(hass, caplog, data_from_device):
 
     assert "callback error" in caplog.text
     assert "RuntimeError: bar" in caplog.text
+
+    listener_reset.side_effect = TimeoutError("baz")
+
+    data_from_device(hass, IEEE, {"log": {"msg": "Main loop started", "sev": 20}})
+    await hass.async_block_till_done()
+
+    assert "callback error" in caplog.text
+    assert "TimeoutError: baz" in caplog.text
 
 
 @patch("custom_components.xbee_humidifier.coordinator.XBeeHumidifierApiClient._cmd")
