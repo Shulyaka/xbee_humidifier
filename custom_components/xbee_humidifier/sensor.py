@@ -8,6 +8,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 
 from .const import DOMAIN
 from .coordinator import XBeeHumidifierDataUpdateCoordinator
@@ -81,13 +82,7 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        try:
-            value = await self.coordinator.client.async_command(self._name)
-            if self._conversion is not None:
-                value = self._conversion(value)
-            self._state = value
-        except TimeoutError:
-            pass
+        self._handle_coordinator_update()
 
         async def async_update_state(value):
             if self._conversion is not None:
@@ -103,3 +98,15 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the native value of the sensor."""
         return self._state
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        value = self.coordinator.data.get(self._name)
+        if value is None:
+            return
+        if self._conversion is not None:
+            value = self._conversion(value)
+        self._state = value
+
+        self.async_write_ha_state()

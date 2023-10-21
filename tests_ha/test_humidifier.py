@@ -2,6 +2,7 @@
 from unittest.mock import patch
 
 from homeassistant.components.humidifier import (
+    ATTR_ACTION,
     ATTR_HUMIDITY,
     DOMAIN as HUMIDIFIER,
     MODE_AWAY,
@@ -52,6 +53,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY2).state == "unavailable"
 
     data_from_device(hass, IEEE, {"available_1": True})
+    data_from_device(hass, IEEE, {"working_1": False})
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY2)
@@ -145,6 +147,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY3).state == "unavailable"
 
     data_from_device(hass, IEEE, {"available_2": True})
+    data_from_device(hass, IEEE, {"working_2": False})
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY3)
@@ -173,6 +176,7 @@ async def test_humidifier_services(hass, data_from_device, test_config_entry):
             ATTR_HUMIDITY: "40",
             ATTR_MODE: MODE_AWAY,
             ATTR_SAVED_HUMIDITY: "34",
+            ATTR_ACTION: "off",
         },
     ),
 )

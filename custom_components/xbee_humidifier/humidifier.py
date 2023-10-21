@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.humidifier import (
+    ATTR_ACTION,
     ATTR_HUMIDITY,
     MODE_AWAY,
     MODE_NORMAL,
@@ -104,7 +105,12 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        if self.coordinator.data.get(self._number)["cur_hum"] is not None:
+        if (
+            self.coordinator.data.get("humidifier", {})
+            .get(self._number, {})
+            .get("cur_hum")
+            is not None
+        ):
             self._handle_coordinator_update()
         else:
             if (old_state := await self.async_get_last_state()) is not None:
@@ -117,16 +123,18 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                         self._saved_target_humidity,
                         self._target_humidity,
                     )
-                if old_state.attributes.get(ATTR_HUMIDITY):
+                if old_state.attributes.get(ATTR_HUMIDITY) is not None:
                     self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
                 if (
                     self._saved_target_humidity is not None
-                    and old_state.attributes.get(ATTR_SAVED_HUMIDITY)
+                    and old_state.attributes.get(ATTR_SAVED_HUMIDITY) is not None
                 ):
                     self._saved_target_humidity = int(
                         old_state.attributes[ATTR_SAVED_HUMIDITY]
                     )
-                if old_state.state:
+                if old_state.attributes.get(ATTR_ACTION) is not None:
+                    self._attr_action = old_state.attributes[ATTR_ACTION]
+                if old_state.state is not None:
                     self._state = old_state.state == STATE_ON
 
             await self._update_device()
@@ -164,12 +172,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             )
         )
 
-        self._attr_action = (
-            HumidifierAction.HUMIDIFYING
-            if self.coordinator.data.get(self._number, {}).get("working")
-            else HumidifierAction.IDLE
-        )
-
         async def async_update_action(value):
             self._attr_action = (
                 HumidifierAction.HUMIDIFYING if value else HumidifierAction.IDLE
@@ -185,7 +187,9 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        resp = self.coordinator.data.get(self._number)
+        resp = self.coordinator.data.get("humidifier", {}).get(self._number)
+        if resp is None:
+            return
 
         self._state = resp["is_on"]
         self._is_away = resp["mode"] == "away"
@@ -232,10 +236,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                 "target_hum", self._number, self._target_humidity
             )
         await self.coordinator.client.async_command("hum", self._number, self._state)
-
-    @callback
-    async def _async_startup(self):
-        """Init on startup."""
 
     @property
     def available(self):

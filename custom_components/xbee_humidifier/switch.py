@@ -7,6 +7,7 @@ from homeassistant.components.switch import (
     SwitchEntityDescription,
 )
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 
 from .const import DOMAIN
 from .coordinator import XBeeHumidifierDataUpdateCoordinator
@@ -130,13 +131,7 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        try:
-            args = ()
-            if self._number is not None:
-                args += (self._number,)
-            self._state = await self.coordinator.client.async_command(self._name, *args)
-        except TimeoutError:
-            pass
+        self._handle_coordinator_update()
 
         async def async_update_state(value):
             self._state = value
@@ -179,3 +174,15 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         if resp == "OK":
             self._state = False
             self.async_schedule_update_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        data = self.coordinator.data.get(self._name)
+        if data is not None and self._number is not None:
+            data = data.get(self._number)
+        if data is None:
+            return
+        self._state = data
+
+        self.async_write_ha_state()

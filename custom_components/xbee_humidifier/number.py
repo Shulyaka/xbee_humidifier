@@ -8,6 +8,7 @@ from homeassistant.components.number import (
 )
 from homeassistant.components.number.const import NumberMode
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 
 from .const import DOMAIN
 from .coordinator import XBeeHumidifierDataUpdateCoordinator
@@ -63,10 +64,7 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        try:
-            self._state = await self.coordinator.client.async_command(self._name)
-        except TimeoutError:
-            pass
+        self._handle_coordinator_update()
 
         async def async_update_state(value):
             self._state = value
@@ -88,3 +86,13 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         if resp == "OK":
             self._state = value
             self.async_schedule_update_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        value = self.coordinator.data.get(self._name)
+        if value is None:
+            return
+        self._state = value
+
+        self.async_write_ha_state()

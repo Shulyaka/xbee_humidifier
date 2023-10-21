@@ -287,13 +287,30 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     async def async_update_data(self):
         """Update data."""
         await self._bind()
-        data = {}
+        data = {"humidifier": {}, "valve": {}}
         for number in range(0, 3):
-            data[number] = await self.client.async_command("hum_attr", number)
-            data[number]["is_on"] = await self.client.async_command("hum", number)
-            data[number]["cur_hum"] = await self.client.async_command("cur_hum", number)
-            data[number]["target_hum"] = await self.client.async_command(
+            data["humidifier"][number] = await self.client.async_command(
+                "hum_attr", number
+            )
+            data["humidifier"][number]["is_on"] = await self.client.async_command(
+                "hum", number
+            )
+            data["humidifier"][number]["cur_hum"] = await self.client.async_command(
+                "cur_hum", number
+            )
+            data["humidifier"][number]["target_hum"] = await self.client.async_command(
                 "target_hum", number
             )
-            data[number]["mode"] = await self.client.async_command("mode", number)
+            data["humidifier"][number]["mode"] = await self.client.async_command(
+                "mode", number
+            )
+        for number in range(0, 4):
+            data["valve"][number] = await self.client.async_command("valve", number)
+        data["pump"] = await self.client.async_command("pump")
+        data["pump_block"] = await self.client.async_command("pump_block")
+        data["fan"] = await self.client.async_command("fan")
+        data["aux_led"] = await self.client.async_command("aux_led")
+        data["pump_temp"] = await self.client.async_command("pump_temp")
+        data["pressure_in"] = await self.client.async_command("pressure_in")
+        data["pump_speed"] = await self.client.async_command("pump_speed")
         return data
