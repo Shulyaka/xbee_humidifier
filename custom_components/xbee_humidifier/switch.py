@@ -170,8 +170,6 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         data = self.coordinator.data.get(self._name)
         if data is not None and self._number is not None:
             data = data.get(self._number)
-        if data is None:
-            return
         self._attr_is_on = data
 
         self.async_write_ha_state()

@@ -85,8 +85,6 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
-        if value is None:
-            return
         self._attr_native_value = value
 
         self.async_write_ha_state()

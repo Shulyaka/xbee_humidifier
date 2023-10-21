@@ -189,8 +189,6 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         resp = self.coordinator.data.get("humidifier", {}).get(self._number)
-        if resp is None:
-            return
 
         self._attr_is_on = resp["is_on"]
         self._attr_mode = resp["mode"]

@@ -97,8 +97,6 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
-        if value is None:
-            return
         if self._conversion is not None:
             value = self._conversion(value)
         self._attr_native_value = value
