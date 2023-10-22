@@ -258,12 +258,13 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def _turn(self, is_on: bool) -> None:
         """Turn on or off."""
-        if (
-            await self.coordinator.client.async_command("hum", self._number, is_on)
-            == "OK"
-        ):
-            self._attr_is_on = is_on
-            self.async_write_ha_state()
+        async with self.coordinator.humidifier_lock:
+            if (
+                await self.coordinator.client.async_command("hum", self._number, is_on)
+                == "OK"
+            ):
+                self._attr_is_on = is_on
+                self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn hygrostat on."""
@@ -275,14 +276,15 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
-        if (
-            await self.coordinator.client.async_command(
-                "target_hum", self._number, humidity
-            )
-            == "OK"
-        ):
-            self._attr_target_humidity = humidity
-        self.async_write_ha_state()
+        async with self.coordinator.humidifier_lock:
+            if (
+                await self.coordinator.client.async_command(
+                    "target_hum", self._number, humidity
+                )
+                == "OK"
+            ):
+                self._attr_target_humidity = humidity
+                self.async_write_ha_state()
 
     async def _async_sensor_changed(self, entity_id, old_state, new_state):
         """Handle ambient humidity changes."""
@@ -296,19 +298,23 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             _LOGGER.warning("Unable to update from sensor: %s", ex)
             self._attr_current_humidity = None
 
-        await self.coordinator.client.async_command("cur_hum", self._number, new_state)
-        self.async_write_ha_state()
+        async with self.coordinator.humidifier_lock:
+            await self.coordinator.client.async_command(
+                "cur_hum", self._number, new_state
+            )
+            self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
-        if (
-            await self.coordinator.client.async_command("mode", self._number, mode)
-            == "OK"
-        ):
-            if self._attr_mode != mode:
-                self._attr_target_humidity, self._attr_saved_target_humidity = (
-                    self._attr_saved_target_humidity,
-                    self._attr_target_humidity,
-                )
-            self._attr_mode = mode
-        self.async_write_ha_state()
+        async with self.coordinator.humidifier_lock:
+            if (
+                await self.coordinator.client.async_command("mode", self._number, mode)
+                == "OK"
+            ):
+                if self._attr_mode != mode:
+                    self._attr_target_humidity, self._attr_saved_target_humidity = (
+                        self._attr_saved_target_humidity,
+                        self._attr_target_humidity,
+                    )
+                self._attr_mode = mode
+                self.async_write_ha_state()
