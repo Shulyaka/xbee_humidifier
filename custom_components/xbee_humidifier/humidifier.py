@@ -164,8 +164,9 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
 
         async def async_update_available(value):
-            self._attr_available = value
-            return self.async_write_ha_state()
+            async with self.coordinator.humidifier_lock:
+                self._attr_available = value
+                self.async_write_ha_state()
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(
@@ -202,7 +203,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if self._sensor_entity_id is None:
             self._attr_current_humidity = resp["cur_hum"]
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     async def _update_device(self):
         async with self.coordinator.humidifier_lock:
@@ -281,7 +282,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             == "OK"
         ):
             self._attr_target_humidity = humidity
-        return self.async_write_ha_state()
+        self.async_write_ha_state()
 
     async def _async_sensor_changed(self, entity_id, old_state, new_state):
         """Handle ambient humidity changes."""
@@ -296,7 +297,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             self._attr_current_humidity = None
 
         await self.coordinator.client.async_command("cur_hum", self._number, new_state)
-        return self.async_write_ha_state()
+        self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str):
         """Set new mode."""
@@ -310,4 +311,4 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                     self._attr_target_humidity,
                 )
             self._attr_mode = mode
-        return self.async_write_ha_state()
+        self.async_write_ha_state()

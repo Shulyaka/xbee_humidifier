@@ -172,4 +172,4 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
             data = data.get(self._number)
         self._attr_is_on = data
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()

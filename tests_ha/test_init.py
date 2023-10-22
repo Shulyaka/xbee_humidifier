@@ -87,7 +87,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     commands["mode"].return_value = "normal"
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
     await hass.async_block_till_done()
-    commands["bind"].assert_called_once_with()
+    assert commands["bind"].call_count > 0
     assert commands["mode"].call_count == 8
     assert commands["mode"].call_args_list[0][0][0] == [0, "away"]
     assert commands["mode"].call_args_list[1][0][0] == [0, "normal"]

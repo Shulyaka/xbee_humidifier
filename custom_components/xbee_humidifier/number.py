@@ -87,4 +87,4 @@ class XBeeHumidifierNumber(XBeeHumidifierEntity, NumberEntity):
         value = self.coordinator.data.get(self._name)
         self._attr_native_value = value
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
