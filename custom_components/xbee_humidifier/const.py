@@ -2,5 +2,5 @@
 
 DOMAIN = "xbee_humidifier"
 NAME = "XBee Humidifier"
-VERSION = "0.0.1"
+VERSION = "1.0.0"
 ATTRIBUTION = "Denis Shulyaka"
