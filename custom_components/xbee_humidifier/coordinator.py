@@ -243,12 +243,8 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
 
-        async def device_reset():
-            await self._subscribe()
-            await self.async_request_refresh()
-
         self._remove_device_reset_handler = self.client.add_subscriber(
-            "device_reset", device_reset
+            "device_reset", self.async_refresh
         )
 
         async def async_data_received(data):
@@ -291,13 +287,10 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         version_info = [v.split(": ", 1) for v in version_info]
         self.version_info = dict(version_info)
 
-    async def _subscribe(self):
-        await self.client.async_command("bind")
-
     @callback
     async def async_update_data(self):
         """Update data."""
-        await self._subscribe()
+        await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
         data["pump"] = await self.client.async_command("pump")
         data["pump_block"] = await self.client.async_command("pump_block")
