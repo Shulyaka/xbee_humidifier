@@ -53,6 +53,8 @@ class Sensor:
 
     def _run_triggers(self, value):
         """Call all defined callbacks one by one synchronically."""
+        self._last_callback_value = value
+        self._last_callback_time = ticks_ms()
         for callback in self._triggers:
             try:
                 collect()
@@ -110,8 +112,6 @@ class Sensor:
             )
             or (self._lowpass is None and self._last_callback_value != self._state)
         ):
-            self._last_callback_value = self._state
-            self._last_callback_time = ticks_ms()
             self._run_triggers(self._state)
 
     def _get(self):
