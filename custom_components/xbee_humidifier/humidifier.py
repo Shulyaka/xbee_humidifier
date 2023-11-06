@@ -243,6 +243,9 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
             await self.coordinator.client.async_command(
                 "hum", self._number, self._attr_is_on
             )
+            await self.coordinator.client.async_command(
+                "cur_hum", self._number, self._attr_current_humidity
+            )
 
     @property
     def available(self):

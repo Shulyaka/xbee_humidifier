@@ -27,10 +27,13 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["valve"].call_args_list[1][0][0] == 1
     assert commands["valve"].call_args_list[2][0][0] == 2
     assert commands["valve"].call_args_list[3][0][0] == 3
-    assert commands["cur_hum"].call_count == 3
+    assert commands["cur_hum"].call_count == 6
     assert commands["cur_hum"].call_args_list[0][0][0] == 0
     assert commands["cur_hum"].call_args_list[1][0][0] == 1
     assert commands["cur_hum"].call_args_list[2][0][0] == 2
+    assert commands["cur_hum"].call_args_list[3][0][0] == [0, None]
+    assert commands["cur_hum"].call_args_list[4][0][0] == [1, None]
+    assert commands["cur_hum"].call_args_list[5][0][0] == [2, None]
     assert commands["target_hum"].call_count == 8
     assert commands["target_hum"].call_args_list[0][0][0] == 0
     assert commands["target_hum"].call_args_list[1][0][0] == 1
@@ -79,10 +82,15 @@ async def test_refresh(hass, data_from_device, test_config_entry):
         blocking=True,
     )
 
+    hass.states.async_set("sensor.test2", "45.0")
+    hass.states.async_set("sensor.test3", "46.3")
+    await hass.async_block_till_done()
+
     commands["bind"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
+    commands["cur_hum"].reset_mock()
     commands["mode"].reset_mock()
     commands["mode"].return_value = "normal"
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
@@ -106,6 +114,13 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["target_hum"].call_args_list[5][0][0] == 0
     assert commands["target_hum"].call_args_list[6][0][0] == 1
     assert commands["target_hum"].call_args_list[7][0][0] == 2
+    assert commands["cur_hum"].call_count == 6
+    assert commands["cur_hum"].call_args_list[0][0][0] == [0, None]
+    assert commands["cur_hum"].call_args_list[1][0][0] == [1, 45.0]
+    assert commands["cur_hum"].call_args_list[2][0][0] == [2, 46.3]
+    assert commands["cur_hum"].call_args_list[3][0][0] == 0
+    assert commands["cur_hum"].call_args_list[4][0][0] == 1
+    assert commands["cur_hum"].call_args_list[5][0][0] == 2
     assert commands["hum_attr"].call_count == 3
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
