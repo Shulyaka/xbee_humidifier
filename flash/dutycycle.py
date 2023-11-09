@@ -1,7 +1,5 @@
 """Implementation of a slow PWM for humidifiers."""
 
-from time import ticks_add, ticks_ms
-
 from lib import logging
 from lib.mainloop import main_loop
 from micropython import const
@@ -178,19 +176,19 @@ class DutyCycle:
             _LOGGER.debug("Scheduling duty cycle stop after timeout")
             self._pump_timeout = main_loop.schedule_task(
                 lambda: self._pump_on_timeout(),
-                next_run=ticks_add(ticks_ms(), self._pump_on_timeout_ms),
+                next_run=self._pump_on_timeout_ms,
             )
             self._pressure_drop = None
         else:
             _LOGGER.debug("Scheduling duty cycle start after timeout")
             self._pump_timeout = main_loop.schedule_task(
                 lambda: self._pump_off_timeout(),
-                next_run=ticks_add(ticks_ms(), self._pump_off_timeout_ms),
+                next_run=self._pump_off_timeout_ms,
             )
             _LOGGER.debug("Scheduling pressure drop after timeout")
             self._pressure_drop = main_loop.schedule_task(
                 lambda: self._start_pressure_drop(),
-                next_run=ticks_add(ticks_ms(), self._pressure_drop_delay_ms),
+                next_run=self._pressure_drop_delay_ms,
             )
 
     def _pressure_drop_valve_changed(self, value):
@@ -207,7 +205,7 @@ class DutyCycle:
             _LOGGER.debug("Pressure drop valve opened, scheduling closing all valves")
             self._close_valves = main_loop.schedule_task(
                 lambda: self._close_all_valves(),
-                next_run=ticks_add(ticks_ms(), self._pressure_drop_time_ms),
+                next_run=self._pressure_drop_time_ms,
             )
         else:
             self._close_valves = None

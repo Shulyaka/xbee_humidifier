@@ -22,11 +22,11 @@ def test_task():
     assert task.next_run is None
 
     # Test task next_run for periodic tasks
-    assert mainloop.Task(callback, next_run=1050).next_run == 1050
+    assert mainloop.Task(callback, next_run=50).next_run == 1050
     assert mainloop.Task(callback, period=100).next_run == 1000
 
     # Test task next_run after completion of a periodic task
-    task = mainloop.Task(callback, next_run=1050, period=100)
+    task = mainloop.Task(callback, next_run=50, period=100)
     next_run = task.run()
     assert next_run == 1150
     assert task.next_run == 1150
@@ -64,8 +64,8 @@ def test_loop():
     # Test mainloop with two tasks
     callback.reset_mock()
     callback2 = mock.MagicMock()
-    loop.schedule_task(callback, next_run=1100)
-    loop.schedule_task(callback2, next_run=1200)
+    loop.schedule_task(callback, next_run=100)
+    loop.schedule_task(callback2, next_run=200)
     assert loop.next_run == 1100
     assert loop.run_once() == 1100
     assert callback.call_count == 0
@@ -99,7 +99,7 @@ def test_loop():
     assert mock_sleep_ms.call_count == 0
 
     # Test mainloop sleep
-    loop.schedule_task(lambda: loop.stop(), next_run=1400)
+    loop.schedule_task(lambda: loop.stop(), next_run=100)
     assert loop.run() is None
     assert loop.next_run is None
     mock_sleep_ms.assert_called_once_with(100)
@@ -125,7 +125,7 @@ def test_loop():
 
     # Test task remaining after stop
     callback.reset_mock()
-    task = loop.schedule_task(callback, next_run=1500, period=100)
+    task = loop.schedule_task(callback, next_run=100, period=100)
     loop.schedule_task(lambda: loop.schedule_task(lambda: loop.stop()))
     assert loop.run() == 1500
     assert loop.next_run == 1500

@@ -3,7 +3,7 @@
 from binascii import hexlify
 from gc import collect
 from json import dumps as json_dumps, loads as json_loads
-from time import ticks_add, ticks_diff, ticks_ms
+from time import ticks_diff, ticks_ms
 
 from lib import logging
 from lib.mainloop import main_loop
@@ -43,7 +43,7 @@ class Sensor:
         if self._period is not None:
             self._updates = main_loop.schedule_task(
                 lambda: self.update(auto=True),
-                next_run=ticks_add(ticks_ms(), self._period),
+                next_run=self._period,
                 period=self._period,
             )
         else:
@@ -219,7 +219,7 @@ class Commands:
                             eui64, data, limit
                         )
                     )(eui64, data, limit - 1),
-                    next_run=ticks_add(ticks_ms(), 50),
+                    next_run=50,
                 )
 
     def cmd_help(self, sender_eui64=None):

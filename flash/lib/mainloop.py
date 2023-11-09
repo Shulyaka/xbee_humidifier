@@ -14,11 +14,11 @@ class Task:
     def __init__(self, callback, next_run=None, period=None):
         """Init the class."""
         self._callback = callback
-        self._next_run = next_run
         self._period = period
-
-        if self._next_run is None:
+        if next_run is None:
             self._next_run = ticks_ms()
+        else:
+            self._next_run = ticks_add(ticks_ms(), next_run)
 
     def run(self):
         """Execute the task and return the next scheduled time."""

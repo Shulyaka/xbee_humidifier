@@ -1,6 +1,6 @@
 """Generic hygrostat implementation."""
 
-from time import ticks_add, ticks_diff, ticks_ms
+from time import ticks_diff, ticks_ms
 
 from lib import logging
 from lib.core import Switch
@@ -70,7 +70,7 @@ class GenericHygrostat(Switch):
             main_loop.remove_task(self._stale_tracking)
             self._stale_tracking = main_loop.schedule_task(
                 lambda: self._sensor_not_responding(),
-                ticks_add(ticks_ms(), self._stale_duration * 1000),
+                self._stale_duration * 1000,
             )
 
         self._update_humidity(new_state)
