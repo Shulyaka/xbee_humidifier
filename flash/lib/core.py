@@ -42,7 +42,9 @@ class Sensor:
 
         if self._period is not None:
             self._updates = main_loop.schedule_task(
-                lambda: self.update(auto=True), period=self._period
+                lambda: self.update(auto=True),
+                next_run=ticks_add(ticks_ms(), self._period),
+                period=self._period,
             )
         else:
             self._updates = None

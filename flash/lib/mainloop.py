@@ -17,8 +17,8 @@ class Task:
         self._next_run = next_run
         self._period = period
 
-        if self._next_run is None and self._period is not None:
-            self._next_run = ticks_add(ticks_ms(), self._period)
+        if self._next_run is None:
+            self._next_run = ticks_ms()
 
     def run(self):
         """Execute the task and return the next scheduled time."""
@@ -46,7 +46,7 @@ class Task:
         """Return the time of the next scheduled execution or None if completed."""
         if self._callback is None:
             return None
-        return self._next_run if self._next_run is not None else ticks_ms()
+        return self._next_run
 
 
 class Loop:
@@ -61,10 +61,10 @@ class Loop:
         self._idle_time = 0
         self._task_scheduled = False
 
-    def schedule_task(self, callback, *args, **kwargs):
+    def schedule_task(self, *args, **kwargs):
         """Add new task."""
         collect()
-        task = Task(callback, *args, **kwargs)
+        task = Task(*args, **kwargs)
         self._tasks.append(task)
         self._task_scheduled = True
         collect()

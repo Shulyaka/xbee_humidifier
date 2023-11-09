@@ -14,8 +14,6 @@ def test_task():
     mock_ticks_ms.return_value = 1000
     task = mainloop.Task(callback)
     assert task.next_run == 1000
-    mock_ticks_ms.return_value = 1005
-    assert task.next_run == 1005
 
     # Test task next_run after completion
     next_run = task.run()
@@ -25,7 +23,7 @@ def test_task():
 
     # Test task next_run for periodic tasks
     assert mainloop.Task(callback, next_run=1050).next_run == 1050
-    assert mainloop.Task(callback, period=100).next_run == 1105
+    assert mainloop.Task(callback, period=100).next_run == 1000
 
     # Test task next_run after completion of a periodic task
     task = mainloop.Task(callback, next_run=1050, period=100)
@@ -127,7 +125,7 @@ def test_loop():
 
     # Test task remaining after stop
     callback.reset_mock()
-    task = loop.schedule_task(callback, period=100)
+    task = loop.schedule_task(callback, next_run=1500, period=100)
     loop.schedule_task(lambda: loop.schedule_task(lambda: loop.stop()))
     assert loop.run() == 1500
     assert loop.next_run == 1500
