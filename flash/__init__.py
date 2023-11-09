@@ -17,12 +17,6 @@ collect()
 _LOGGER = logging.getLogger(__name__)
 
 
-if config.debug:
-    print("\nTOSR0X not detected, enabling emulation")
-
-_LOGGER.debug("Reset cause {}".format(reset_cause()))
-
-
 def _setup(debug):
     global _zone, _sensor, _commands, _available, _humidifier, _pump_block
     global _duty_cycle, _warning_subscribers, _warning_cb
@@ -30,7 +24,11 @@ def _setup(debug):
     _sensor = {x: Sensor() for x in range(3)}
     _available = {x: Switch() for x in range(3)}
 
+    _LOGGER.debug("Reset cause {}".format(reset_cause()))
+
     if debug:
+        print("\nTOSR0X not detected, enabling emulation")
+
         for x in range(3):
             _zone[x].subscribe(
                 (lambda n: lambda v: print("ZONE{} = {}".format(n, v)))(x)
