@@ -155,7 +155,7 @@ async def test_subscribers(hass, caplog, data_from_device):
 
     data_from_device(hass, IEEE, {"test_data": "test_value"})
     data_from_device(hass, IEEE, {"test_data2": "test_value2"})
-    data_from_device(hass, IEEE, {"log": {"msg": "Main loop started", "sev": 20}})
+    data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
     await hass.async_block_till_done()
 
     listener.assert_awaited_once_with("test_value")
@@ -164,12 +164,11 @@ async def test_subscribers(hass, caplog, data_from_device):
     assert listener_all.await_args_list[0][0][0] == {"test_data": "test_value"}
     assert listener_all.await_args_list[1][0][0] == {"test_data2": "test_value2"}
     assert listener_all.await_args_list[2][0][0] == {
-        "log": {"msg": "Main loop started", "sev": 20}
+        "log": {"msg": "Not initialized", "sev": 20}
     }
     assert "No callback for {'test_data2': 'test_value2'}" in caplog.text
     assert (
-        "No callback for {'log': {'msg': 'Main loop started', 'sev': 20}}"
-        in caplog.text
+        "No callback for {'log': {'msg': 'Not initialized', 'sev': 20}}" in caplog.text
     )
 
 

@@ -206,7 +206,7 @@ class XBeeHumidifierApiClient:
 
         if (
             key == "log"
-            and value["msg"] in ("Not initialized", "Main loop started")
+            and "Not initialized" in value["msg"]
             and "device_reset" in self._callbacks
         ):
             for listener in self._callbacks["device_reset"]:
