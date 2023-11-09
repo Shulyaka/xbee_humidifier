@@ -91,6 +91,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["cur_hum"].reset_mock()
+    commands["pump_block"].reset_mock()
     commands["mode"].reset_mock()
     commands["mode"].return_value = "normal"
     data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
@@ -132,6 +133,9 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[3][0][0] == 0
     assert commands["hum"].call_args_list[4][0][0] == 1
     assert commands["hum"].call_args_list[5][0][0] == 2
+    assert commands["pump_block"].call_count == 2
+    assert commands["pump_block"].call_args_list[0][0][0] is False
+    assert len(commands["pump_block"].call_args_list[1][0]) == 0
 
 
 async def test_reload(hass, data_from_device, test_config_entry):

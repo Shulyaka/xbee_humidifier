@@ -142,6 +142,16 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         self.async_on_remove(
             self.coordinator.client.add_subscriber(subscriber_name, async_update_state)
         )
+        if self._name == "pump_block":
+            self.async_on_remove(
+                self.coordinator.client.add_subscriber(
+                    "device_reset", self._update_device
+                )
+            )
+
+    async def _update_device(self):
+        """Update device settings from HA on reset."""
+        await self._turn(self._attr_is_on)
 
     async def _turn(self, is_on: bool) -> None:
         """Turn on or off the switch."""

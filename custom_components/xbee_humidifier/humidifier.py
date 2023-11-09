@@ -206,6 +206,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         self.schedule_update_ha_state()
 
     async def _update_device(self):
+        """Update device settings from HA on reset."""
         async with self.coordinator.humidifier_lock:
             if self._attr_mode == MODE_AWAY:
                 await self.coordinator.client.async_command(
