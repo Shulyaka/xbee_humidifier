@@ -2,7 +2,14 @@
 
 from unittest.mock import MagicMock
 
-reset_cause = MagicMock(return_value=6)
+HARD_RESET = 3
+PWRON_RESET = 4
+WDT_RESET = 5
+SOFT_RESET = 6
+LOCKUP_RESET = 9
+BROWNOUT_RESET = 11
+
+reset_cause = MagicMock(return_value=SOFT_RESET)
 
 soft_reset = MagicMock()
 

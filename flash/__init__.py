@@ -3,13 +3,13 @@
 from gc import collect, mem_alloc, mem_free
 
 import config
+import machine
 from commands import HumidifierCommands
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
 from lib import logging
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
-from machine import reset_cause
 from micropython import kbd_intr
 
 collect()
@@ -23,8 +23,6 @@ def _setup(debug):
     _zone = {x: Switch() for x in range(3)}
     _sensor = {x: Sensor() for x in range(3)}
     _available = {x: Switch() for x in range(3)}
-
-    _LOGGER.debug("Reset cause {}".format(reset_cause()))
 
     if debug:
         print("\nTOSR0X not detected, enabling emulation")
@@ -111,8 +109,21 @@ def _setup(debug):
     )
     collect()
 
+    reset_cause = {
+        machine.BROWNOUT_RESET: "BROWNOUT",
+        machine.LOCKUP_RESET: "LOCKUP",
+        machine.PWRON_RESET: "PWRON",
+        machine.HARD_RESET: "HARD",
+        machine.WDT_RESET: "WDT",
+        machine.SOFT_RESET: "SOFT",
+    }[machine.reset_cause()]
+    collect()
+
     _warning_cb = main_loop.schedule_task(
-        lambda: _LOGGER.warning("Not initialized"), period=30000
+        lambda: _LOGGER.warning(
+            "Not initialized, reason = machine.{}_RESET".format(reset_cause)
+        ),
+        period=30000,
     )
     _warning_subscribers = {}
 
