@@ -183,3 +183,10 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         self._attr_is_on = data
 
         self.schedule_update_ha_state()
+
+    @property
+    def available(self):
+        """Return True if entity is available, always available for pump_block."""
+        if self._name == "pump_block":
+            return True
+        return super().available
