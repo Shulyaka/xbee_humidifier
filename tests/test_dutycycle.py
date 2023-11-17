@@ -38,6 +38,11 @@ def test_dutycycle():
         pump, humidifier, humidifier_switch, tosr_switch, pump_block
     )
 
+    assert (
+        duty_cycle._pump_off_timeout_ms
+        > duty_cycle._pressure_drop_delay_ms + duty_cycle._pressure_drop_time_ms
+    )
+
     # Check initial state
     assert not pump.state
     assert not tosr_switch[0].state
@@ -301,16 +306,6 @@ def test_dutycycle():
     mock_sleep(5)
     main_loop.run_once()
 
-    pump.state = True
-    main_loop.run_once()
-
-    # Check that manual pump start is blocked while in the pressure drop stage
-    assert not pump.state
-    assert tosr_switch[0].state
-    assert tosr_switch[1].state
-    assert not tosr_switch[2].state
-    assert tosr_switch[3].state
-
     mock_sleep(55)
     main_loop.run_once()
 
@@ -343,21 +338,6 @@ def test_dutycycle():
     # Check that the cycle has started, then stopped
     assert not pump.state
     assert tosr_switch[0].state
-    assert not tosr_switch[1].state
-    assert not tosr_switch[2].state
-    assert not tosr_switch[3].state
-
-    mock_sleep(5)
-    main_loop.run_once()
-    mock_sleep(55)
-    main_loop.run_once()
-
-    pump.state = True
-    main_loop.run_once()
-
-    # Check that manual pump start is blocked while all valves are closed
-    assert not pump.state
-    assert not tosr_switch[0].state
     assert not tosr_switch[1].state
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
