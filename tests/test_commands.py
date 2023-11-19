@@ -2,6 +2,7 @@
 
 import logging
 from json import loads as json_loads
+from time import sleep as mock_sleep
 from unittest.mock import patch
 
 import commands
@@ -16,6 +17,15 @@ from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_
 
 def test_commands():
     """Test Commands class."""
+
+    assert mock_transmit.call_count == 0
+    main_loop.run_once()
+    assert mock_transmit.call_count == 1
+    assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert json_loads(mock_transmit.call_args[0][1]) == {
+        "uptime": 0,
+    }
+    mock_transmit.reset_mock()
 
     humidifier_zone = {x: Switch() for x in range(3)}
     humidifier_sensor = {x: Sensor() for x in range(3)}
@@ -94,6 +104,15 @@ def test_commands():
             raise RuntimeError(value["err"])
         return value
 
+    assert mock_transmit.call_count == 0
+    main_loop.run_once()
+    assert mock_transmit.call_count == 1
+    assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert json_loads(mock_transmit.call_args[0][1]) == {
+        "uptime": 0,
+    }
+    mock_transmit.reset_mock()
+
     assert command("test") == "args: (), kwargs: {}"
     assert command("test", "true") == "args: (True,), kwargs: {}"
     assert command("test", '{"test": "123"}') == "args: (), kwargs: {'test': '123'}"
@@ -122,6 +141,7 @@ def test_commands():
         "test",
         "unbind",
         "unique_id",
+        "uptime",
         "valve",
     ]
 
@@ -323,6 +343,17 @@ def test_commands():
     assert not command("valve", "0")
     assert command("valve", "[0, true]") == "OK"
     assert command("valve", "0")
+
+    assert command("uptime") == 0.0
+    mock_sleep(5)
+    assert command("uptime") == -5.0
+    mock_sleep(3)
+    assert command("uptime", "[1700000000, -5.0]") == "OK"
+    assert command("uptime") == 1700000001
+    assert command("uptime", 1700000002) == "OK"
+    assert command("uptime") == 1700000002
+    mock_sleep(2)
+    assert command("uptime") == 1700000002
 
     with pytest.raises(RuntimeError) as excinfo:
         command("valve")

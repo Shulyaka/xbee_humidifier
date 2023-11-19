@@ -8,7 +8,7 @@ from time import ticks_diff, ticks_ms
 from lib import logging
 from lib.mainloop import main_loop
 from machine import soft_reset, unique_id
-from xbee import atcmd, receive, transmit
+from xbee import ADDR_COORDINATOR, atcmd, receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -136,10 +136,17 @@ class Commands:
     def __init__(self):
         """Init the module."""
         self._updates = main_loop.schedule_task(lambda: self.update(), period=500)
+        self._last_upd = ticks_ms()
+        self._uptime = 0
+        self._uptime_cb = main_loop.schedule_task(
+            lambda: self._uptime_upd(), period=30000
+        )
 
     def __del__(self):
         """Cancel callbacks."""
         main_loop.remove_task(self._updates)
+        if self._uptime_cb is not None:
+            main_loop.remove_task(self._uptime_cb)
 
     def update(self):
         """Receive commands."""
@@ -221,6 +228,30 @@ class Commands:
                     )(eui64, data, limit - 1),
                     next_run=50,
                 )
+
+    def _uptime_upd(self, auto=True):
+        """Set uptime notification."""
+        now = ticks_ms()
+        self._uptime += ticks_diff(now, self._last_upd)
+        self._last_upd = now
+        if auto:
+            self._transmit(
+                ADDR_COORDINATOR, json_dumps({"uptime": -self._uptime / 1000})
+            )
+
+    def cmd_uptime(self, sender_eui64, uptime=None, last_upd=None):
+        """Get or set uptime."""
+        if self._uptime_cb is not None:
+            self._uptime_upd(auto=False)
+        if uptime is None:
+            if self._uptime_cb is None:
+                return self._uptime
+            return -self._uptime / 1000
+        last_upd = -last_upd * 1000 if last_upd is not None else self._last_upd
+        self._uptime = uptime + ticks_diff(self._last_upd, last_upd) // 2000
+        main_loop.remove_task(self._uptime_cb)
+        self._uptime_cb = None
+        return "OK"
 
     def cmd_help(self, sender_eui64=None):
         """Return the list of available commands."""
