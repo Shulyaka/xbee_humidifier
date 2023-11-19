@@ -292,6 +292,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data."""
         await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
+        data["uptime"] = await self.client.async_command("uptime")
         data["pump"] = await self.client.async_command("pump")
         data["pump_block"] = await self.client.async_command("pump_block")
         data["fan"] = await self.client.async_command("fan")

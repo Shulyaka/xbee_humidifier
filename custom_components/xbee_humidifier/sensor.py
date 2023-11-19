@@ -1,6 +1,8 @@
 """xbee_humidifier sensors."""
 from __future__ import annotations
 
+import datetime as dt
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -57,6 +59,25 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
     )
 
+    entity_description = SensorEntityDescription(
+        key="xbee_humidifier_uptime",
+        name="Uptime",
+        has_entity_name=True,
+        icon="mdi:clock-start",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    )
+    sensors.append(
+        XBeeHumidifierSensor(
+            name="uptime",
+            coordinator=coordinator,
+            entity_description=entity_description,
+            conversion=lambda x: dt.datetime.fromtimestamp(x, tz=dt.timezone.utc)
+            if x > 0
+            else dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=x),
+        )
+    )
+
     async_add_entities(sensors)
 
 
@@ -84,6 +105,10 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._handle_coordinator_update()
 
         async def async_update_state(value):
+            if self._name == "uptime" and value <= 0:
+                await self.coordinator.client.async_command(
+                    "uptime", dt.datetime.now(tz=dt.timezone.utc).timestamp(), value
+                )
             if self._conversion is not None:
                 value = self._conversion(value)
             self._attr_native_value = value
@@ -97,6 +122,12 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
+        if self._name == "uptime" and value <= 0:
+            self.hass.async_create_task(
+                self.coordinator.client.async_command(
+                    "uptime", dt.datetime.now(tz=dt.timezone.utc).timestamp()
+                )
+            )
         if self._conversion is not None:
             value = self._conversion(value)
         self._attr_native_value = value

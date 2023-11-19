@@ -1,4 +1,6 @@
 """Test xbee_humidifier."""
+import datetime as dt
+
 from homeassistant.components.humidifier import DOMAIN as HUMIDIFIER, SERVICE_SET_MODE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
 
@@ -11,8 +13,9 @@ ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 16
+    assert len(commands) == 17
     commands["bind"].assert_called_once_with()
+    commands["uptime"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
     commands["pump"].assert_called_once_with()
@@ -87,6 +90,8 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     await hass.async_block_till_done()
 
     commands["bind"].reset_mock()
+    commands["uptime"].reset_mock()
+    commands["uptime"].return_value = -30
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
@@ -136,12 +141,22 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["pump_block"].call_count == 2
     assert commands["pump_block"].call_args_list[0][0][0] is False
     assert len(commands["pump_block"].call_args_list[1][0]) == 0
+    assert commands["uptime"].call_count == 2
+    assert commands["uptime"].call_args_list[0][0] == ()
+    assert (
+        abs(
+            commands["uptime"].call_args_list[1][0][0]
+            - dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        )
+        < 1
+    )
 
 
 async def test_reload(hass, data_from_device, test_config_entry):
     """Test config entry reload."""
 
     commands["bind"].reset_mock()
+    commands["uptime"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
@@ -160,6 +175,7 @@ async def test_reload(hass, data_from_device, test_config_entry):
     await hass.async_block_till_done()
 
     commands["bind"].assert_called_once_with()
+    commands["uptime"].assert_called_once_with()
     assert commands["hum_attr"].call_count == 3
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
