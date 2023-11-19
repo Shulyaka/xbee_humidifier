@@ -248,7 +248,7 @@ class Commands:
                 return self._uptime
             return -self._uptime / 1000
         last_upd = -last_upd * 1000 if last_upd is not None else self._last_upd
-        self._uptime = uptime + ticks_diff(self._last_upd, last_upd) // 2000
+        self._uptime = uptime + ticks_diff(self._last_upd, last_upd) / 2000
         main_loop.remove_task(self._uptime_cb)
         self._uptime_cb = None
         return "OK"
