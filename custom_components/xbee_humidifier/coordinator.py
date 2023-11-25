@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 import json
 import logging
-from datetime import timedelta
 
 from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
 from homeassistant.components.zha.core.const import (
@@ -82,11 +82,22 @@ class XBeeHumidifierApiClient:
             ZHA_EVENT, async_zha_event, ieee_event_filter
         )
 
+        async def device_reset(value):
+            if value > 0:
+                return
+            for listener in self._callbacks["device_reset"]:
+                self.hass.async_create_task(listener())
+
+        self._remove_device_reset_handler = self.add_subscriber("uptime", device_reset)
+
     def stop(self):
         """Unsubscribe events."""
         if self._remove_listener:
             self._remove_listener()
             self._remove_listener = None
+        if self._remove_device_reset_handler is not None:
+            self._remove_device_reset_handler()
+            self._remove_device_reset_handler = None
 
     def add_subscriber(self, name, callback):
         """Register listener."""
@@ -204,14 +215,6 @@ class XBeeHumidifierApiClient:
             for listener in self._callbacks["data_received"]:
                 self.hass.async_create_task(listener(data))
 
-        if (
-            key == "log"
-            and "Not initialized" in value["msg"]
-            and "device_reset" in self._callbacks
-        ):
-            for listener in self._callbacks["device_reset"]:
-                self.hass.async_create_task(listener())
-
 
 class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from XBeeHumidifier."""
@@ -229,7 +232,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
             logger=logging.getLogger(__package__),
             name=DOMAIN,
             update_method=self.async_update_data,
-            update_interval=timedelta(minutes=10),
+            update_interval=dt.timedelta(minutes=10),
         )
 
         self.client = client
@@ -293,6 +296,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
         data["uptime"] = await self.client.async_command("uptime")
+        data["timestamp"] = dt.datetime.now(tz=dt.timezone.utc).timestamp()
         data["pump"] = await self.client.async_command("pump")
         data["pump_block"] = await self.client.async_command("pump_block")
         data["fan"] = await self.client.async_command("fan")

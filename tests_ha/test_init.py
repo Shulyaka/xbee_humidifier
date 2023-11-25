@@ -99,7 +99,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     commands["pump_block"].reset_mock()
     commands["mode"].reset_mock()
     commands["mode"].return_value = "normal"
-    data_from_device(hass, IEEE, {"log": {"msg": "Not initialized", "sev": 20}})
+    data_from_device(hass, IEEE, {"uptime": 0})
     await hass.async_block_till_done()
     commands["bind"].assert_called_once_with()
     assert commands["mode"].call_count == 8
@@ -142,14 +142,15 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["pump_block"].call_args_list[0][0][0] is False
     assert len(commands["pump_block"].call_args_list[1][0]) == 0
     assert commands["uptime"].call_count == 2
-    assert commands["uptime"].call_args_list[0][0] == ()
     assert (
         abs(
-            commands["uptime"].call_args_list[1][0][0]
+            commands["uptime"].call_args_list[0][0][0][0]
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
         < 1
     )
+    assert commands["uptime"].call_args_list[0][0][0][1] == 0
+    assert commands["uptime"].call_args_list[1][0] == ()
 
 
 async def test_reload(hass, data_from_device, test_config_entry):

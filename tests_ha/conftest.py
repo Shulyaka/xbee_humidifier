@@ -2,7 +2,7 @@
 
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import DEFAULT, MagicMock, patch
 
 import pytest
 
@@ -66,6 +66,19 @@ commands = {
 }
 
 
+def _uptime_handler(args=None):
+    if args is None:
+        return DEFAULT
+    if isinstance(args, list):
+        commands["uptime"].return_value = args[0]
+    else:
+        commands["uptime"].return_value = args
+    return "OK"
+
+
+commands["uptime"].side_effect = _uptime_handler
+
+
 # This fixture enables two-way communication with the device. The calls are logged
 # in the calls array. The command responses can be configured with command dict.
 @pytest.fixture(name="data_from_device")
@@ -91,6 +104,7 @@ def data_from_device_fixture(hass):
     commands["aux_led"].return_value = False
     commands["pump_speed"].return_value = 252
     commands["uptime"].return_value = 1700000000
+    commands["uptime"].side_effect = _uptime_handler
 
     def data_from_device(hass, ieee, data):
         """Simulate receiving data from device."""
