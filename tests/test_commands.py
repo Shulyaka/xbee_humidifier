@@ -11,7 +11,7 @@ import pytest
 from humidifier import GenericHygrostat
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
-from machine import soft_reset as mock_soft_reset
+from machine import reset_cause as mock_reset_cause, soft_reset as mock_soft_reset
 from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_transmit
 
 
@@ -136,6 +136,7 @@ def test_commands():
         "pump_block",
         "pump_speed",
         "pump_temp",
+        "reset_cause",
         "soft_reset",
         "target_hum",
         "test",
@@ -382,6 +383,10 @@ def test_commands():
     assert command("soft_reset") == "OK"
     main_loop.run_once()
     mock_soft_reset.assert_called_once_with()
+
+    mock_reset_cause.reset_mock()
+    assert command("reset_cause") == 6
+    mock_reset_cause.assert_called_once_with()
 
     mock_transmit.side_effect = OSError("EAGAIN")
 

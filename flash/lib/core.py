@@ -7,7 +7,7 @@ from time import ticks_diff, ticks_ms
 
 from lib import logging
 from lib.mainloop import main_loop
-from machine import soft_reset, unique_id
+from machine import reset_cause, soft_reset, unique_id
 from xbee import ADDR_COORDINATOR, atcmd, receive, transmit
 
 _LOGGER = logging.getLogger(__name__)
@@ -276,6 +276,10 @@ class Commands:
         """Schedule soft reset."""
         main_loop.schedule_task(soft_reset)
         return "OK"
+
+    def cmd_reset_cause(self, sender_eui64=None):
+        """Return the reset cause."""
+        return reset_cause()
 
     def cmd_unique_id(self, sender_eui64=None):
         """Return the unique identifier for the processor."""
