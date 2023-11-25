@@ -3,7 +3,6 @@
 from gc import collect, mem_alloc, mem_free
 
 import config
-import machine
 from commands import HumidifierCommands
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
@@ -18,8 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _setup(debug):
-    global _zone, _sensor, _commands, _available, _humidifier, _pump_block
-    global _duty_cycle, _warning_subscribers, _warning_cb
+    global _zone, _sensor, _commands, _available, _humidifier, _pump_block, _duty_cycle
     _zone = {x: Switch() for x in range(3)}
     _sensor = {x: Sensor() for x in range(3)}
     _available = {x: Switch() for x in range(3)}
@@ -108,43 +106,6 @@ def _setup(debug):
         _pump_block,
     )
     collect()
-
-    reset_cause = {
-        machine.BROWNOUT_RESET: "BROWNOUT",
-        machine.LOCKUP_RESET: "LOCKUP",
-        machine.PWRON_RESET: "PWRON",
-        machine.HARD_RESET: "HARD",
-        machine.WDT_RESET: "WDT",
-        machine.SOFT_RESET: "SOFT",
-    }[machine.reset_cause()]
-    collect()
-
-    _warning_cb = main_loop.schedule_task(
-        lambda: _LOGGER.warning(
-            "Not initialized, reason = machine.{}_RESET".format(reset_cause)
-        ),
-        period=30000,
-    )
-    _warning_subscribers = {}
-
-    def _cancel_warning(confirm):
-        if not confirm:
-            return
-
-        global _available, _warning_cb, _warning_subscribers
-
-        for x, unsub in _warning_subscribers.items():
-            _available[x].unsubscribe(unsub)
-
-        main_loop.remove_task(_warning_cb)
-
-        _warning_subscribers.clear()
-        _warning_subscribers = None
-        _warning_cb = None
-        collect()
-
-    for x in range(3):
-        _warning_subscribers[x] = _available[x].subscribe(_cancel_warning)
 
     main_loop.schedule_task(lambda: _LOGGER.debug("Main loop started"))
 

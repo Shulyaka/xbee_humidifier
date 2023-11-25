@@ -4,7 +4,6 @@ from commands import HumidifierCommands
 from dutycycle import DutyCycle
 from humidifier import GenericHygrostat
 from lib.core import Sensor
-from lib.mainloop import main_loop
 
 import flash
 
@@ -31,8 +30,4 @@ def test_init():
     assert isinstance(flash._duty_cycle, DutyCycle)
     assert isinstance(flash._commands, HumidifierCommands)
 
-    assert len(flash._warning_subscribers) == 3
     flash._sensor[2].state = 55
-    main_loop.run_once()
-    assert flash._warning_subscribers is None
-    assert flash._warning_cb is None
