@@ -46,23 +46,20 @@ def skip_notifications_fixture():
 calls = []
 commands = {
     "hum_attr": MagicMock(),
-    "hum": MagicMock(return_value=False),
-    "target_hum": MagicMock(return_value=50),
-    "mode": MagicMock(return_value="normal"),
-    "cur_hum": MagicMock(return_value=None),
-    "atcmd": MagicMock(
-        return_value="XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
-        "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
-    ),
-    "pump_temp": MagicMock(return_value=31),
-    "pressure_in": MagicMock(return_value=3879),
-    "valve": MagicMock(return_value=False),
-    "pump": MagicMock(return_value=False),
-    "pump_block": MagicMock(return_value=False),
-    "fan": MagicMock(return_value=False),
-    "aux_led": MagicMock(return_value=False),
-    "pump_speed": MagicMock(return_value=252),
-    "uptime": MagicMock(return_value=1700000000),
+    "hum": MagicMock(),
+    "target_hum": MagicMock(),
+    "mode": MagicMock(),
+    "cur_hum": MagicMock(),
+    "atcmd": MagicMock(),
+    "pump_temp": MagicMock(),
+    "pressure_in": MagicMock(),
+    "valve": MagicMock(),
+    "pump": MagicMock(),
+    "pump_block": MagicMock(),
+    "fan": MagicMock(),
+    "aux_led": MagicMock(),
+    "pump_speed": MagicMock(),
+    "uptime": MagicMock(),
 }
 
 
@@ -84,13 +81,19 @@ commands["uptime"].side_effect = _uptime_handler
 @pytest.fixture(name="data_from_device")
 def data_from_device_fixture(hass):
     """Configure fake two-way communication."""
+    for x in commands.values():
+        x.reset_mock()
+        x.side_effect = None
 
-    hum_attr = {
+    commands["hum_attr"].return_value = {
         "sav_hum": 35,
         "available": False,
         "working": False,
     }
-    commands["hum_attr"].return_value = hum_attr
+    commands["atcmd"].return_value = (
+        "XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
+        "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
+    )
     commands["hum"].return_value = False
     commands["target_hum"].return_value = 50
     commands["mode"].return_value = "normal"
@@ -103,7 +106,7 @@ def data_from_device_fixture(hass):
     commands["fan"].return_value = False
     commands["aux_led"].return_value = False
     commands["pump_speed"].return_value = 252
-    commands["uptime"].return_value = 1700000000
+    commands["uptime"].return_value = -10
     commands["uptime"].side_effect = _uptime_handler
 
     def data_from_device(hass, ieee, data):
@@ -137,16 +140,11 @@ def data_from_device_fixture(hass):
 
     hass.services.async_register("zha", "issue_zigbee_cluster_command", log_call)
 
+    calls.clear()
+
     yield data_from_device
 
     hass.services.async_remove("zha", "issue_zigbee_cluster_command")
-
-    for x in commands.values():
-        x.reset_mock()
-        x.side_effect = None
-
-    commands["hum_attr"].return_value = hum_attr
-    calls.clear()
 
 
 # This fixture loads and unloads the test config entry

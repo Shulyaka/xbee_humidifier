@@ -125,15 +125,17 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
         if self._name == "uptime" and value <= 0:
-            self.hass.async_create_task(
-                self.coordinator.client.async_command(
-                    "uptime",
-                    self.coordinator.data.get(
-                        "timestamp", dt.datetime.now(tz=dt.timezone.utc).timestamp()
-                    )
-                    + value,
+            uptime = (
+                self.coordinator.data.get(
+                    "timestamp", dt.datetime.now(tz=dt.timezone.utc).timestamp()
                 )
+                + value
             )
+            self.coordinator.data["new_uptime"] = uptime
+            self.hass.async_create_task(
+                self.coordinator.client.async_command("uptime", uptime)
+            )
+            self.hass.async_create_task(self.coordinator.client.device_reset())
         if self._conversion is not None:
             value = self._conversion(value)
         self._attr_native_value = value

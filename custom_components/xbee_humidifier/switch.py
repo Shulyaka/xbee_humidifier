@@ -177,6 +177,12 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if (
+            self._name == "pump_block"
+            and self._attr_is_on is not None
+            and self.coordinator.data.get("uptime", 0) <= 0
+        ):
+            return  # Don't trust the data because the device has rebooted
         data = self.coordinator.data.get(self._name)
         if data is not None and self._number is not None:
             data = data.get(self._number)

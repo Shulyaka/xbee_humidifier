@@ -83,12 +83,15 @@ class XBeeHumidifierApiClient:
         )
 
         async def device_reset(value):
-            if value > 0:
-                return
-            for listener in self._callbacks["device_reset"]:
-                self.hass.async_create_task(listener())
+            if value <= 0:
+                await self.device_reset()
 
         self._remove_device_reset_handler = self.add_subscriber("uptime", device_reset)
+
+    async def device_reset(self):
+        """Run triggers on device reset."""
+        for listener in self._callbacks["device_reset"]:
+            self.hass.async_create_task(listener())
 
     def stop(self):
         """Unsubscribe events."""
@@ -246,8 +249,14 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
 
+        async def device_reset():
+            if self.data.get("uptime", 1) > 0:
+                await self.async_refresh()
+            elif self.data.get("new_uptime", 0) > 0:
+                self.data["uptime"] = self.data["new_uptime"]
+
         self._remove_device_reset_handler = self.client.add_subscriber(
-            "device_reset", self.async_refresh
+            "device_reset", device_reset
         )
 
         async def async_data_received(data):

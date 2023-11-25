@@ -15,7 +15,6 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
 
     assert len(commands) == 17
     commands["bind"].assert_called_once_with()
-    commands["uptime"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
     commands["pump"].assert_called_once_with()
@@ -25,6 +24,16 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     commands["fan"].assert_called_once_with()
     commands["aux_led"].assert_called_once_with()
     commands["pump_speed"].assert_called_once_with()
+    assert commands["uptime"].call_count == 2
+    assert commands["uptime"].call_args_list[0][0] == ()
+    assert (
+        abs(
+            commands["uptime"].call_args_list[1][0][0]
+            + 10
+            - dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        )
+        < 2
+    )
     assert commands["valve"].call_count == 4
     assert commands["valve"].call_args_list[0][0][0] == 0
     assert commands["valve"].call_args_list[1][0][0] == 1
@@ -91,7 +100,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
 
     commands["bind"].reset_mock()
     commands["uptime"].reset_mock()
-    commands["uptime"].return_value = -30
+    commands["uptime"].return_value = 0
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
     commands["target_hum"].reset_mock()
@@ -197,3 +206,108 @@ async def test_reload(hass, data_from_device, test_config_entry):
     assert commands["mode"].call_args_list[0][0][0] == 0
     assert commands["mode"].call_args_list[1][0][0] == 1
     assert commands["mode"].call_args_list[2][0][0] == 2
+
+
+async def test_coordinator_update(hass, data_from_device, test_config_entry):
+    """Test coordinator data update."""
+
+    commands["bind"].reset_mock()
+    commands["uptime"].reset_mock()
+    commands["hum"].reset_mock()
+    commands["hum_attr"].reset_mock()
+    commands["target_hum"].reset_mock()
+    commands["mode"].reset_mock()
+    commands["cur_hum"].reset_mock()
+
+    coordinator = hass.data["xbee_humidifier"][test_config_entry.entry_id]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    commands["bind"].assert_called_once_with()
+    commands["uptime"].assert_called_once_with()
+    assert commands["hum_attr"].call_count == 3
+    assert commands["hum_attr"].call_args_list[0][0][0] == 0
+    assert commands["hum_attr"].call_args_list[1][0][0] == 1
+    assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_count == 3
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["cur_hum"].call_count == 3
+    assert commands["cur_hum"].call_args_list[0][0][0] == 0
+    assert commands["cur_hum"].call_args_list[1][0][0] == 1
+    assert commands["cur_hum"].call_args_list[2][0][0] == 2
+    assert commands["target_hum"].call_count == 3
+    assert commands["target_hum"].call_args_list[0][0][0] == 0
+    assert commands["target_hum"].call_args_list[1][0][0] == 1
+    assert commands["target_hum"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_count == 3
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2
+
+
+async def test_device_reset(hass, data_from_device, test_config_entry):
+    """Test device reset identified during coordinator data update."""
+
+    commands["bind"].reset_mock()
+    commands["uptime"].reset_mock()
+    commands["hum"].reset_mock()
+    commands["hum_attr"].reset_mock()
+    commands["target_hum"].reset_mock()
+    commands["mode"].reset_mock()
+    commands["cur_hum"].reset_mock()
+    commands["uptime"].return_value = -12
+
+    coordinator = hass.data["xbee_humidifier"][test_config_entry.entry_id]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    commands["bind"].assert_called_once_with()
+    assert commands["uptime"].call_count == 2
+    assert commands["uptime"].call_args_list[0][0] == ()
+    assert (
+        abs(
+            commands["uptime"].call_args_list[1][0][0]
+            + 12
+            - dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        )
+        < 2
+    )
+
+    assert commands["hum_attr"].call_count == 3
+    assert commands["hum_attr"].call_args_list[0][0][0] == 0
+    assert commands["hum_attr"].call_args_list[1][0][0] == 1
+    assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_count == 6
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_args_list[3][0][0] == [0, False]
+    assert commands["hum"].call_args_list[4][0][0] == [1, False]
+    assert commands["hum"].call_args_list[5][0][0] == [2, False]
+    assert commands["cur_hum"].call_count == 6
+    assert commands["cur_hum"].call_args_list[0][0][0] == 0
+    assert commands["cur_hum"].call_args_list[1][0][0] == 1
+    assert commands["cur_hum"].call_args_list[2][0][0] == 2
+    assert commands["cur_hum"].call_args_list[3][0][0] == [0, None]
+    assert commands["cur_hum"].call_args_list[4][0][0] == [1, None]
+    assert commands["cur_hum"].call_args_list[5][0][0] == [2, None]
+    assert commands["target_hum"].call_count == 8
+    assert commands["target_hum"].call_args_list[0][0][0] == 0
+    assert commands["target_hum"].call_args_list[1][0][0] == 1
+    assert commands["target_hum"].call_args_list[2][0][0] == 2
+    assert commands["target_hum"].call_args_list[3][0][0] == [0, 32]
+    assert commands["target_hum"].call_args_list[4][0][0] == [0, 42]
+    assert commands["target_hum"].call_args_list[5][0][0] == [1, 32]
+    assert commands["target_hum"].call_args_list[6][0][0] == [1, 42]
+    assert commands["target_hum"].call_args_list[7][0][0] == [2, 42]
+    assert commands["mode"].call_count == 8
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_args_list[3][0][0] == [0, "away"]
+    assert commands["mode"].call_args_list[4][0][0] == [0, "normal"]
+    assert commands["mode"].call_args_list[5][0][0] == [1, "away"]
+    assert commands["mode"].call_args_list[6][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[7][0][0] == [2, "normal"]

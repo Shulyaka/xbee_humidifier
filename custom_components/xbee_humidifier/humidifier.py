@@ -106,12 +106,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        if (
-            self.coordinator.data.get("humidifier", {})
-            .get(self._number, {})
-            .get("cur_hum")
-            is not None
-        ):
+        if self.coordinator.data.get("uptime", 0) > 0:
             self._handle_coordinator_update()
         else:
             if (old_state := await self.async_get_last_state()) is not None:
@@ -189,6 +184,8 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data.get("uptime", 0) <= 0:
+            return  # Don't trust the data because the device has rebooted
         resp = self.coordinator.data.get("humidifier", {}).get(self._number)
 
         self._attr_is_on = resp["is_on"]
