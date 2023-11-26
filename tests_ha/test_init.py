@@ -154,12 +154,11 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["uptime"].call_count == 2
     assert (
         abs(
-            commands["uptime"].call_args_list[0][0][0][0]
+            commands["uptime"].call_args_list[0][0][0]
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
         < 1
     )
-    assert commands["uptime"].call_args_list[0][0][0][1] == 0
     assert commands["uptime"].call_args_list[1][0] == ()
 
 

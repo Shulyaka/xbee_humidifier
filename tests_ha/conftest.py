@@ -67,10 +67,7 @@ commands = {
 def _uptime_handler(args=None):
     if args is None:
         return DEFAULT
-    if isinstance(args, list):
-        commands["uptime"].return_value = args[0]
-    else:
-        commands["uptime"].return_value = args
+    commands["uptime"].return_value = args
     return "OK"
 
 
