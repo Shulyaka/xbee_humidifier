@@ -239,7 +239,7 @@ class Commands:
                 ADDR_COORDINATOR, json_dumps({"uptime": -self._uptime / 1000})
             )
 
-    def cmd_uptime(self, sender_eui64, uptime=None, last_upd=None):
+    def cmd_uptime(self, sender_eui64, uptime=None):
         """Get or set uptime."""
         if self._uptime_cb is not None:
             self._uptime_upd(auto=False)
@@ -247,8 +247,7 @@ class Commands:
             if self._uptime_cb is None:
                 return self._uptime
             return -self._uptime / 1000
-        last_upd = -last_upd * 1000 if last_upd is not None else self._last_upd
-        self._uptime = uptime + ticks_diff(self._last_upd, last_upd) / 2000
+        self._uptime = uptime
         main_loop.remove_task(self._uptime_cb)
         self._uptime_cb = None
         return "OK"

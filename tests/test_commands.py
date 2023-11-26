@@ -349,12 +349,10 @@ def test_commands():
     mock_sleep(5)
     assert command("uptime") == -5.0
     mock_sleep(3)
-    assert command("uptime", "[1700000000.5, -5.0]") == "OK"
-    assert command("uptime") == 1700000002
-    assert command("uptime", 1700000003.5) == "OK"
-    assert command("uptime") == 1700000003.5
+    assert command("uptime", 1700000000) == "OK"
+    assert command("uptime") == 1700000000
     mock_sleep(2)
-    assert command("uptime") == 1700000003.5
+    assert command("uptime") == 1700000000
 
     with pytest.raises(RuntimeError) as excinfo:
         command("valve")
