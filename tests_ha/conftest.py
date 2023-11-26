@@ -60,6 +60,7 @@ commands = {
     "aux_led": MagicMock(),
     "pump_speed": MagicMock(),
     "uptime": MagicMock(),
+    "reset_cause": MagicMock(),
 }
 
 
@@ -108,6 +109,7 @@ def data_from_device_fixture(hass):
     commands["pump_speed"].return_value = 252
     commands["uptime"].return_value = -10
     commands["uptime"].side_effect = _uptime_handler
+    commands["reset_cause"].return_value = 6
 
     def data_from_device(hass, ieee, data):
         """Simulate receiving data from device."""

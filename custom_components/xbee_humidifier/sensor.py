@@ -16,6 +16,14 @@ from .const import DOMAIN
 from .coordinator import XBeeHumidifierDataUpdateCoordinator
 from .entity import XBeeHumidifierEntity
 
+ATTR_RESET_CAUSE = "reset_cause"
+BROWNOUT_RESET = "brownout"
+LOCKUP_RESET = "lockup"
+PWRON_RESET = "power on"
+HARD_RESET = "hard reset"
+WDT_RESET = "watchdog timer"
+SOFT_RESET = "soft reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor platform."""
@@ -97,6 +105,7 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._name = name
         self._attr_unique_id = coordinator.unique_id + name
         self._conversion = conversion
+        self._attr_reset_cause = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -120,6 +129,13 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
             self.coordinator.client.add_subscriber(self._name, async_update_state)
         )
 
+    @property
+    def extra_state_attributes(self):
+        """Return the optional state attributes."""
+        if self._attr_reset_cause:
+            return {ATTR_RESET_CAUSE: self._attr_reset_cause}
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -139,5 +155,20 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         if self._conversion is not None:
             value = self._conversion(value)
         self._attr_native_value = value
+
+        if self._name == "uptime":
+            reset_cause = self.coordinator.data.get("reset_cause")
+            if reset_cause is not None:
+                try:
+                    self._attr_reset_cause = {
+                        3: HARD_RESET,
+                        4: PWRON_RESET,
+                        5: WDT_RESET,
+                        6: SOFT_RESET,
+                        9: LOCKUP_RESET,
+                        11: BROWNOUT_RESET,
+                    }[reset_cause]
+                except KeyError:
+                    self._attr_reset_cause = f"unknown cause {reset_cause}"
 
         self.schedule_update_ha_state()

@@ -32,6 +32,11 @@ async def test_sensor(
     assert hass.states.get(entity).state[:4] == newvalue
 
 
+def test_reset_cause(hass, data_from_device, test_config_entry):
+    """Test reset cause attribute."""
+    assert hass.states.get(ENTITY3).attributes.get("reset_cause") == "soft reset"
+
+
 async def test_uptime_set(hass, data_from_device, test_config_entry):
     """Test absolute uptime set if relative uptime is returned from the device."""
 

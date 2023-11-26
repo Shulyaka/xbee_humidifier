@@ -13,7 +13,7 @@ ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 17
+    assert len(commands) == 18
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
@@ -24,6 +24,7 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     commands["fan"].assert_called_once_with()
     commands["aux_led"].assert_called_once_with()
     commands["pump_speed"].assert_called_once_with()
+    commands["reset_cause"].assert_called_once_with()
     assert commands["uptime"].call_count == 2
     assert commands["uptime"].call_args_list[0][0] == ()
     assert (
