@@ -16,7 +16,6 @@ _bundle_list = [
     "humidifier.mpy",
     "dutycycle.mpy",
     "commands.mpy",
-    "config.mpy",
 ]
 
 atcmd("AP", 0)
