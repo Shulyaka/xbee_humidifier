@@ -46,6 +46,7 @@ def skip_notifications_fixture():
 calls = []
 commands = {
     "hum_attr": MagicMock(),
+    "available": MagicMock(),
     "hum": MagicMock(),
     "target_hum": MagicMock(),
     "mode": MagicMock(),
@@ -86,12 +87,12 @@ def data_from_device_fixture(hass):
 
     commands["hum_attr"].return_value = {
         "sav_hum": 35,
-        "available": False,
     }
     commands["atcmd"].return_value = (
         "XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
         "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
     )
+    commands["available"].return_value = False
     commands["hum"].return_value = False
     commands["target_hum"].return_value = 50
     commands["mode"].return_value = "normal"

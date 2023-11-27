@@ -123,6 +123,7 @@ def test_commands():
     assert command("help") == [
         "atcmd",
         "aux_led",
+        "available",
         "bind",
         "cur_hum",
         "fan",
@@ -277,10 +278,8 @@ def test_commands():
     pump_block.state = True
     assert command("pump_block")
 
-    assert command("hum_attr", 2) == {
-        "available": False,
-        "sav_hum": 35,
-    }
+    assert command("hum_attr", 2) == {"sav_hum": 35}
+    assert command("available", 2) is False
     assert command("zone", 2) is False
     assert command("hum", 2) is False
     assert command("target_hum", 2) == 50
@@ -291,10 +290,8 @@ def test_commands():
     assert command("target_hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "state": true}') == "OK"
     main_loop.run_once()
-    assert command("hum_attr", 2) == {
-        "available": True,
-        "sav_hum": 50,
-    }
+    assert command("hum_attr", 2) == {"sav_hum": 50}
+    assert command("available", 2)
     assert command("zone", 2)
     assert command("hum", 2)
     assert command("target_hum", 2) == 51

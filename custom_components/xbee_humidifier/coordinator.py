@@ -321,6 +321,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
                 data["humidifier"][number] = await self.client.async_command(
                     "hum_attr", number
                 )
+                data["humidifier"][number][
+                    "available"
+                ] = await self.client.async_command("available", number)
                 data["humidifier"][number]["working"] = await self.client.async_command(
                     "zone", number
                 )
