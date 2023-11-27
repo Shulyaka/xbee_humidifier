@@ -146,11 +146,9 @@ class GenericHygrostat(Switch):
                 self._switch.state = True
 
     @property
-    def attributes(self):
-        """Return attributes."""
-        return {
-            "sav_hum": self._saved_humidity,
-        }
+    def saved_humidity(self):
+        """Return the saved humidity."""
+        return self._saved_humidity
 
     @property
     def humidity(self):

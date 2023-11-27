@@ -39,9 +39,9 @@ class HumidifierCommands(Commands):
         super().__del__()
         self.cmd_unbind()
 
-    def cmd_hum_attr(self, sender_eui64, number):
-        """Get humidifier attributes."""
-        return self._humidifier[number].attributes
+    def cmd_sav_hum(self, sender_eui64, number):
+        """Get the saved humidity."""
+        return self._humidifier[number].saved_humidity
 
     def cmd_available(self, sender_eui64, number):
         """Get humidifier 'available' attribute."""

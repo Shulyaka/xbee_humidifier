@@ -129,7 +129,6 @@ def test_commands():
         "fan",
         "help",
         "hum",
-        "hum_attr",
         "logger",
         "mode",
         "pressure_in",
@@ -138,6 +137,7 @@ def test_commands():
         "pump_speed",
         "pump_temp",
         "reset_cause",
+        "sav_hum",
         "soft_reset",
         "target_hum",
         "test",
@@ -278,7 +278,7 @@ def test_commands():
     pump_block.state = True
     assert command("pump_block")
 
-    assert command("hum_attr", 2) == {"sav_hum": 35}
+    assert command("sav_hum", 2) == 35
     assert command("available", 2) is False
     assert command("zone", 2) is False
     assert command("hum", 2) is False
@@ -290,7 +290,7 @@ def test_commands():
     assert command("target_hum", '{"number": 2, "hum": 51}') == "OK"
     assert command("hum", '{"number": 2, "state": true}') == "OK"
     main_loop.run_once()
-    assert command("hum_attr", 2) == {"sav_hum": 50}
+    assert command("sav_hum", 2) == 50
     assert command("available", 2)
     assert command("zone", 2)
     assert command("hum", 2)

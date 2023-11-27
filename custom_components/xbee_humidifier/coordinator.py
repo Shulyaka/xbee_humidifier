@@ -318,8 +318,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
             data["valve"][number] = await self.client.async_command("valve", number)
         async with self.humidifier_lock:
             for number in range(0, 3):
-                data["humidifier"][number] = await self.client.async_command(
-                    "hum_attr", number
+                data["humidifier"][number] = {}
+                data["humidifier"][number]["sav_hum"] = await self.client.async_command(
+                    "sav_hum", number
                 )
                 data["humidifier"][number][
                     "available"
