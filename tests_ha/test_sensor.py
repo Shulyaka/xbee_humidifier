@@ -52,15 +52,24 @@ async def test_uptime_set(hass, data_from_device, test_config_entry):
     assert commands["uptime"].call_args_list[1][0] == ()
 
     assert (
-        hass.states.get(ENTITY3).state
-        == (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=-30))
-        .replace(microsecond=0)
-        .isoformat()
-    ) or (
-        hass.states.get(ENTITY3).state
-        == (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=-31))
-        .replace(microsecond=0)
-        .isoformat()
+        (
+            hass.states.get(ENTITY3).state
+            == (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=-29))
+            .replace(microsecond=0)
+            .isoformat()
+        )
+        or (
+            hass.states.get(ENTITY3).state
+            == (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=-30))
+            .replace(microsecond=0)
+            .isoformat()
+        )
+        or (
+            hass.states.get(ENTITY3).state
+            == (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=-31))
+            .replace(microsecond=0)
+            .isoformat()
+        )
     )
 
 

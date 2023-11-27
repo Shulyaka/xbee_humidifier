@@ -76,7 +76,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_category=EntityCategory.DIAGNOSTIC,
     )
     sensors.append(
-        XBeeHumidifierSensor(
+        XBeeHumidifierUptimeSensor(
             name="uptime",
             coordinator=coordinator,
             entity_description=entity_description,
@@ -105,7 +105,6 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._name = name
         self._attr_unique_id = coordinator.unique_id + name
         self._conversion = conversion
-        self._attr_reset_cause = None
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -114,15 +113,49 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
         self._handle_coordinator_update()
 
         async def async_update_state(value):
-            if self._name == "uptime" and value <= 0:
-                await self.coordinator.client.async_command(
-                    "uptime",
-                    int(dt.datetime.now(tz=dt.timezone.utc).timestamp() + value + 0.5),
-                )
             if self._conversion is not None:
                 value = self._conversion(value)
             self._attr_native_value = value
             self.async_write_ha_state()
+
+        self.async_on_remove(
+            self.coordinator.client.add_subscriber(self._name, async_update_state)
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        value = self.coordinator.data.get(self._name)
+        if self._conversion is not None:
+            value = self._conversion(value)
+        self._attr_native_value = value
+
+        self.schedule_update_ha_state()
+
+
+class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
+    """Representation of an XBee Humidifier Uptime sensor."""
+
+    def __init__(
+        self,
+        name,
+        coordinator: XBeeHumidifierDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+        conversion=None,
+    ) -> None:
+        """Initialize the switch class."""
+        super().__init__(name, coordinator, entity_description, conversion)
+        self._attr_reset_cause = None
+
+    async def async_added_to_hass(self):
+        """Run when entity about to be added."""
+        await super().async_added_to_hass()
+
+        async def async_update_state(value):
+            await self.coordinator.client.async_command(
+                "uptime",
+                int(dt.datetime.now(tz=dt.timezone.utc).timestamp() + value + 0.5),
+            )
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(self._name, async_update_state)
@@ -152,23 +185,19 @@ class XBeeHumidifierSensor(XBeeHumidifierEntity, SensorEntity):
                 self.coordinator.client.async_command("uptime", uptime)
             )
             self.hass.async_create_task(self.coordinator.client.device_reset())
-        if self._conversion is not None:
-            value = self._conversion(value)
-        self._attr_native_value = value
 
-        if self._name == "uptime":
-            reset_cause = self.coordinator.data.get("reset_cause")
-            if reset_cause is not None:
-                try:
-                    self._attr_reset_cause = {
-                        3: HARD_RESET,
-                        4: PWRON_RESET,
-                        5: WDT_RESET,
-                        6: SOFT_RESET,
-                        9: LOCKUP_RESET,
-                        11: BROWNOUT_RESET,
-                    }[reset_cause]
-                except KeyError:
-                    self._attr_reset_cause = f"unknown cause {reset_cause}"
+        reset_cause = self.coordinator.data.get("reset_cause")
+        if reset_cause is not None:
+            try:
+                self._attr_reset_cause = {
+                    3: HARD_RESET,
+                    4: PWRON_RESET,
+                    5: WDT_RESET,
+                    6: SOFT_RESET,
+                    9: LOCKUP_RESET,
+                    11: BROWNOUT_RESET,
+                }[reset_cause]
+            except KeyError:
+                self._attr_reset_cause = f"unknown cause {reset_cause}"
 
-        self.schedule_update_ha_state()
+        super()._handle_coordinator_update()

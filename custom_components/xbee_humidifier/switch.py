@@ -62,7 +62,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_category=EntityCategory.CONFIG,
     )
     switches.append(
-        XBeeHumidifierSwitch(
+        XBeeHumidifierStatefulSwitch(
             name="pump_block",
             number=None,
             coordinator=coordinator,
@@ -142,16 +142,6 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         self.async_on_remove(
             self.coordinator.client.add_subscriber(subscriber_name, async_update_state)
         )
-        if self._name == "pump_block":
-            self.async_on_remove(
-                self.coordinator.client.add_subscriber(
-                    "device_reset", self._update_device
-                )
-            )
-
-    async def _update_device(self):
-        """Update device settings from HA on reset."""
-        await self._turn(self._attr_is_on)
 
     async def _turn(self, is_on: bool) -> None:
         """Turn on or off the switch."""
@@ -177,18 +167,36 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if (
-            self._name == "pump_block"
-            and self._attr_is_on is not None
-            and self.coordinator.data.get("uptime", 0) <= 0
-        ):
-            return  # Don't trust the data because the device has rebooted
         data = self.coordinator.data.get(self._name)
         if data is not None and self._number is not None:
             data = data.get(self._number)
         self._attr_is_on = data
 
         self.schedule_update_ha_state()
+
+
+class XBeeHumidifierStatefulSwitch(XBeeHumidifierSwitch):
+    """Representation of an XBee Humidifier control switches that retain their state."""
+
+    async def async_added_to_hass(self):
+        """Run when entity about to be added."""
+        await super().async_added_to_hass()
+
+        self.async_on_remove(
+            self.coordinator.client.add_subscriber("device_reset", self._update_device)
+        )
+
+    async def _update_device(self):
+        """Update device settings from HA on reset."""
+        await self._turn(self._attr_is_on)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if self._attr_is_on is not None and self.coordinator.data.get("uptime", 0) <= 0:
+            return  # Don't trust the data because the device has rebooted
+
+        super()._handle_coordinator_update()
 
     @property
     def available(self):
