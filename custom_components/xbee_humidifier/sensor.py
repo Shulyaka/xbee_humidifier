@@ -154,10 +154,11 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
         await super().async_added_to_hass()
 
         async def async_update_state(value):
-            await self.coordinator.client.async_command(
-                "uptime",
-                int(dt.datetime.now(tz=dt.timezone.utc).timestamp() + value + 0.5),
-            )
+            if value <= 0:
+                await self.coordinator.client.async_command(
+                    "uptime",
+                    int(dt.datetime.now(tz=dt.timezone.utc).timestamp() + value + 0.5),
+                )
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber(self._name, async_update_state)
@@ -172,19 +173,21 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
-        if self._name == "uptime" and value <= 0:
-            uptime = int(
+        if value <= 0:
+            value = int(
                 self.coordinator.data.get(
                     "timestamp", dt.datetime.now(tz=dt.timezone.utc).timestamp()
                 )
                 + value
                 + 0.5
             )
-            self.coordinator.data["new_uptime"] = uptime
+            self.coordinator.data["new_uptime"] = value
             self.hass.async_create_task(
-                self.coordinator.client.async_command("uptime", uptime)
+                self.coordinator.client.async_command("uptime", value)
             )
             self.hass.async_create_task(self.coordinator.client.device_reset())
+
+        self._attr_native_value = dt.datetime.fromtimestamp(value, tz=dt.timezone.utc)
 
         reset_cause = self.coordinator.data.get("reset_cause")
         if reset_cause is not None:
@@ -200,4 +203,4 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
             except KeyError:
                 self._attr_reset_cause = UNKNOWN_RESET.format(reset_cause)
 
-        super()._handle_coordinator_update()
+        self.schedule_update_ha_state()
