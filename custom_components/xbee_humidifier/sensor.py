@@ -145,7 +145,7 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
     ) -> None:
         """Initialize the switch class."""
         super().__init__(name, coordinator, entity_description, conversion)
-        self._attr_reset_cause = None
+        self._attr_reset_cause = "unknown"
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -164,9 +164,7 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
     @property
     def extra_state_attributes(self):
         """Return the optional state attributes."""
-        if self._attr_reset_cause:
-            return {ATTR_RESET_CAUSE: self._attr_reset_cause}
-        return None
+        return {ATTR_RESET_CAUSE: self._attr_reset_cause}
 
     @callback
     def _handle_coordinator_update(self) -> None:

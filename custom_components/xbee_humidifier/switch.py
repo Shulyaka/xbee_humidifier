@@ -6,8 +6,9 @@ from homeassistant.components.switch import (
     SwitchEntity,
     SwitchEntityDescription,
 )
-from homeassistant.const import EntityCategory
+from homeassistant.const import STATE_ON, EntityCategory
 from homeassistant.core import callback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
 from .coordinator import XBeeHumidifierDataUpdateCoordinator
@@ -62,7 +63,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity_category=EntityCategory.CONFIG,
     )
     switches.append(
-        XBeeHumidifierStatefulSwitch(
+        XBeeHumidifierPumpBlockSwitch(
             name="pump_block",
             number=None,
             coordinator=coordinator,
@@ -175,12 +176,17 @@ class XBeeHumidifierSwitch(XBeeHumidifierEntity, SwitchEntity):
         self.schedule_update_ha_state()
 
 
-class XBeeHumidifierStatefulSwitch(XBeeHumidifierSwitch):
+class XBeeHumidifierPumpBlockSwitch(XBeeHumidifierSwitch, RestoreEntity):
     """Representation of an XBee Humidifier control switches that retain their state."""
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
+
+        if self.coordinator.data.get("uptime", 0) <= 0:
+            if (old_state := await self.async_get_last_state()) is not None:
+                if old_state.state == STATE_ON:
+                    await self._turn(True)
 
         self.async_on_remove(
             self.coordinator.client.add_subscriber("device_reset", self._update_device)
@@ -200,7 +206,5 @@ class XBeeHumidifierStatefulSwitch(XBeeHumidifierSwitch):
 
     @property
     def available(self):
-        """Return True if entity is available, always available for pump_block."""
-        if self._name == "pump_block":
-            return True
-        return super().available
+        """Always available for pump_block."""
+        return True

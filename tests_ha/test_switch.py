@@ -1,4 +1,6 @@
 """Test xbee_humidifier switches."""
+from unittest.mock import patch
+
 import pytest
 from homeassistant.components.switch import (
     DOMAIN as SWITCH,
@@ -6,6 +8,7 @@ from homeassistant.components.switch import (
     SERVICE_TURN_ON,
 )
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
+from homeassistant.core import State
 
 from .conftest import commands
 from .const import IEEE
@@ -111,3 +114,37 @@ async def test_switch_remote_update(
     await hass.async_block_till_done()
 
     assert hass.states.get(entity).state == STATE_OFF
+
+
+@patch(
+    "homeassistant.helpers.restore_state.RestoreEntity.async_get_last_state",
+    return_value=State(ENT_PUMP_BLOCK, STATE_ON),
+)
+async def test_restore_state(
+    mock_get_last_state, hass, data_from_device, test_config_entry
+):
+    """Test config entry reload."""
+
+    new_options = test_config_entry.options.copy()
+    new_options["humidifier_1"] = test_config_entry.options["humidifier_1"].copy()
+    new_options["humidifier_1"]["target_sensor"] = "sensor.test4"
+
+    hass.states.async_set("sensor.test4", 47)
+
+    commands["uptime"].return_value = 0
+    commands["pump_block"].return_value = "OK"
+    commands["pump_block"].reset_mock()
+
+    assert test_config_entry.options != new_options
+    assert hass.config_entries.async_update_entry(
+        test_config_entry, options=new_options
+    )
+    await hass.async_block_till_done()
+
+    assert mock_get_last_state.call_count == 4
+
+    assert hass.states.get(ENT_PUMP_BLOCK).state == STATE_ON
+
+    assert commands["pump_block"].call_count == 2
+    assert len(commands["pump_block"].call_args_list[0][0]) == 0
+    assert commands["pump_block"].call_args_list[1][0][0] is True

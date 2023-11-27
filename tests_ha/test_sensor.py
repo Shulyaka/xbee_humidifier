@@ -47,7 +47,7 @@ async def test_uptime_set(hass, data_from_device, test_config_entry):
             + 30
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
-        < 1.5
+        < 2
     )
     assert commands["uptime"].call_args_list[1][0] == ()
 

@@ -224,7 +224,7 @@ async def test_restore_state(
     data_from_device(hass, IEEE, {"available_2": True})
     await hass.async_block_till_done()
 
-    assert mock_get_last_state.call_count == 3
+    assert mock_get_last_state.call_count == 4
 
     state = hass.states.get(ENTITY1)
     assert state.state == "off"
