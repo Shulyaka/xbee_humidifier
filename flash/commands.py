@@ -43,8 +43,11 @@ class HumidifierCommands(Commands):
         """Get humidifier attributes."""
         attr = self._humidifier[number].attributes
         attr["available"] = self._available[number].state
-        attr["working"] = self._zone[number].state
         return attr
+
+    def cmd_zone(self, sender_eui64, number):
+        """Get humidifier zone state."""
+        return self._zone[number].state
 
     def cmd_hum(self, sender_eui64, number, state=None):
         """Get or set the humidifier state."""

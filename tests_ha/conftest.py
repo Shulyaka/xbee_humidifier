@@ -61,6 +61,7 @@ commands = {
     "pump_speed": MagicMock(),
     "uptime": MagicMock(),
     "reset_cause": MagicMock(),
+    "zone": MagicMock(),
 }
 
 
@@ -86,7 +87,6 @@ def data_from_device_fixture(hass):
     commands["hum_attr"].return_value = {
         "sav_hum": 35,
         "available": False,
-        "working": False,
     }
     commands["atcmd"].return_value = (
         "XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
@@ -107,6 +107,7 @@ def data_from_device_fixture(hass):
     commands["uptime"].return_value = -10
     commands["uptime"].side_effect = _uptime_handler
     commands["reset_cause"].return_value = 6
+    commands["zone"].return_value = False
 
     def data_from_device(hass, ieee, data):
         """Simulate receiving data from device."""

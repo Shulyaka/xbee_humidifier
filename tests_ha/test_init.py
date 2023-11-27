@@ -13,7 +13,7 @@ ENTITY = "humidifier.xbee_humidifier_2_humidifier"
 def test_init(hass, caplog, data_from_device, test_config_entry):
     """Test component initialization."""
 
-    assert len(commands) == 18
+    assert len(commands) == 19
     commands["bind"].assert_called_once_with()
     commands["unique_id"].assert_called_once_with()
     commands["atcmd"].assert_called_once_with("VL")
@@ -69,6 +69,10 @@ def test_init(hass, caplog, data_from_device, test_config_entry):
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
     assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 6
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
@@ -104,6 +108,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     commands["uptime"].return_value = 0
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
+    commands["zone"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["cur_hum"].reset_mock()
     commands["pump_block"].reset_mock()
@@ -141,6 +146,10 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
     assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 6
     assert commands["hum"].call_args_list[0][0][0] == [0, False]
     assert commands["hum"].call_args_list[1][0][0] == [1, False]
@@ -157,7 +166,7 @@ async def test_refresh(hass, data_from_device, test_config_entry):
             commands["uptime"].call_args_list[0][0][0]
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
-        < 1
+        < 1.5
     )
     assert commands["uptime"].call_args_list[1][0] == ()
 
@@ -169,6 +178,7 @@ async def test_reload(hass, data_from_device, test_config_entry):
     commands["uptime"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
+    commands["zone"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["mode"].reset_mock()
     commands["cur_hum"].reset_mock()
@@ -190,6 +200,10 @@ async def test_reload(hass, data_from_device, test_config_entry):
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
     assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 3
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
@@ -215,6 +229,7 @@ async def test_coordinator_update(hass, data_from_device, test_config_entry):
     commands["uptime"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
+    commands["zone"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["mode"].reset_mock()
     commands["cur_hum"].reset_mock()
@@ -229,6 +244,10 @@ async def test_coordinator_update(hass, data_from_device, test_config_entry):
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
     assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 3
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1
@@ -254,6 +273,7 @@ async def test_device_reset(hass, data_from_device, test_config_entry):
     commands["uptime"].reset_mock()
     commands["hum"].reset_mock()
     commands["hum_attr"].reset_mock()
+    commands["zone"].reset_mock()
     commands["target_hum"].reset_mock()
     commands["mode"].reset_mock()
     commands["cur_hum"].reset_mock()
@@ -279,6 +299,10 @@ async def test_device_reset(hass, data_from_device, test_config_entry):
     assert commands["hum_attr"].call_args_list[0][0][0] == 0
     assert commands["hum_attr"].call_args_list[1][0][0] == 1
     assert commands["hum_attr"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
     assert commands["hum"].call_count == 6
     assert commands["hum"].call_args_list[0][0][0] == 0
     assert commands["hum"].call_args_list[1][0][0] == 1

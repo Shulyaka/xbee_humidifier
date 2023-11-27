@@ -144,6 +144,7 @@ def test_commands():
         "unique_id",
         "uptime",
         "valve",
+        "zone",
     ]
 
     mock_atcmd.reset_mock()
@@ -279,9 +280,9 @@ def test_commands():
     assert command("hum_attr", 2) == {
         "available": False,
         "sav_hum": 35,
-        "working": False,
     }
-    assert not command("hum", 2)
+    assert command("zone", 2) is False
+    assert command("hum", 2) is False
     assert command("target_hum", 2) == 50
     assert command("mode", 2) == "normal"
     assert command("cur_hum", 2) is None
@@ -293,8 +294,8 @@ def test_commands():
     assert command("hum_attr", 2) == {
         "available": True,
         "sav_hum": 50,
-        "working": True,
     }
+    assert command("zone", 2)
     assert command("hum", 2)
     assert command("target_hum", 2) == 51
     assert command("mode", 2) == "away"
