@@ -23,6 +23,8 @@ PWRON_RESET = "power on"
 HARD_RESET = "hard reset"
 WDT_RESET = "watchdog timer"
 SOFT_RESET = "soft reset"
+UNKNOWN_RESET = "unknown cause {}"
+UNKNOWN = "unknown"
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -145,7 +147,7 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
     ) -> None:
         """Initialize the switch class."""
         super().__init__(name, coordinator, entity_description, conversion)
-        self._attr_reset_cause = "unknown"
+        self._attr_reset_cause = UNKNOWN
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -196,6 +198,6 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
                     11: BROWNOUT_RESET,
                 }[reset_cause]
             except KeyError:
-                self._attr_reset_cause = f"unknown cause {reset_cause}"
+                self._attr_reset_cause = UNKNOWN_RESET.format(reset_cause)
 
         super()._handle_coordinator_update()
