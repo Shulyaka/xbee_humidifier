@@ -206,9 +206,6 @@ class Commands:
                     raise ValueError("invalid json")
 
             transmit(sender_eui64, json_dumps(response))
-            response = None
-            sender_eui64 = None
-            cmd = None
             collect()
 
             x = receive()
