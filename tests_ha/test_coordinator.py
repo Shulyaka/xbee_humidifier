@@ -185,6 +185,6 @@ async def test_service_call_exception(hass):
     client = XBeeHumidifierApiClient(hass, IEEE)
 
     with pytest.raises(
-        ServiceNotFound, match="Unable to find service zha.issue_zigbee_cluster_command"
+        ServiceNotFound, match="Service zha.issue_zigbee_cluster_command not found."
     ):
         await client.async_command("bind")
