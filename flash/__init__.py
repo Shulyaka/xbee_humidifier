@@ -94,7 +94,15 @@ def _setup(debug):
         collect()
 
     _duty_cycle = DutyCycle(
-        config.pump, _humidifier, _zone, config.valve_switch, _pump_block
+        config.pump,
+        _humidifier,
+        _zone,
+        config.valve_switch,
+        _pump_block,
+        config.pump_on_timeout,
+        config.pressure_drop_delay,
+        config.pressure_drop_time,
+        config.idle_time,
     )
     collect()
 

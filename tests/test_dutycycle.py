@@ -34,8 +34,21 @@ def test_dutycycle():
     pump = Switch()
     pump_block = Switch()
 
+    pump_on_timeout = 7 * 60
+    pressure_drop_delay = 5
+    pressure_drop_time = 55
+    idle_time = 2 * 60
+
     duty_cycle = dutycycle.DutyCycle(
-        pump, humidifier, humidifier_switch, tosr_switch, pump_block
+        pump,
+        humidifier,
+        humidifier_switch,
+        tosr_switch,
+        pump_block,
+        pump_on_timeout,
+        pressure_drop_delay,
+        pressure_drop_time,
+        idle_time,
     )
 
     assert (
@@ -43,10 +56,13 @@ def test_dutycycle():
         > duty_cycle._pressure_drop_delay_ms + duty_cycle._pressure_drop_time_ms
     )
 
-    pump_on_timeout = duty_cycle._pump_on_timeout_ms / 1000
-    pump_off_timeout = duty_cycle._pump_off_timeout_ms / 1000
-    pressure_drop_delay = duty_cycle._pressure_drop_delay_ms / 1000
-    pressure_drop_time = duty_cycle._pressure_drop_time_ms / 1000
+    assert pump_on_timeout == duty_cycle._pump_on_timeout_ms / 1000
+    assert (
+        idle_time + pressure_drop_delay + pressure_drop_time
+        == duty_cycle._pump_off_timeout_ms / 1000
+    )
+    assert pressure_drop_delay == duty_cycle._pressure_drop_delay_ms / 1000
+    assert pressure_drop_time == duty_cycle._pressure_drop_time_ms / 1000
 
     # Check initial state
     assert not pump.state
@@ -125,7 +141,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(pump_off_timeout - pressure_drop_delay - pressure_drop_time)
+    mock_sleep(idle_time)
     main_loop.run_once()
 
     # Check that duty cycle is started

@@ -2,7 +2,13 @@
 
 from gc import collect
 
+from micropython import const
 from tosr0x import tosr0x_version
+
+pump_on_timeout = const(10 * 60)
+pressure_drop_delay = const(10)
+pressure_drop_time = const(50)
+idle_time = const(2 * 60)
 
 debug = False
 
@@ -21,7 +27,6 @@ if tosr0x_version() is None:
     aux_led = Switch(False)
     pump_speed = Sensor(255)
     fan = Switch(False)
-    collect()
 else:
     from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
     from machine import Pin
@@ -40,4 +45,5 @@ else:
     Pin("D10", mode=Pin.ALT, alt=Pin.AF10_RSSI)
     pump_speed = AnalogOutput("D11")
     fan = DigitalOutput("D12")
-    collect()
+
+collect()
