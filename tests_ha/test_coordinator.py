@@ -176,7 +176,9 @@ async def test_timeout(cmd_mock, hass):
     cmd_mock.side_effect = TimeoutError
 
     with pytest.raises(TimeoutError, match="No response to bind command"):
-        await client.async_command("bind")
+        await client.async_command("bind", retry_count=5)
+
+    assert cmd_mock.call_count == 5
 
 
 async def test_service_call_exception(hass):

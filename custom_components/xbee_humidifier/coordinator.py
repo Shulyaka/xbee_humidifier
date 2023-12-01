@@ -109,7 +109,7 @@ class XBeeHumidifierApiClient:
         self._callbacks[name].append(callback)
         return lambda: self._callbacks[name].remove(callback)
 
-    def command(self, command, *args, **kwargs):
+    def command(self, command, *args, retry_count=3, **kwargs):
         """Issue xbee humidifier command synchronously."""
         try:
             if self.hass.loop == asyncio.get_running_loop():
@@ -124,10 +124,11 @@ class XBeeHumidifierApiClient:
                 raise
 
         return asyncio.run_coroutine_threadsafe(
-            self.async_command(command, *args, **kwargs), self.hass.loop
+            self.async_command(command, *args, **kwargs, retry_count=retry_count),
+            self.hass.loop,
         ).result()
 
-    async def async_command(self, command, *args, **kwargs):
+    async def async_command(self, command, *args, retry_count=3, **kwargs):
         """Issue xbee humidifier command asynchronously."""
         if len(args) > 0 and len(kwargs) > 0:
             data = {"cmd": command, "args": (args, kwargs)}
@@ -148,18 +149,23 @@ class XBeeHumidifierApiClient:
             self._cmd_lock[command] = asyncio.Lock()
 
         async with self._cmd_lock[command]:
-            try:
-                return await asyncio.wait_for(
-                    self._cmd(command, data),
-                    timeout=REMOTE_COMMAND_TIMEOUT,
-                )
-            except TimeoutError:
-                _LOGGER.error(f"No response to {command} command")
+            e = ValueError("Non-positive retry_count")
+            for i in range(retry_count):
+                if i:
+                    _LOGGER.debug("Retrying...")
                 try:
-                    del self._awaiting[command]
-                except KeyError:
-                    pass
-                raise TimeoutError(f"No response to {command} command")
+                    return await asyncio.wait_for(
+                        self._cmd(command, data),
+                        timeout=REMOTE_COMMAND_TIMEOUT,
+                    )
+                except TimeoutError:
+                    _LOGGER.error(f"No response to {command} command")
+                    try:
+                        del self._awaiting[command]
+                    except KeyError:
+                        pass
+                    e = TimeoutError(f"No response to {command} command")
+            raise e
 
     async def _cmd(self, command, data):
         if command in self._awaiting:
