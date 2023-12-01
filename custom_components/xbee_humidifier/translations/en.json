@@ -1,4 +1,25 @@
 {
+  "title": "XBee Humidifier",
+  "entity": {
+    "sensor": {
+      "uptime": {
+        "state_attributes": {
+          "reset_cause": {
+            "name": "Reset cause",
+            "state": {
+              "brownout": "Brownout",
+              "lockup": "Lockup",
+              "power on": "Power on",
+              "hard reset": "Hard reset",
+              "watchdog timer": "Watchdog timer",
+              "soft reset": "Soft reset",
+              "unknown": "Unknown"
+            }
+          }
+        }
+      }
+    }
+  },
   "config": {
     "abort": {
       "already_configured": "Device is already configured"

@@ -73,6 +73,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         key="xbee_humidifier_uptime",
         name="Uptime",
         has_entity_name=True,
+        translation_key="uptime",
         icon="mdi:clock-start",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
