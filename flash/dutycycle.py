@@ -10,10 +10,10 @@ _LOGGER = logging.getLogger(__name__)
 class DutyCycle:
     """Slow PWM for humidifiers."""
 
-    _pump_on_timeout_ms = const(6 * 60 * 1000)
+    _pump_on_timeout_ms = const(10 * 60 * 1000)
     _pump_off_timeout_ms = const(3 * 60 * 1000)
-    _pressure_drop_delay_ms = const(5 * 1000)
-    _pressure_drop_time_ms = const(55 * 1000)
+    _pressure_drop_delay_ms = const(10 * 1000)
+    _pressure_drop_time_ms = const(50 * 1000)
 
     def __init__(self, pump, humidifiers, zone, valve_switch, pump_block):
         """Init the class."""

@@ -43,6 +43,11 @@ def test_dutycycle():
         > duty_cycle._pressure_drop_delay_ms + duty_cycle._pressure_drop_time_ms
     )
 
+    pump_on_timeout = duty_cycle._pump_on_timeout_ms / 1000
+    pump_off_timeout = duty_cycle._pump_off_timeout_ms / 1000
+    pressure_drop_delay = duty_cycle._pressure_drop_delay_ms / 1000
+    pressure_drop_time = duty_cycle._pressure_drop_time_ms / 1000
+
     # Check initial state
     assert not pump.state
     assert not tosr_switch[0].state
@@ -70,7 +75,7 @@ def test_dutycycle():
     assert tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(180)
+    mock_sleep(pump_on_timeout / 2)
     main_loop.run_once()
 
     # Check that the duty cycle is still running
@@ -80,7 +85,7 @@ def test_dutycycle():
     assert tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(180)
+    mock_sleep(pump_on_timeout / 2)
     main_loop.run_once()
 
     # Check that duty cycle has stopped, but the pressure drop valve isn't open yet
@@ -90,7 +95,7 @@ def test_dutycycle():
     assert tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(5)
+    mock_sleep(pressure_drop_delay)
     main_loop.run_once()
 
     # Check that the pressure drop valve has opened
@@ -100,7 +105,7 @@ def test_dutycycle():
     assert tosr_switch[2].state
     assert tosr_switch[3].state
 
-    mock_sleep(55)
+    mock_sleep(pressure_drop_time)
     main_loop.run_once()
 
     # Check that the pressure drop has finished
@@ -120,7 +125,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(150)
+    mock_sleep(pump_off_timeout - pressure_drop_delay - pressure_drop_time)
     main_loop.run_once()
 
     # Check that duty cycle is started
@@ -170,7 +175,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(360)
+    mock_sleep(pump_on_timeout)
     main_loop.run_once()
 
     # Check that duty cycle has stopped, but the pressure drop valve isn't open yet
@@ -180,7 +185,7 @@ def test_dutycycle():
     assert not tosr_switch[2].state
     assert not tosr_switch[3].state
 
-    mock_sleep(5)
+    mock_sleep(pressure_drop_delay)
     humidifier[1].state = False
     main_loop.run_once()
 
@@ -303,10 +308,10 @@ def test_dutycycle():
     duty_cycle.stop_cycle()
     main_loop.run_once()
 
-    mock_sleep(5)
+    mock_sleep(pressure_drop_delay)
     main_loop.run_once()
 
-    mock_sleep(55)
+    mock_sleep(pressure_drop_time)
     main_loop.run_once()
 
     # Check that pressure drop valve is closed
