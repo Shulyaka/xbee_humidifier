@@ -205,7 +205,7 @@ class Commands:
                 else:
                     raise ValueError("invalid json")
 
-            self._transmit(sender_eui64, json_dumps(response))
+            transmit(sender_eui64, json_dumps(response))
             response = None
             sender_eui64 = None
             cmd = None
@@ -213,31 +213,13 @@ class Commands:
 
             x = receive()
 
-    def _transmit(self, eui64, data, limit=3):
-        """Retries sending data on full transfer buffer."""
-        try:
-            transmit(eui64, data)
-        except Exception as e:
-            _LOGGER.error("Exception on transmit: {}: {}".format(type(e).__name__, e))
-            if isinstance(e, OSError) and "EAGAIN" in str(e) and limit > 1:
-                main_loop.schedule_task(
-                    (
-                        lambda eui64, data, limit: lambda: self._transmit(
-                            eui64, data, limit
-                        )
-                    )(eui64, data, limit - 1),
-                    next_run=50,
-                )
-
     def _uptime_upd(self, auto=True):
         """Set uptime notification."""
         now = ticks_ms()
         self._uptime += ticks_diff(now, self._last_upd)
         self._last_upd = now
         if auto:
-            self._transmit(
-                ADDR_COORDINATOR, json_dumps({"uptime": -self._uptime / 1000})
-            )
+            transmit(ADDR_COORDINATOR, json_dumps({"uptime": -self._uptime / 1000}))
 
     def cmd_uptime(self, sender_eui64, uptime=None):
         """Get or set uptime."""
