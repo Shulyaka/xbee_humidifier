@@ -5,7 +5,7 @@ from gc import collect, mem_alloc, mem_free
 import config
 from commands import HumidifierCommands
 from dutycycle import DutyCycle
-from humidifier import GenericHygrostat
+from humidifier import Humidifier
 from lib import logging
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
@@ -67,7 +67,7 @@ def _setup(debug):
         collect()
 
     _humidifier = {
-        x: GenericHygrostat(
+        x: Humidifier(
             switch=_zone[x],
             sensor=_sensor[x],
             available_sensor=_available[x],

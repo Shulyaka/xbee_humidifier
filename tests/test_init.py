@@ -2,7 +2,7 @@
 
 from commands import HumidifierCommands
 from dutycycle import DutyCycle
-from humidifier import GenericHygrostat
+from humidifier import Humidifier
 from lib.core import Sensor
 
 import flash
@@ -24,7 +24,7 @@ def test_init():
         assert isinstance(flash._zone[x], Sensor)
         assert isinstance(flash._sensor[x], Sensor)
         assert isinstance(flash._available[x], Sensor)
-        assert isinstance(flash._humidifier[x], GenericHygrostat)
+        assert isinstance(flash._humidifier[x], Humidifier)
 
     assert isinstance(flash._pump_block, Sensor)
     assert isinstance(flash._duty_cycle, DutyCycle)

@@ -3,7 +3,7 @@
 from time import sleep as mock_sleep
 
 import dutycycle
-from humidifier import GenericHygrostat
+from humidifier import Humidifier
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 
@@ -18,7 +18,7 @@ def test_dutycycle():
     humidifier_available = {x: Switch() for x in range(3)}
 
     humidifier = {
-        x: GenericHygrostat(
+        x: Humidifier(
             switch=humidifier_switch[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],

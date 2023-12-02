@@ -8,7 +8,7 @@ from unittest.mock import patch
 import commands
 import config
 import pytest
-from humidifier import GenericHygrostat
+from humidifier import Humidifier
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 from machine import reset_cause as mock_reset_cause, soft_reset as mock_soft_reset
@@ -32,7 +32,7 @@ def test_commands():
     humidifier_available = {x: Switch() for x in range(3)}
 
     humidifier = {
-        x: GenericHygrostat(
+        x: Humidifier(
             switch=humidifier_zone[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],

@@ -1,13 +1,9 @@
-"""The tests for the generic_hygrostat."""
+"""The tests for the Humidifier class."""
 from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
 import pytest
-from humidifier import (
-    _MODE_AWAY as MODE_AWAY,
-    _MODE_NORMAL as MODE_NORMAL,
-    GenericHygrostat,
-)
+from humidifier import _MODE_AWAY as MODE_AWAY, _MODE_NORMAL as MODE_NORMAL, Humidifier
 from lib.core import Sensor, Switch
 from lib.mainloop import main_loop
 
@@ -20,10 +16,10 @@ calls = []
 switch_unsubscribe = humidifier_switch.subscribe(lambda x: calls.append(x))
 
 
-def test_heneric_hygrostat():
-    """Test GenericHygrostat class."""
+def test_humidifier():
+    """Test Humidifier class."""
     humidifier_available = Switch()
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=humidifier_available,
@@ -62,7 +58,7 @@ def test_heneric_hygrostat():
 
 def test_humidifier_switch():
     """Test humidifier switching test switch."""
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -91,7 +87,7 @@ def setup_comp_2():
     """Initialize components."""
     _setup_sensor(45)
 
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -109,7 +105,7 @@ def test_unavailable_state():
     """Test the setting of defaults to unknown."""
     _setup_sensor("unavailable")
     humidifier_available = Switch()
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=humidifier_available,
@@ -282,7 +278,7 @@ def test_init_ignores_tolerance():
     """Test if tolerance is ignored on initialization."""
     _setup_switch(True)
     _setup_sensor(41)
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -327,7 +323,7 @@ def test_no_state_change_when_operation_mode_off(setup_comp_2):
 @pytest.fixture
 def setup_comp_4():
     """Initialize components."""
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -374,7 +370,7 @@ def test_mode_change_humidifier_trigger_on_not_long_enough(setup_comp_4):
 
 def test_float_tolerance_values():
     """Test if humidifier does not turn on within floating point tolerance."""
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -395,7 +391,7 @@ def test_float_tolerance_values():
 
 def test_float_tolerance_values_2():
     """Test if humidifier turns off when oudside of floating point tolerance values."""
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -417,7 +413,7 @@ def test_float_tolerance_values_2():
 def test_custom_setup_params():
     """Test the setup with custom parameters."""
     _setup_sensor(45)
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),
@@ -431,7 +427,7 @@ def test_custom_setup_params():
 def test_sensor_stale_duration(caplog):
     """Test turn off on sensor stale."""
 
-    humidifier = GenericHygrostat(
+    humidifier = Humidifier(
         switch=humidifier_switch,
         sensor=humidifier_sensor,
         available_sensor=Switch(),

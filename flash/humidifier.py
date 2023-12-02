@@ -1,4 +1,4 @@
-"""Generic hygrostat implementation."""
+"""Humidifier implementation."""
 
 from time import ticks_diff, ticks_ms
 
@@ -12,8 +12,8 @@ _MODE_NORMAL = "normal"
 _MODE_AWAY = "away"
 
 
-class GenericHygrostat(Switch):
-    """Representation of a Generic Hygrostat device."""
+class Humidifier(Switch):
+    """Representation of a Humidifier device."""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class GenericHygrostat(Switch):
         *args,
         **kwargs
     ):
-        """Initialize the hygrostat."""
+        """Initialize the humidifier."""
         self._switch = switch
         self._sensor = sensor
         self._dry_tolerance = dry_tolerance
@@ -86,7 +86,7 @@ class GenericHygrostat(Switch):
         self._update_humidity("Stalled")
 
     def _update_humidity(self, humidity):
-        """Update hygrostat with latest state from sensor."""
+        """Update humidifier with latest state from sensor."""
         try:
             self._cur_humidity = float(humidity)
             self._sensor_last_updated = ticks_ms()
@@ -118,7 +118,7 @@ class GenericHygrostat(Switch):
             force = True
             _LOGGER.info(
                 "Obtained current and target humidity. "
-                "Generic hygrostat active. {}, {}".format(
+                "Humidifier active. {}, {}".format(
                     self._cur_humidity, self._target_humidity
                 )
             )

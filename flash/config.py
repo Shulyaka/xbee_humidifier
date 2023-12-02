@@ -6,8 +6,8 @@ from micropython import const
 from tosr0x import tosr0x_version
 
 pump_on_timeout = const(10 * 60)
-pressure_drop_delay = const(10)
-pressure_drop_time = const(50)
+pressure_drop_delay = const(8)
+pressure_drop_time = const(52)
 idle_time = const(2 * 60)
 
 debug = False
