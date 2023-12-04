@@ -93,9 +93,10 @@ class Loop:
             next_run = task.next_run
             if next_run is not None and ticks_diff(next_run, ticks_ms()) <= 0:
                 next_run = task.run()
-                if next_run is None and task in self._tasks:
-                    self._tasks.remove(task)
-                    collect()
+
+            if next_run is None and task in self._tasks:
+                self._tasks.remove(task)
+                collect()
 
             if next_run is not None and (
                 next_time is None or ticks_diff(next_run, next_time) < 0
