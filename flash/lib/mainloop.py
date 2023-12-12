@@ -25,6 +25,8 @@ class Task:
         try:
             collect()
             self._callback()
+        except OSError:
+            pass
         except Exception as e:
             _LOGGER.error("mainloop: error with {}".format(self._callback))
             _LOGGER.error("{}: {}".format(type(e).__name__, e))

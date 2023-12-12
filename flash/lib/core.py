@@ -62,6 +62,8 @@ class Sensor:
                 collect()
                 callback(value)
                 collect()
+            except OSError:
+                pass
             except Exception as e:
                 _LOGGER.error("callback error for {}".format(callback))
                 _LOGGER.error("{}: {}".format(type(e).__name__, e))
