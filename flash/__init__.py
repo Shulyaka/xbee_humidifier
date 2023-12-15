@@ -42,26 +42,10 @@ def _setup(debug):
                 (lambda n: lambda v: print("VALVE{} = {}".format(n, v)))(x)
             )
 
-        _prev_run_time = main_loop._run_time
-        _prev_idle_time = main_loop._idle_time
-
         def _stats():
-            """Print cpu stats."""
-            nonlocal _prev_run_time, _prev_idle_time
-            run_time = main_loop._run_time - _prev_run_time
-            idle_time = main_loop._idle_time - _prev_idle_time
-            _prev_run_time = main_loop._run_time
-            _prev_idle_time = main_loop._idle_time
-
+            """Print mem stats."""
             alloc = mem_alloc()
-            print(
-                "CPU {:.2%}, MEM {:.2%}".format(
-                    run_time / (run_time + idle_time)
-                    if run_time + idle_time > 0
-                    else 0,
-                    alloc / (alloc + mem_free()),
-                )
-            )
+            print("MEM {:.2%}".format(alloc / (alloc + mem_free())))
 
         main_loop.schedule_task(_stats, period=1000)
         collect()

@@ -59,8 +59,6 @@ class Loop:
         self._last_run = None
         self._tasks = []
         self._stop = False
-        self._run_time = 0
-        self._idle_time = 0
         self._task_scheduled = False
 
     def schedule_task(self, *args, **kwargs):
@@ -117,17 +115,14 @@ class Loop:
         collect()
         self._stop = False
         while not self._stop:
-            start = ticks_ms()
             next_time = self.run_once()
             now = ticks_ms()
-            self._run_time += ticks_diff(now, start)
             if next_time is None:
                 if self._stop:
                     return None
                 raise RuntimeError("No tasks")
             diff = ticks_diff(next_time, now)
             if diff > 0 and not self._stop:
-                self._idle_time += diff
                 sleep_ms(diff)
         collect()
         return next_time
