@@ -383,3 +383,12 @@ def test_commands():
     mock_reset_cause.reset_mock()
     assert command("reset_cause") == 6
     mock_reset_cause.assert_called_once_with()
+
+    mock_transmit.side_effect = OSError("EAGAIN")
+
+    with patch("lib.mainloop.main_loop.schedule_task") as mock_schedule_task:
+        command("test")
+
+    mock_schedule_task.assert_called_once()
+
+    mock_transmit.side_effect = None

@@ -4,7 +4,6 @@ from json import dumps as json_dumps
 
 import config
 from lib.core import Commands
-from xbee import transmit
 
 
 class HumidifierCommands(Commands):
@@ -137,7 +136,7 @@ class HumidifierCommands(Commands):
         def bind(entity, binds, name):
             if target not in binds:
                 binds[target] = entity.subscribe(
-                    lambda x: transmit(target, json_dumps({name: x}))
+                    lambda x: self._transmit(target, json_dumps({name: x}))
                 )
 
         bind(config.pump_temp, self._binds["pump_temp"], "pump_temp")
