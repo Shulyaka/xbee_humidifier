@@ -16,7 +16,13 @@ ENTITY3 = "sensor.xbee_humidifier_main_unit_uptime"
     (
         (ENTITY1, "pump_temp", "31", 32, "32"),
         (ENTITY2, "pressure_in", "7.00", 4158, "7.59"),
-        (ENTITY3, "uptime", "2023", 1800000000, "2027"),
+        (
+            ENTITY3,
+            "uptime",
+            str(dt.datetime.now(tz=dt.timezone.utc).year),
+            1800000000,
+            "2027",
+        ),
     ),
 )
 async def test_sensor(
