@@ -49,6 +49,7 @@ if any(file.endswith(".py") for file in uos.listdir() + uos.listdir("lib")):
             compile_file("main.py")
         if "bundle.py" in uos.listdir():
             compile_file("bundle.py")
+            uos.bundle("bundle.mpy")
         compile_dir()
         compile_dir("lib")
     except MemoryError as e:
@@ -58,6 +59,13 @@ if any(file.endswith(".py") for file in uos.listdir() + uos.listdir("lib")):
         machine.soft_reset()  # Retry or continue after reboot
 
 # Second stage: bundle
+if "bundle" in uos.bundle():
+
+    def _unbundle():
+        uos.bundle(None)
+        machine.soft_reset()
+
+    _unbundle()
 uos.remove("bundle.mpy")
 uos.sync()
 collect()

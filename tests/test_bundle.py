@@ -45,7 +45,7 @@ def test_bundle_compile():
         call("bundle.mpy"),
     ]
     assert mock_sync.call_args_list == [call(), call()]
-    mock_bundle.assert_called_once()
+    assert mock_bundle.call_count == 2
     mock_remove.side_effect = None
 
 
@@ -80,7 +80,7 @@ def test_bundle_compile_main_bundle():
     mock_atcmd.assert_called_once_with("AP", 0)
     assert mock_compile.call_args_list[:2] == [call("main.py"), call("bundle.py")]
     assert mock_sync.call_count == 2
-    mock_bundle.assert_called_once()
+    assert mock_bundle.call_count == 3
 
 
 def test_bundle_all_compiled():
@@ -89,11 +89,14 @@ def test_bundle_all_compiled():
     mock_atcmd.reset_mock()
     mock_remove.reset_mock()
     mock_sync.reset_mock()
+    mock_soft_reset.reset_mock()
     mock_bundle.reset_mock()
+    mock_bundle.return_value = ["bundle"]
 
     importlib.reload(bundle)
 
     mock_atcmd.assert_called_once_with("AP", 0)
     mock_remove.assert_called_once_with("bundle.mpy")
     mock_sync.assert_called_once_with()
-    mock_bundle.assert_called_once()
+    mock_soft_reset.assert_called_once_with()
+    assert mock_bundle.call_count == 3
