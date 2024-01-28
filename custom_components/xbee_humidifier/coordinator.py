@@ -266,7 +266,8 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
         async def async_data_received(data):
-            self.last_update_success = True
+            if not self.last_update_success:
+                await self.async_request_refresh()
 
         self._remove_data_received_handler = self.client.add_subscriber(
             "data_received", async_data_received
