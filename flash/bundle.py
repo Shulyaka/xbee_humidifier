@@ -8,14 +8,13 @@ from micropython import opt_level
 from xbee import atcmd
 
 _bundle_list = [
-    "lib/logging.mpy",
-    "lib/core.mpy",
-    "lib/mainloop.mpy",
-    "lib/xbeepin.mpy",
-    "tosr0x.mpy",
-    "humidifier.mpy",
-    "dutycycle.mpy",
+    "__init__.mpy",
     "commands.mpy",
+    "config.mpy",
+    "dutycycle.mpy",
+    "humidifier.mpy",
+    "tosr.mpy",
+    "tosr0x.mpy",
 ]
 
 atcmd("AP", 0)
