@@ -16,7 +16,7 @@ class TosrSwitch(Sensor):
     """TOSR0X relay."""
 
     _type = bool
-    _period = 30000
+    _period = 5000
 
     def __init__(self, switch_number, *args, **kwargs):
         """Init the class."""
