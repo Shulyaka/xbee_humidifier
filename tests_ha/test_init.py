@@ -362,3 +362,53 @@ async def test_device_reset(hass, data_from_device, test_config_entry):
     assert commands["mode"].call_args_list[5][0][0] == [1, "away"]
     assert commands["mode"].call_args_list[6][0][0] == [1, "normal"]
     assert commands["mode"].call_args_list[7][0][0] == [2, "normal"]
+
+
+async def test_connection_recovery(hass, data_from_device, test_config_entry):
+    """Test device coming back online after being unavailable during last update."""
+
+    commands["bind"].reset_mock()
+    commands["uptime"].reset_mock()
+    commands["hum"].reset_mock()
+    commands["sav_hum"].reset_mock()
+    commands["available"].reset_mock()
+    commands["zone"].reset_mock()
+    commands["target_hum"].reset_mock()
+    commands["mode"].reset_mock()
+    commands["cur_hum"].reset_mock()
+
+    coordinator = hass.data["xbee_humidifier"][test_config_entry.entry_id]
+    coordinator.last_update_success = False
+    data_from_device(hass, IEEE, {"pressure_in": 3963})
+    await hass.async_block_till_done()
+
+    commands["bind"].assert_called_once_with()
+    commands["uptime"].assert_called_once_with()
+    assert commands["sav_hum"].call_count == 3
+    assert commands["sav_hum"].call_args_list[0][0][0] == 0
+    assert commands["sav_hum"].call_args_list[1][0][0] == 1
+    assert commands["sav_hum"].call_args_list[2][0][0] == 2
+    assert commands["available"].call_count == 3
+    assert commands["available"].call_args_list[0][0][0] == 0
+    assert commands["available"].call_args_list[1][0][0] == 1
+    assert commands["available"].call_args_list[2][0][0] == 2
+    assert commands["zone"].call_count == 3
+    assert commands["zone"].call_args_list[0][0][0] == 0
+    assert commands["zone"].call_args_list[1][0][0] == 1
+    assert commands["zone"].call_args_list[2][0][0] == 2
+    assert commands["hum"].call_count == 3
+    assert commands["hum"].call_args_list[0][0][0] == 0
+    assert commands["hum"].call_args_list[1][0][0] == 1
+    assert commands["hum"].call_args_list[2][0][0] == 2
+    assert commands["cur_hum"].call_count == 3
+    assert commands["cur_hum"].call_args_list[0][0][0] == 0
+    assert commands["cur_hum"].call_args_list[1][0][0] == 1
+    assert commands["cur_hum"].call_args_list[2][0][0] == 2
+    assert commands["target_hum"].call_count == 3
+    assert commands["target_hum"].call_args_list[0][0][0] == 0
+    assert commands["target_hum"].call_args_list[1][0][0] == 1
+    assert commands["target_hum"].call_args_list[2][0][0] == 2
+    assert commands["mode"].call_count == 3
+    assert commands["mode"].call_args_list[0][0][0] == 0
+    assert commands["mode"].call_args_list[1][0][0] == 1
+    assert commands["mode"].call_args_list[2][0][0] == 2
