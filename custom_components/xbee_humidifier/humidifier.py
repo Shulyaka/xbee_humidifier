@@ -199,6 +199,15 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         )
         if self._sensor_entity_id is None:
             self._attr_current_humidity = resp["cur_hum"]
+        elif (
+            self._attr_current_humidity != resp["cur_hum"] and not self._attr_available
+        ):
+            self.hass.create_task(
+                self.coordinator.client.async_command(
+                    "cur_hum", self._number, self._attr_current_humidity
+                ),
+                f"Entity {self.entity_id} schedule update current humidity",
+            )
 
         self.schedule_update_ha_state()
 
