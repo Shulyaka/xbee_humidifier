@@ -196,6 +196,12 @@ class XBeeHumidifierPumpBlockSwitch(XBeeHumidifierSwitch, RestoreEntity):
         """Update device settings from HA on reset."""
         await self._turn(self._attr_is_on)
 
+    async def _turn(self, is_on: bool) -> None:
+        """Turn on or off the switch."""
+        self._attr_is_on = is_on
+        self.async_write_ha_state()
+        await self.coordinator.client.async_command(self._name, is_on)
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
