@@ -37,6 +37,7 @@ SERIAL_DATA_CMD = 0x0000
 XBEE_DATA_ENDPOINT = 0xE8
 
 REMOTE_COMMAND_TIMEOUT = 5
+DEFAULT_RETRY_COUNT = 5
 
 
 class XBeeHumidifierApiClient:
@@ -128,7 +129,9 @@ class XBeeHumidifierApiClient:
             self.hass.loop,
         ).result()
 
-    async def async_command(self, command, *args, retry_count=3, **kwargs):
+    async def async_command(
+        self, command, *args, retry_count=DEFAULT_RETRY_COUNT, **kwargs
+    ):
         """Issue xbee humidifier command asynchronously."""
         if len(args) > 0 and len(kwargs) > 0:
             data = {"cmd": command, "args": (args, kwargs)}
@@ -165,6 +168,12 @@ class XBeeHumidifierApiClient:
                     except KeyError:
                         pass
                     e = TimeoutError(f"No response to {command} command")
+                except Exception as exp:
+                    _LOGGER.error(
+                        f"Error getting response for {command} command: {exp}"
+                    )
+                    e = exp
+
             raise e
 
     async def _cmd(self, command, data):

@@ -176,9 +176,25 @@ async def test_timeout(cmd_mock, hass):
     cmd_mock.side_effect = TimeoutError
 
     with pytest.raises(TimeoutError, match="No response to bind command"):
-        await client.async_command("bind", retry_count=5)
+        await client.async_command("bind", retry_count=7)
 
-    assert cmd_mock.call_count == 5
+    assert cmd_mock.call_count == 7
+
+
+@patch("custom_components.xbee_humidifier.coordinator.XBeeHumidifierApiClient._cmd")
+async def test_remote_buffer_full(cmd_mock, hass):
+    """Test retry on remote buffer full."""
+
+    from zigpy.exceptions import DeliveryError
+
+    client = XBeeHumidifierApiClient(hass, IEEE)
+
+    cmd_mock.side_effect = DeliveryError("Failed to deliver packet")
+
+    with pytest.raises(DeliveryError, match="Failed to deliver packet"):
+        await client.async_command("bind", retry_count=3)
+
+    assert cmd_mock.call_count == 3
 
 
 async def test_service_call_exception(hass):
