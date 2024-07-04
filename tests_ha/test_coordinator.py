@@ -79,12 +79,6 @@ async def test_double_command(hass, data_from_device):
         client.async_command("valve", number=0), client.async_command("valve", number=1)
     ) == [False, False]
 
-    with pytest.raises(RuntimeError, match="Command is already executing"):
-        await asyncio.gather(
-            client._cmd("valve", json.dumps({"cmd": "valve", "args": 0})),
-            client._cmd("valve", json.dumps({"cmd": "valve", "args": 1})),
-        )
-
 
 async def test_unexpected_command_response(hass):
     """Test receiving unexpected command response."""
@@ -202,7 +196,5 @@ async def test_service_call_exception(hass):
 
     client = XBeeHumidifierApiClient(hass, IEEE)
 
-    with pytest.raises(
-        ServiceNotFound, match="Service zha.issue_zigbee_cluster_command not found."
-    ):
+    with pytest.raises(ServiceNotFound, match="service_not_found"):
         await client.async_command("bind")

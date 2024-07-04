@@ -1,7 +1,7 @@
 """Global fixtures for xbee_humidifier integration."""
 
-
 import json
+from functools import partial
 from unittest.mock import DEFAULT, MagicMock, patch
 
 import pytest
@@ -44,26 +44,55 @@ def skip_notifications_fixture():
 
 # This is used to access calls and configure command responses
 calls = []
-commands = {
-    "sav_hum": MagicMock(),
-    "available": MagicMock(),
-    "hum": MagicMock(),
-    "target_hum": MagicMock(),
-    "mode": MagicMock(),
-    "cur_hum": MagicMock(),
-    "atcmd": MagicMock(),
-    "pump_temp": MagicMock(),
-    "pressure_in": MagicMock(),
-    "valve": MagicMock(),
-    "pump": MagicMock(),
-    "pump_block": MagicMock(),
-    "fan": MagicMock(),
-    "aux_led": MagicMock(),
-    "pump_speed": MagicMock(),
-    "uptime": MagicMock(),
-    "reset_cause": MagicMock(),
-    "zone": MagicMock(),
-}
+cached_values = {}
+
+
+_NO_ARGS = "no args"
+
+
+def _cmd_handler(cmd, args=_NO_ARGS):
+    number = None
+    if isinstance(args, list):
+        if args and isinstance(args[0], int):
+            number = args[0]
+            args = args[1:]
+        if len(args) == 1:
+            args = args[0]
+        elif not args:
+            args = _NO_ARGS
+    elif isinstance(args, dict):
+        if "number" in args:
+            number = args.pop("number")
+        if len(args) == 1:
+            args = args.values()[0]
+        elif not args:
+            args = _NO_ARGS
+    elif isinstance(args, int) and cmd in (
+        "sav_hum",
+        "available",
+        "hum",
+        "target_hum",
+        "mode",
+        "cur_hum",
+        "valve",
+        "zone",
+    ):
+        number = args
+        args = _NO_ARGS
+
+    if args == _NO_ARGS:
+        value = cached_values.get(cmd)
+        if number is not None and value:
+            value = value.get(number)
+        if value is not None:
+            return value
+        return DEFAULT
+
+    if number is not None:
+        cached_values.setdefault(cmd, {})[number] = args
+    else:
+        cached_values[cmd] = args
+    return "OK"
 
 
 def _uptime_handler(args=None):
@@ -73,7 +102,26 @@ def _uptime_handler(args=None):
     return "OK"
 
 
-commands["uptime"].side_effect = _uptime_handler
+commands = {
+    "sav_hum": MagicMock(side_effect=partial(_cmd_handler, "sav_hum")),
+    "available": MagicMock(),
+    "hum": MagicMock(side_effect=partial(_cmd_handler, "hum")),
+    "target_hum": MagicMock(side_effect=partial(_cmd_handler, "target_hum")),
+    "mode": MagicMock(side_effect=partial(_cmd_handler, "mode")),
+    "cur_hum": MagicMock(side_effect=partial(_cmd_handler, "cur_hum")),
+    "atcmd": MagicMock(),
+    "pump_temp": MagicMock(),
+    "pressure_in": MagicMock(),
+    "valve": MagicMock(side_effect=partial(_cmd_handler, "valve")),
+    "pump": MagicMock(side_effect=partial(_cmd_handler, "pump")),
+    "pump_block": MagicMock(side_effect=partial(_cmd_handler, "pump_block")),
+    "fan": MagicMock(side_effect=partial(_cmd_handler, "fan")),
+    "aux_led": MagicMock(side_effect=partial(_cmd_handler, "aux_led")),
+    "pump_speed": MagicMock(side_effect=partial(_cmd_handler, "pump_speed")),
+    "uptime": MagicMock(side_effect=_uptime_handler),
+    "reset_cause": MagicMock(),
+    "zone": MagicMock(side_effect=partial(_cmd_handler, "zone")),
+}
 
 
 # This fixture enables two-way communication with the device. The calls are logged
@@ -83,7 +131,8 @@ def data_from_device_fixture(hass):
     """Configure fake two-way communication."""
     for x in commands.values():
         x.reset_mock()
-        x.side_effect = None
+
+    cached_values.clear()
 
     commands["atcmd"].return_value = (
         "XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"

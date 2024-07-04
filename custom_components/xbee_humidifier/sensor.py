@@ -150,21 +150,6 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
         super().__init__(name, coordinator, entity_description, conversion)
         self._attr_reset_cause = UNKNOWN
 
-    async def async_added_to_hass(self):
-        """Run when entity about to be added."""
-        await super().async_added_to_hass()
-
-        async def async_update_state(value):
-            if value <= 0:
-                await self.coordinator.client.async_command(
-                    "uptime",
-                    int(dt.datetime.now(tz=dt.timezone.utc).timestamp() + value + 0.5),
-                )
-
-        self.async_on_remove(
-            self.coordinator.client.add_subscriber(self._name, async_update_state)
-        )
-
     @property
     def extra_state_attributes(self):
         """Return the optional state attributes."""
@@ -175,18 +160,7 @@ class XBeeHumidifierUptimeSensor(XBeeHumidifierSensor):
         """Handle updated data from the coordinator."""
         value = self.coordinator.data.get(self._name)
         if value <= 0:
-            value = int(
-                self.coordinator.data.get(
-                    "timestamp", dt.datetime.now(tz=dt.timezone.utc).timestamp()
-                )
-                + value
-                + 0.5
-            )
-            self.coordinator.data["new_uptime"] = value
-            self.hass.async_create_task(
-                self.coordinator.client.async_command("uptime", value)
-            )
-            self.hass.async_create_task(self.coordinator.client.device_reset())
+            value = self.coordinator.data.get("new_" + self._name)
 
         self._attr_native_value = dt.datetime.fromtimestamp(value, tz=dt.timezone.utc)
 

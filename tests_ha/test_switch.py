@@ -145,6 +145,5 @@ async def test_restore_state(
 
     assert hass.states.get(ENT_PUMP_BLOCK).state == STATE_ON
 
-    assert commands["pump_block"].call_count == 2
-    assert len(commands["pump_block"].call_args_list[0][0]) == 0
-    assert commands["pump_block"].call_args_list[1][0][0] is True
+    assert commands["pump_block"].call_count == 1
+    assert commands["pump_block"].call_args_list[0][0][0] is True

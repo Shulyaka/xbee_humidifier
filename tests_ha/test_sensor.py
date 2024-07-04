@@ -11,6 +11,10 @@ ENTITY2 = "sensor.xbee_humidifier_main_unit_pressure_in"
 ENTITY3 = "sensor.xbee_humidifier_main_unit_uptime"
 
 
+def test_test(hass):
+    """Workaround for https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/discussions/160."""
+
+
 @pytest.mark.parametrize(
     "entity, data, value, newdata, newvalue",
     (
@@ -42,20 +46,21 @@ async def test_uptime_set(hass, data_from_device, test_config_entry):
     """Test absolute uptime set if relative uptime is returned from the device."""
 
     commands["uptime"].reset_mock()
+    commands["uptime"].return_value = -30
 
     data_from_device(hass, IEEE, {"uptime": -30})
     await hass.async_block_till_done()
 
     assert commands["uptime"].call_count == 2
+    assert commands["uptime"].call_args_list[0][0] == ()
     assert (
         abs(
-            commands["uptime"].call_args_list[0][0][0]
+            commands["uptime"].call_args_list[1][0][0]
             + 30
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
         < 2
     )
-    assert commands["uptime"].call_args_list[1][0] == ()
 
     assert (
         (

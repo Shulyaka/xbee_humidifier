@@ -183,6 +183,8 @@ class XBeeHumidifierPumpBlockSwitch(XBeeHumidifierSwitch, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
+        self._attr_is_on = False
+
         if self.coordinator.data.get("uptime", 0) <= 0:
             if (old_state := await self.async_get_last_state()) is not None:
                 if old_state.state == STATE_ON:

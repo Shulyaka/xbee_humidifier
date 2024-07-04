@@ -73,10 +73,10 @@ class XBeeHumidifierApiClient:
             await self._async_data_received(event.data["args"]["data"])
 
         @callback
-        def ieee_event_filter(event):
+        def ieee_event_filter(event_data):
             return (
-                event.data.get("command") == "receive_data"
-                and event.data.get("device_ieee") == self.device_ieee
+                event_data.get("command") == "receive_data"
+                and event_data.get("device_ieee") == self.device_ieee
             )
 
         self._remove_listener = self.hass.bus.async_listen(
@@ -259,16 +259,17 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._xbee_logger = logging.getLogger("xbee_humidifier")
 
+        self._device_reset = True
+
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
 
         self._remove_log_handler = self.client.add_subscriber("log", async_log)
 
         async def device_reset():
-            if self.data.get("uptime", 1) > 0:
+            if not self._device_reset:
+                self._device_reset = True
                 await self.async_refresh()
-            elif self.data.get("new_uptime", 0) > 0:
-                self.data["uptime"] = self.data["new_uptime"]
 
         self._remove_device_reset_handler = self.client.add_subscriber(
             "device_reset", device_reset
@@ -321,10 +322,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
         data["uptime"] = await self.client.async_command("uptime")
-        data["timestamp"] = dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        timestamp = dt.datetime.now(tz=dt.timezone.utc).timestamp()
         data["reset_cause"] = await self.client.async_command("reset_cause")
         data["pump"] = await self.client.async_command("pump")
-        data["pump_block"] = await self.client.async_command("pump_block")
         data["fan"] = await self.client.async_command("fan")
         data["aux_led"] = await self.client.async_command("aux_led")
         data["pump_temp"] = await self.client.async_command("pump_temp")
@@ -332,28 +332,39 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         data["pump_speed"] = await self.client.async_command("pump_speed")
         for number in range(0, 4):
             data["valve"][number] = await self.client.async_command("valve", number)
-        async with self.humidifier_lock:
-            for number in range(0, 3):
-                data["humidifier"][number] = {}
-                data["humidifier"][number]["sav_hum"] = await self.client.async_command(
-                    "sav_hum", number
-                )
-                data["humidifier"][number][
-                    "available"
-                ] = await self.client.async_command("available", number)
-                data["humidifier"][number]["working"] = await self.client.async_command(
-                    "zone", number
-                )
-                data["humidifier"][number]["is_on"] = await self.client.async_command(
-                    "hum", number
-                )
-                data["humidifier"][number]["cur_hum"] = await self.client.async_command(
-                    "cur_hum", number
-                )
-                data["humidifier"][number][
-                    "target_hum"
-                ] = await self.client.async_command("target_hum", number)
-                data["humidifier"][number]["mode"] = await self.client.async_command(
-                    "mode", number
-                )
+        if data["uptime"] > 0:
+            data["pump_block"] = await self.client.async_command("pump_block")
+            async with self.humidifier_lock:
+                for number in range(0, 3):
+                    data["humidifier"][number] = {}
+                    data["humidifier"][number][
+                        "sav_hum"
+                    ] = await self.client.async_command("sav_hum", number)
+                    data["humidifier"][number][
+                        "available"
+                    ] = await self.client.async_command("available", number)
+                    data["humidifier"][number][
+                        "working"
+                    ] = await self.client.async_command("zone", number)
+                    data["humidifier"][number][
+                        "is_on"
+                    ] = await self.client.async_command("hum", number)
+                    data["humidifier"][number][
+                        "cur_hum"
+                    ] = await self.client.async_command("cur_hum", number)
+                    data["humidifier"][number][
+                        "target_hum"
+                    ] = await self.client.async_command("target_hum", number)
+                    data["humidifier"][number][
+                        "mode"
+                    ] = await self.client.async_command("mode", number)
+        else:
+            if not self._device_reset:
+                self._device_reset = True
+                await self.client.device_reset()
+            value = int(timestamp + data["uptime"] + 0.5)
+            await self.client.async_command("uptime", value)
+            data["new_uptime"] = value
+            self._device_reset = False
+
         return data

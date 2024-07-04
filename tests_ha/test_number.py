@@ -12,6 +12,10 @@ from .const import IEEE
 ENTITY = "number.xbee_humidifier_main_unit_pump_speed"
 
 
+def test_test(hass):
+    """Workaround for https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/discussions/160."""
+
+
 async def test_number_remote_update(hass, data_from_device, test_config_entry):
     """Test remote update for number platform."""
 
