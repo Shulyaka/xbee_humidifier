@@ -142,22 +142,17 @@ async def test_subscribers(hass, caplog, data_from_device):
 
     listener = AsyncMock()
     listener_all = AsyncMock()
-    listener_reset = AsyncMock()
     client.add_subscriber("test_data", listener)
     client.add_subscriber("data_received", listener_all)
-    client.add_subscriber("device_reset", listener_reset)
 
     data_from_device(hass, IEEE, {"test_data": "test_value"})
     data_from_device(hass, IEEE, {"test_data2": "test_value2"})
-    data_from_device(hass, IEEE, {"uptime": 0})
     await hass.async_block_till_done()
 
     listener.assert_awaited_once_with("test_value")
-    listener_reset.assert_awaited_once_with()
-    assert listener_all.await_count == 3
+    assert listener_all.await_count == 2
     assert listener_all.await_args_list[0][0][0] == {"test_data": "test_value"}
     assert listener_all.await_args_list[1][0][0] == {"test_data2": "test_value2"}
-    assert listener_all.await_args_list[2][0][0] == {"uptime": 0}
     assert "No callback for {'test_data2': 'test_value2'}" in caplog.text
 
 

@@ -191,7 +191,7 @@ class XBeeHumidifierPumpBlockSwitch(XBeeHumidifierSwitch, RestoreEntity):
                     await self._turn(True)
 
         self.async_on_remove(
-            self.coordinator.client.add_subscriber("device_reset", self._update_device)
+            self.coordinator.add_subscriber("device_reset", self._update_device)
         )
 
     async def _update_device(self):

@@ -155,7 +155,7 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                 self.async_on_remove(self._remove_sensor_tracking)
 
         self.async_on_remove(
-            self.coordinator.client.add_subscriber("device_reset", self._update_device)
+            self.coordinator.add_subscriber("device_reset", self._update_device)
         )
 
         async def async_update_available(value):
