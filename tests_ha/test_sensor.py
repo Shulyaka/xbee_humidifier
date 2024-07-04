@@ -51,11 +51,10 @@ async def test_uptime_set(hass, data_from_device, test_config_entry):
     data_from_device(hass, IEEE, {"uptime": -30})
     await hass.async_block_till_done()
 
-    assert commands["uptime"].call_count == 2
-    assert commands["uptime"].call_args_list[0][0] == ()
+    assert commands["uptime"].call_count == 1
     assert (
         abs(
-            commands["uptime"].call_args_list[1][0][0]
+            commands["uptime"].call_args_list[0][0][0]
             + 30
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )

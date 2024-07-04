@@ -244,6 +244,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         self._xbee_logger = logging.getLogger("xbee_humidifier")
         self._device_reset = True
         self._callbacks = {}
+        self._uptime = None
 
         async def async_log(data):
             self._xbee_logger.log(data["sev"], data["msg"])
@@ -269,6 +270,8 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         async def update_uptime(value):
             if value <= 0:
+                self._uptime = value
+                self._timestamp = dt.datetime.now(tz=dt.timezone.utc).timestamp()
                 await self.device_reset()
 
         self._remove_update_uptime_handler = self.client.add_subscriber(
@@ -328,8 +331,12 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data."""
         await self.client.async_command("bind")
         data = {"humidifier": {}, "valve": {}}
-        data["uptime"] = await self.client.async_command("uptime")
-        timestamp = dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        if self._device_reset and self._uptime is not None:
+            data["uptime"] = self._uptime
+        else:
+            data["uptime"] = await self.client.async_command("uptime")
+            self._timestamp = dt.datetime.now(tz=dt.timezone.utc).timestamp()
+        self._uptime = None
         data["reset_cause"] = await self.client.async_command("reset_cause")
         data["pump"] = await self.client.async_command("pump")
         data["fan"] = await self.client.async_command("fan")
@@ -369,7 +376,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
             if not self._device_reset:
                 self._device_reset = True
                 await self.device_reset()
-            value = int(timestamp + data["uptime"] + 0.5)
+            value = int(self._timestamp + data["uptime"] + 0.5)
             await self.client.async_command("uptime", value)
             data["new_uptime"] = value
             self._device_reset = False

@@ -130,11 +130,10 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     assert commands["hum"].call_args_list[1][0][0] == [1, False]
     assert commands["hum"].call_args_list[2][0][0] == [2, False]
     commands["pump_block"].assert_called_once_with(False)
-    assert commands["uptime"].call_count == 2
-    assert commands["uptime"].call_args_list[0][0] == ()
+    assert commands["uptime"].call_count == 1
     assert (
         abs(
-            commands["uptime"].call_args_list[1][0][0]
+            commands["uptime"].call_args_list[0][0][0]
             - dt.datetime.now(tz=dt.timezone.utc).timestamp()
         )
         < 1.5
