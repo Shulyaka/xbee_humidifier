@@ -1,4 +1,4 @@
-"""xbee_humidifier valves and pump controls."""
+"""xbee_humidifier pump controls and other switches."""
 from __future__ import annotations
 
 from homeassistant.components.switch import (
@@ -19,23 +19,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the switch platform."""
     switches = []
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    for number in range(0, 4):
-        entity_description = SwitchEntityDescription(
-            key="xbee_humidifier_valve_" + str(number + 1),
-            name="Valve" if number != 3 else "Pressure Drop Valve",
-            has_entity_name=True,
-            icon="mdi:pipe-valve",
-            device_class=SwitchDeviceClass.SWITCH,
-            entity_category=EntityCategory.DIAGNOSTIC,
-        )
-        switches.append(
-            XBeeHumidifierSwitch(
-                name="valve",
-                number=number,
-                coordinator=coordinator,
-                entity_description=entity_description,
-            )
-        )
 
     entity_description = SwitchEntityDescription(
         key="xbee_humidifier_pump",

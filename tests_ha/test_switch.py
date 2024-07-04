@@ -13,10 +13,6 @@ from homeassistant.core import State
 from .conftest import commands
 from .const import IEEE
 
-ENT_VALVE1 = "switch.xbee_humidifier_1_valve"
-ENT_VALVE2 = "switch.xbee_humidifier_2_valve"
-ENT_VALVE3 = "switch.xbee_humidifier_3_valve"
-ENT_VALVE4 = "switch.xbee_humidifier_main_unit_pressure_drop_valve"
 ENT_PUMP = "switch.xbee_humidifier_main_unit_pump"
 ENT_PUMP_BLOCK = "switch.xbee_humidifier_main_unit_pump_block"
 ENT_FAN = "switch.xbee_humidifier_main_unit_fan"
@@ -26,10 +22,6 @@ ENT_AUX_LED = "switch.xbee_humidifier_main_unit_aux_led"
 def test_switch_init(hass, data_from_device, test_config_entry):
     """Test that all switch entities are created."""
 
-    assert hass.states.get(ENT_VALVE1).state == STATE_OFF
-    assert hass.states.get(ENT_VALVE2).state == STATE_OFF
-    assert hass.states.get(ENT_VALVE3).state == STATE_OFF
-    assert hass.states.get(ENT_VALVE4).state == STATE_OFF
     assert hass.states.get(ENT_PUMP).state == STATE_OFF
     assert hass.states.get(ENT_PUMP_BLOCK).state == STATE_OFF
     assert hass.states.get(ENT_FAN).state == STATE_OFF
@@ -39,10 +31,6 @@ def test_switch_init(hass, data_from_device, test_config_entry):
 @pytest.mark.parametrize(
     "entity, command, number",
     (
-        (ENT_VALVE1, "valve", 0),
-        (ENT_VALVE2, "valve", 1),
-        (ENT_VALVE3, "valve", 2),
-        (ENT_VALVE4, "valve", 3),
         (ENT_PUMP, "pump", None),
         (ENT_PUMP_BLOCK, "pump_block", None),
         (ENT_FAN, "fan", None),
@@ -88,10 +76,6 @@ async def test_switch_services(
 @pytest.mark.parametrize(
     "entity, data",
     (
-        (ENT_VALVE1, "valve_0"),
-        (ENT_VALVE2, "valve_1"),
-        (ENT_VALVE3, "valve_2"),
-        (ENT_VALVE4, "valve_3"),
         (ENT_PUMP, "pump"),
         (ENT_PUMP_BLOCK, "pump_block"),
         (ENT_FAN, "fan"),

@@ -19,6 +19,7 @@ PLATFORMS: list[Platform] = [
     Platform.HUMIDIFIER,
     Platform.NUMBER,
     Platform.SWITCH,
+    Platform.VALVE,
     Platform.SENSOR,
 ]
 
