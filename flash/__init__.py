@@ -17,7 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _setup(debug):
-    global _zone, _sensor, _commands, _available, _humidifier, _pump_block, _duty_cycle
     _zone = {x: Switch() for x in range(3)}
     _sensor = {x: Sensor() for x in range(3)}
     _available = {x: Switch() for x in range(3)}
@@ -77,7 +76,7 @@ def _setup(debug):
         _pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))
         collect()
 
-    _duty_cycle = DutyCycle(
+    DutyCycle(
         config.pump,
         _humidifier,
         _zone,
@@ -90,7 +89,7 @@ def _setup(debug):
     )
     collect()
 
-    _commands = HumidifierCommands(
+    HumidifierCommands(
         _humidifier,
         _sensor,
         _available,
