@@ -81,24 +81,14 @@ def _cmd_handler(cmd, args=_NO_ARGS):
         args = _NO_ARGS
 
     if args == _NO_ARGS:
-        value = cached_values.get(cmd)
-        if number is not None and value:
-            value = value.get(number)
-        if value is not None:
-            return value
+        if number is not None and cmd in cached_values and number in cached_values[cmd]:
+            return cached_values[cmd][number]
         return DEFAULT
 
     if number is not None:
         cached_values.setdefault(cmd, {})[number] = args
     else:
-        cached_values[cmd] = args
-    return "OK"
-
-
-def _uptime_handler(args=None):
-    if args is None:
-        return DEFAULT
-    commands["uptime"].return_value = args
+        commands[cmd].return_value = args
     return "OK"
 
 
@@ -118,7 +108,7 @@ commands = {
     "fan": MagicMock(side_effect=partial(_cmd_handler, "fan")),
     "aux_led": MagicMock(side_effect=partial(_cmd_handler, "aux_led")),
     "pump_speed": MagicMock(side_effect=partial(_cmd_handler, "pump_speed")),
-    "uptime": MagicMock(side_effect=_uptime_handler),
+    "uptime": MagicMock(side_effect=partial(_cmd_handler, "uptime")),
     "reset_cause": MagicMock(),
     "zone": MagicMock(side_effect=partial(_cmd_handler, "zone")),
 }
@@ -153,7 +143,6 @@ def data_from_device_fixture(hass):
     commands["aux_led"].return_value = False
     commands["pump_speed"].return_value = 252
     commands["uptime"].return_value = -10
-    commands["uptime"].side_effect = _uptime_handler
     commands["reset_cause"].return_value = 6
     commands["zone"].return_value = False
 
