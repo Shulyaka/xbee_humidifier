@@ -19,7 +19,7 @@ except ImportError:
     # even for the tests from a separate directory.
     pass
 
-pytest_plugins = "pytest_homeassistant_custom_component"
+pytest_plugins = "pytest_homeassistant_custom_component.plugins"
 
 
 # This fixture enables loading custom integrations in all tests.
