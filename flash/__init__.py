@@ -17,9 +17,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _setup(debug):
-    _zone = {x: Switch() for x in range(3)}
-    _sensor = {x: Sensor() for x in range(3)}
-    _available = {x: Switch() for x in range(3)}
+    _zone = [Switch() for x in range(3)]
+    _sensor = [Sensor() for x in range(3)]
+    _available = [Switch() for x in range(3)]
 
     if debug:
         print("\nTOSR0X not detected, enabling emulation")
@@ -49,8 +49,8 @@ def _setup(debug):
         main_loop.schedule_task(_stats, period=1000)
         collect()
 
-    _humidifier = {
-        x: Humidifier(
+    _humidifier = [
+        Humidifier(
             switch=_zone[x],
             sensor=_sensor[x],
             available_sensor=_available[x],
@@ -61,7 +61,7 @@ def _setup(debug):
             sensor_stale_duration=120 * 60,
         )
         for x in range(3)
-    }
+    ]
     collect()
 
     _pump_block = Switch()

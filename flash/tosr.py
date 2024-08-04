@@ -45,5 +45,5 @@ class TosrTemp(Sensor):
         return _tosr.temperature
 
 
-tosr_switch = {x: TosrSwitch(x + 1) for x in range(4)}
+tosr_switch = [TosrSwitch(x + 1) for x in range(4)]
 tosr_temp = TosrTemp()

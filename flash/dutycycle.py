@@ -53,20 +53,22 @@ class DutyCycle:
             lambda x: self._pump_block_changed(x)
         )
 
-        self._humidifier_subscriber = {}
-        for number, humidifier in self._humidifier.items():
-            self._humidifier_subscriber[number] = humidifier.subscribe(
-                (
-                    lambda n: lambda x: main_loop.schedule_task(
-                        lambda: self._humidifier_changed(n, x)
-                    )
-                )(number)
+        self._humidifier_subscriber = []
+        for number, humidifier in enumerate(self._humidifier):
+            self._humidifier_subscriber.append(
+                humidifier.subscribe(
+                    (
+                        lambda n: lambda x: main_loop.schedule_task(
+                            lambda: self._humidifier_changed(n, x)
+                        )
+                    )(number)
+                )
             )
 
-        self._zone_subscriber = {}
-        for number, zone in self._zone.items():
-            self._zone_subscriber[number] = zone.subscribe(
-                (lambda n: lambda x: self._zone_changed(n, x))(number)
+        self._zone_subscriber = []
+        for number, zone in enumerate(self._zone):
+            self._zone_subscriber.append(
+                zone.subscribe((lambda n: lambda x: self._zone_changed(n, x))(number))
             )
 
         self.start_cycle()
@@ -81,9 +83,9 @@ class DutyCycle:
         self._pump.unsubscribe(self._pump_subscriber)
         self._valve_switch[3].unsubscribe(self._valve_subscriber)
         self._pump_block.unsubscribe(self._block_subscriber)
-        for number, subscriber in self._humidifier_subscriber.items():
+        for number, subscriber in enumerate(self._humidifier_subscriber):
             self._humidifier[number].unsubscribe(subscriber)
-        for number, subscriber in self._zone_subscriber.items():
+        for number, subscriber in enumerate(self._zone_subscriber):
             self._zone[number].unsubscribe(subscriber)
         self._close_all_valves()
 
@@ -126,7 +128,7 @@ class DutyCycle:
                 self._loop_schedule = main_loop.schedule_task(
                     lambda: self.start_cycle()
                 )
-        elif all(not zone.state for zone in self._zone.values()):
+        elif all(not zone.state for zone in self._zone):
             if self._loop_schedule:
                 _LOGGER.debug("Cancelling existing duty cycle schedule")
                 main_loop.remove_task(self._loop_schedule)
@@ -215,7 +217,7 @@ class DutyCycle:
     def _close_all_valves(self):
         """Complete pressure drop."""
         _LOGGER.debug("Closing all valves")
-        for switch in self._valve_switch.values():
+        for switch in self._valve_switch:
             switch.state = False
 
     def _pump_on_timeout(self):

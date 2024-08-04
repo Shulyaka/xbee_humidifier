@@ -27,12 +27,12 @@ def test_commands():
     }
     mock_transmit.reset_mock()
 
-    humidifier_zone = {x: Switch() for x in range(3)}
-    humidifier_sensor = {x: Sensor() for x in range(3)}
-    humidifier_available = {x: Switch() for x in range(3)}
+    humidifier_zone = [Switch() for x in range(3)]
+    humidifier_sensor = [Sensor() for x in range(3)]
+    humidifier_available = [Switch() for x in range(3)]
 
-    humidifier = {
-        x: Humidifier(
+    humidifier = [
+        Humidifier(
             switch=humidifier_zone[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],
@@ -43,7 +43,7 @@ def test_commands():
             sensor_stale_duration=30 * 60,
         )
         for x in range(3)
-    }
+    ]
 
     pump_block = Switch()
 

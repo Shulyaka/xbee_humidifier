@@ -29,9 +29,9 @@ class HumidifierCommands(Commands):
             "pump": {},
             "pump_temp": {},
             "pressure_in": {},
-            "available": {0: {}, 1: {}, 2: {}},
-            "zone": {0: {}, 1: {}, 2: {}},
-            "valve": {0: {}, 1: {}, 2: {}, 3: {}},
+            "available": [{}, {}, {}],
+            "zone": [{}, {}, {}],
+            "valve": [{}, {}, {}, {}],
         }
 
     def __del__(self):

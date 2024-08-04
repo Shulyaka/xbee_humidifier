@@ -11,14 +11,14 @@ from lib.mainloop import main_loop
 def test_dutycycle():
     """Test DutyCycle class."""
 
-    tosr_switch = {x: Switch() for x in range(5)}
+    tosr_switch = [Switch() for x in range(5)]
 
-    humidifier_switch = {x: Switch() for x in range(3)}
-    humidifier_sensor = {x: Sensor(40) for x in range(3)}
-    humidifier_available = {x: Switch() for x in range(3)}
+    humidifier_switch = [Switch() for x in range(3)]
+    humidifier_sensor = [Sensor(40) for x in range(3)]
+    humidifier_available = [Switch() for x in range(3)]
 
-    humidifier = {
-        x: Humidifier(
+    humidifier = [
+        Humidifier(
             switch=humidifier_switch[x],
             sensor=humidifier_sensor[x],
             available_sensor=humidifier_available[x],
@@ -29,7 +29,7 @@ def test_dutycycle():
             sensor_stale_duration=30 * 60,
         )
         for x in range(3)
-    }
+    ]
 
     pump = Switch()
     pump_block = Switch()

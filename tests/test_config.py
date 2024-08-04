@@ -29,7 +29,7 @@ def _test_config_base(config):
     assert config.pump_speed._type is None
     assert isinstance(config.fan, Sensor)
     assert config.fan._type is bool
-    assert isinstance(config.valve_switch, dict)
+    assert isinstance(config.valve_switch, list)
     assert len(config.valve_switch) == 4
     for x in range(4):
         assert isinstance(config.valve_switch[x], Sensor)
