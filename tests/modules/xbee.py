@@ -9,7 +9,7 @@ transmit = MagicMock()
 receive = MagicMock()
 
 
-def receive_once(*args, **kwargs):
+def _receive_once(*args, **kwargs):
     """Make the receive mock return the value only once."""
     ret = receive.return_value
     receive.return_value = None
@@ -17,4 +17,4 @@ def receive_once(*args, **kwargs):
 
 
 receive.return_value = None
-receive.side_effect = receive_once
+receive.side_effect = _receive_once

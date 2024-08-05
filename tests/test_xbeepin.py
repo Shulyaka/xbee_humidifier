@@ -10,6 +10,7 @@ from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin
 
 def test_digital_output():
     """Test DigitalOutput class."""
+    main_loop.reset()
     mock_Pin.init.reset_mock()
 
     switch = xbeepin.DigitalOutput("D0")
@@ -45,6 +46,7 @@ def test_digital_output():
 
 def test_digital_input():
     """Test DigitalInput class."""
+    main_loop.reset()
     mock_Pin.init.reset_mock()
 
     binary_sensor = xbeepin.DigitalInput("D0")
@@ -80,6 +82,7 @@ def test_digital_input():
 
 def test_analog_output():
     """Test AnalogOutput class."""
+    main_loop.reset()
     mock_PWM.init.reset_mock()
 
     number = xbeepin.AnalogOutput("D0")
@@ -108,6 +111,7 @@ def test_analog_output():
 
 def test_analog_input():
     """Test AnalogInput class."""
+    main_loop.reset()
     mock_ADC.init.reset_mock()
 
     sensor = xbeepin.AnalogInput("D0", lowpass=2500)
