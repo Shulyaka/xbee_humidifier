@@ -27,7 +27,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             icon="mdi:pipe-valve",
             device_class=ValveDeviceClass.WATER,
             entity_category=EntityCategory.DIAGNOSTIC,
-            reports_position=True,
+            reports_position=False,
         )
         valves.append(
             XBeeHumidifierValve(
@@ -69,7 +69,7 @@ class XBeeHumidifierValve(XBeeHumidifierEntity, ValveEntity):
         self._handle_coordinator_update()
 
         async def async_update_state(value):
-            self._attr_current_valve_position = 100 if value else 0
+            self._attr_is_closed = not value
             self.async_write_ha_state()
 
         subscriber_name = (
@@ -89,7 +89,7 @@ class XBeeHumidifierValve(XBeeHumidifierEntity, ValveEntity):
             )
 
         if resp == "OK":
-            self._attr_current_valve_position = 100 if is_on else 0
+            self._attr_is_closed = not is_on
             self.async_write_ha_state()
 
     async def async_open_valve(self, **_: any) -> None:
@@ -106,6 +106,6 @@ class XBeeHumidifierValve(XBeeHumidifierEntity, ValveEntity):
         data = self.coordinator.data.get(self._name)
         if data is not None and self._number is not None:
             data = data.get(self._number)
-        self._attr_current_valve_position = 100 if data else 0
+        self._attr_is_closed = not data
 
         self.schedule_update_ha_state()
