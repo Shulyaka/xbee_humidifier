@@ -12,8 +12,6 @@ from custom_components.xbee_humidifier.const import DOMAIN
 
 from .const import MOCK_CONFIG, MOCK_OPTIONS
 
-pytest_plugins = "pytest_homeassistant_custom_component.plugins"
-
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture

@@ -13,13 +13,7 @@ pytest-twisted
 pytest-tornasync
 pytest-homeassistant-custom-component
 service_identity
-zha-quirks
-bellows
-zigpy
-zigpy_znp
-zigpy_xbee
-zigpy_deconz
-zigpy_zigate
+zha
 universal-silabs-flasher
 aiohttp_cors
 psutil-home-assistant

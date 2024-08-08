@@ -7,7 +7,14 @@ import json
 import logging
 
 from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN
-from homeassistant.components.zha.core.const import (
+from homeassistant.components.zha.websocket_api import (
+    SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ATTR_COMMAND
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from zha.application.const import (
     ATTR_CLUSTER_ID,
     ATTR_CLUSTER_TYPE,
     ATTR_COMMAND_TYPE,
@@ -18,13 +25,6 @@ from homeassistant.components.zha.core.const import (
     CLUSTER_TYPE_IN,
     ZHA_EVENT,
 )
-from homeassistant.components.zha.websocket_api import (
-    SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND,
-)
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_COMMAND
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 
