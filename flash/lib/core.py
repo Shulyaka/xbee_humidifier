@@ -28,15 +28,18 @@ class Sensor:
         self._state = None
         self._last_callback_value = None
         self._last_callback_time = None
-        if lowpass is not None and self._type != bool:
+        if lowpass is not None and self._type is not bool:
             self._lowpass = lowpass if lowpass != 0 else None
         if period is not None:
             self._period = period if period != 0 else None
-        if not self._readonly and (
-            (self._type is None and value is not None)
-            or (self._type is not None and self._type(value) is not None)
-        ):
-            self.state = value
+        try:
+            if not self._readonly and (
+                (self._type is None and value is not None)
+                or (self._type is not None and self._type(value) is not None)
+            ):
+                self.state = value
+        except TypeError:
+            self.state = self._type()
 
         self.update()
 
