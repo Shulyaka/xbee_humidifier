@@ -19,7 +19,7 @@ ENT_VALVE3 = "valve.xbee_humidifier_3_valve"
 ENT_VALVE4 = "valve.xbee_humidifier_main_unit_pressure_drop_valve"
 
 
-def test_switch_init(hass, data_from_device, test_config_entry):
+def test_valve_init(hass, data_from_device, test_config_entry):
     """Test that all valve entities are created."""
 
     assert hass.states.get(ENT_VALVE1).state == STATE_CLOSED
@@ -37,7 +37,7 @@ def test_switch_init(hass, data_from_device, test_config_entry):
         (ENT_VALVE4, "valve", 3),
     ),
 )
-async def test_switch_services(
+async def test_valve_services(
     hass, data_from_device, test_config_entry, entity, command, number
 ):
     """Test valve open/close."""
@@ -82,7 +82,7 @@ async def test_switch_services(
         (ENT_VALVE4, "valve_3"),
     ),
 )
-async def test_switch_remote_update(
+async def test_valve_remote_update(
     hass, data_from_device, test_config_entry, entity, data
 ):
     """Test valve remote open/close."""
