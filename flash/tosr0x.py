@@ -46,7 +46,7 @@ class Tosr0x:
     def set_relay_state(self, switch_number, state):
         """Update relay state."""
         state = bool(state)
-        current_state = ~state
+        current_state = not state
         iteration = 0
         while current_state != state:
             if iteration >= 10:
