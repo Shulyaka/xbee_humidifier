@@ -5,7 +5,7 @@
   "documentation": "https://github.com/Shulyaka/xbee_humidifier/blob/master/README.md",
   "issue_tracker": "https://github.com/Shulyaka/xbee_humidifier/issues",
   "requirements": [],
-  "dependencies": ["humidifier", "number", "sensor", "switch", "zha"],
+  "dependencies": ["humidifier", "number", "sensor", "switch", "valve", "zha"],
   "codeowners": ["@Shulyaka"],
   "iot_class": "local_push",
   "version": "1.0.0"

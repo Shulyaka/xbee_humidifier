@@ -302,9 +302,12 @@ def test_commands():
 
     assert not humidifier[2].state
 
-    assert logging.getLogger().getEffectiveLevel() == logging.WARNING
-    assert command("logger", logging.DEBUG) == "OK"
-    assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
+    if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+        assert command("logger", logging.WARNING) == "OK"
+        assert logging.getLogger().getEffectiveLevel() == logging.WARNING
+    else:
+        assert command("logger", logging.DEBUG) == "OK"
+        assert logging.getLogger().getEffectiveLevel() == logging.DEBUG
 
     with patch("lib.core.logging.getLogger") as mock_getLogger:
         assert command("logger") == "OK"

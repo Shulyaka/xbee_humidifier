@@ -5,19 +5,12 @@ from functools import partial
 from unittest.mock import DEFAULT, MagicMock, patch
 
 import pytest
+from homeassistant.core import callback
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-try:
-    from homeassistant.core import callback
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
+from custom_components.xbee_humidifier.const import DOMAIN
 
-    from custom_components.xbee_humidifier.const import DOMAIN
-
-    from .const import MOCK_CONFIG, MOCK_OPTIONS
-except ImportError:
-    # Do not import unwanted stuff for micropython tests.
-    # Due to pytest bug it stills tries to import this file
-    # even for the tests from a separate directory.
-    pass
+from .const import MOCK_CONFIG, MOCK_OPTIONS
 
 pytest_plugins = "pytest_homeassistant_custom_component.plugins"
 

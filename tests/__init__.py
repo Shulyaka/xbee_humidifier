@@ -2,7 +2,6 @@
 
 import sys
 
-sys.path.append("tests/modules")
-sys.path.append("flash")
+sys.path = ["tests/modules", "flash"] + sys.path
 sys.modules["time"] = __import__("mock_time")
 sys.modules["gc"] = __import__("mock_gc")

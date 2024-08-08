@@ -240,7 +240,7 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
         self.client = client
-        self._xbee_logger = logging.getLogger("xbee_humidifier")
+        self._xbee_logger = logging.getLogger(DOMAIN)
         self._device_reset = True
         self._callbacks = {}
         self._uptime = None
