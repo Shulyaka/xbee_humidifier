@@ -26,7 +26,7 @@ setup(
     author_email="ds_github@shulyaka.org.ru",
     license="GNU General Public License v3.0",
     keywords="xbee micropython humidifier",
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=["tests", "tests_ha"]),
     python_requires=">=3.7",
     tests_require=["pytest"],
 )
