@@ -153,8 +153,8 @@ class Commands:
 
     def update(self):
         """Receive commands."""
-        x = receive()
-        while x is not None:
+        while True:
+            data = receive()
             # Example: {
             #    "broadcast": False,
             #    "dest_ep": 232,
@@ -165,15 +165,19 @@ class Commands:
             #    "profile": 49413,
             #    "cluster": 17,
             # }
+            if data is None:
+                break
+
+            if data["broadcast"]:
+                continue
+
+            sender_eui64 = data["sender_eui64"]
+            data = json_loads(data["payload"])
+            cmd = data["cmd"]
+            args = data.get("args")
+            data = None
+            collect()
             try:
-                cmd = None
-                d = json_loads(x["payload"])
-                cmd = d["cmd"]
-                args = d.get("args")
-                sender_eui64 = x["sender_eui64"]
-                x = None
-                d = None
-                collect()
                 method = "cmd_{}".format(cmd)
                 if hasattr(self, method):
                     method = getattr(self, method)
@@ -199,22 +203,15 @@ class Commands:
                 else:
                     raise AttributeError("No such command")
             except Exception as e:
-                if cmd is not None:
-                    response = {
-                        "{}_resp".format(cmd): {
-                            "err": "{}: {}".format(type(e).__name__, e)
-                        }
-                    }
-                else:
-                    raise ValueError("invalid json")
+                response = {
+                    "{}_resp".format(cmd): {"err": "{}: {}".format(type(e).__name__, e)}
+                }
 
             self._transmit(sender_eui64, json_dumps(response))
             response = None
             sender_eui64 = None
             cmd = None
             collect()
-
-            x = receive()
 
     def _transmit(self, eui64, data, limit=3):
         """Retries sending data on full transfer buffer."""
