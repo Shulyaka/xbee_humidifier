@@ -18,6 +18,10 @@ from xbee import atcmd as mock_atcmd
 
 def test_bundle_compile():
     """Test compile."""
+    assert "bundle.mpy" not in bundle._bundle_list
+    assert "main.mpy" not in bundle._bundle_list
+    assert all(x[-4:] == ".mpy" for x in bundle._bundle_list)
+
     mock_listdir.return_value = ["test.py"]
     mock_compile.reset_mock()
     mock_opt_level.reset_mock()
