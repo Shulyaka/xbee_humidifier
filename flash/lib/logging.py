@@ -42,7 +42,11 @@ class Logger:
         """Write logs."""
         if self._level <= level:
             try:
-                transmit(self._target, self.makeRecord(level, msg, *args, **kwargs))
+                transmit(
+                    self._target,
+                    self.makeRecord(level, msg, *args, **kwargs),
+                    tx_options=0x1,  # Disable retries and route repair
+                )
             except Exception:
                 pass
 
