@@ -144,6 +144,7 @@ class Commands:
         self._uptime_cb = main_loop.schedule_task(
             lambda: self._uptime_upd(), period=30000
         )
+        self.nonce = 0
 
     def __del__(self):
         """Cancel callbacks."""
@@ -206,6 +207,9 @@ class Commands:
                 response = {
                     "{}_resp".format(cmd): {"err": "{}: {}".format(type(e).__name__, e)}
                 }
+
+            self.nonce += 1
+            response["nonce"] = self.nonce
 
             self._transmit(sender_eui64, json_dumps(response))
             response = None

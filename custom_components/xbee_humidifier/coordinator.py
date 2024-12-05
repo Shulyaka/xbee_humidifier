@@ -194,6 +194,8 @@ class XBeeHumidifierApiClient:
     async def _async_data_received(self, data):
         data = json.loads(data)
         for key, value in data.items():
+            if key == "nonce":
+                continue
             if key[-5:] == "_resp":
                 async with self._cmd_resp_lock:
                     command = key[:-5]

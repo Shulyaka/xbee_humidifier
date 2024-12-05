@@ -99,6 +99,7 @@ def test_commands():
         assert mock_transmit.call_args[0][0] == b"\x00\x13\xa2\x00A\xa0n`"
         resp = json_loads(mock_transmit.call_args[0][1])
         mock_transmit.reset_mock()
+        assert "nonce" in resp
         value = resp[cmd + "_resp"]
         if isinstance(value, dict) and "err" in value:
             raise RuntimeError(value["err"])
