@@ -1,7 +1,9 @@
 """Adds support for xbee_humidifier units."""
+
 from __future__ import annotations
 
 import logging
+from functools import partial
 
 from homeassistant.components.humidifier import (
     ATTR_ACTION,
@@ -14,8 +16,9 @@ from homeassistant.components.humidifier import (
     HumidifierEntityDescription,
     HumidifierEntityFeature,
 )
+from homeassistant.components.recorder import get_instance, history
 from homeassistant.const import ATTR_MODE, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.core import callback
+from homeassistant.core import State, callback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -109,32 +112,23 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
         if self.coordinator.data.get("uptime", 0) > 0:
             self._handle_coordinator_update()
         else:
-            if (old_state := await self.async_get_last_state()) is not None:
-                if (
-                    self._attr_saved_target_humidity is not None
-                    and old_state.attributes.get(ATTR_MODE) == MODE_AWAY
-                ):
-                    self._attr_mode = MODE_AWAY
-                    self._attr_target_humidity, self._attr_saved_target_humidity = (
-                        self._attr_saved_target_humidity,
-                        self._attr_target_humidity,
+            if (
+                old_state := await self.async_get_last_state()
+            ) is not None and old_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+                self._apply_state(old_state)
+            else:
+                entity_history = await get_instance(self.hass).async_add_executor_job(
+                    partial(
+                        history.get_last_state_changes,
+                        self.hass,
+                        10,
+                        entity_id=self.entity_id,
                     )
-                if old_state.attributes.get(ATTR_HUMIDITY) is not None:
-                    self._attr_target_humidity = int(
-                        old_state.attributes[ATTR_HUMIDITY]
-                    )
-                if (
-                    self._attr_saved_target_humidity is not None
-                    and old_state.attributes.get(ATTR_SAVED_HUMIDITY) is not None
-                ):
-                    self._attr_saved_target_humidity = int(
-                        old_state.attributes[ATTR_SAVED_HUMIDITY]
-                    )
-                if old_state.attributes.get(ATTR_ACTION) is not None:
-                    self._attr_action = old_state.attributes[ATTR_ACTION]
-                if old_state.state is not None:
-                    self._attr_is_on = old_state.state == STATE_ON
-
+                )
+                for old_state in entity_history.get(self.entity_id, []):
+                    if old_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+                        self._apply_state(old_state)
+                        break
             await self._update_device()
 
         if self._sensor_entity_id is not None:
@@ -179,6 +173,41 @@ class XBeeHumidifier(XBeeHumidifierEntity, HumidifierEntity, RestoreEntity):
                 "working_" + str(self._number), async_update_action
             )
         )
+
+    @callback
+    def _apply_state(self, state: State) -> None:
+        """Apply state attributes from the previous state."""
+        if (
+            state is None
+            or state.attributes is None
+            or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE)
+        ):
+            return
+
+        if (
+            self._attr_saved_target_humidity is not None
+            and state.attributes.get(ATTR_MODE) == MODE_AWAY
+        ):
+            self._attr_mode = MODE_AWAY
+            self._attr_target_humidity, self._attr_saved_target_humidity = (
+                self._attr_saved_target_humidity,
+                self._attr_target_humidity,
+            )
+        if state.attributes.get(ATTR_HUMIDITY) is not None:
+            self._attr_target_humidity = int(state.attributes[ATTR_HUMIDITY])
+        if (
+            self._attr_saved_target_humidity is not None
+            and state.attributes.get(ATTR_SAVED_HUMIDITY) is not None
+        ):
+            self._attr_saved_target_humidity = int(
+                state.attributes[ATTR_SAVED_HUMIDITY]
+            )
+        if state.attributes.get(ATTR_ACTION) is not None:
+            self._attr_action = state.attributes[ATTR_ACTION]
+        if state.state is not None:
+            self._attr_is_on = state.state == STATE_ON
+
+        self.schedule_update_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:
