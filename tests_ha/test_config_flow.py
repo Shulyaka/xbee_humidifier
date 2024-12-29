@@ -35,7 +35,7 @@ async def test_successful_config_flow(hass, data_from_device):
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # Advance to step 2
@@ -43,7 +43,7 @@ async def test_successful_config_flow(hass, data_from_device):
         result["flow_id"], user_input=MOCK_CONFIG
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_0"
 
     # Advance to step 3
@@ -51,7 +51,7 @@ async def test_successful_config_flow(hass, data_from_device):
         result["flow_id"], user_input=MOCK_OPTIONS["humidifier_0"]
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_1"
 
     # Advance to step 4
@@ -59,7 +59,7 @@ async def test_successful_config_flow(hass, data_from_device):
         result["flow_id"], user_input=MOCK_OPTIONS["humidifier_1"]
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_2"
 
     result = await hass.config_entries.flow.async_configure(
@@ -68,7 +68,7 @@ async def test_successful_config_flow(hass, data_from_device):
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "00:11:22:33:44:55:66:77"
     assert result["data"] == MOCK_CONFIG
     assert result["options"] == MOCK_OPTIONS
@@ -83,14 +83,14 @@ async def test_failed_config_flow(cmd_mock, hass):
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input=MOCK_CONFIG
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["errors"] == {"base": "No response to unique_id command"}
 
 
@@ -100,7 +100,7 @@ async def test_options_flow(hass, test_config_entry):
     result = await hass.config_entries.options.async_init(test_config_entry.entry_id)
 
     # Verify that the first options step is a humidifier_0 form
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_0"
 
     # Enter some new data into the form
@@ -114,7 +114,7 @@ async def test_options_flow(hass, test_config_entry):
     )
 
     # Verify step humidifier_0 results
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_1"
 
     result = await hass.config_entries.options.async_configure(
@@ -127,7 +127,7 @@ async def test_options_flow(hass, test_config_entry):
     )
 
     # Verify step humidifier_1 results
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "humidifier_2"
 
     result = await hass.config_entries.options.async_configure(
@@ -140,7 +140,7 @@ async def test_options_flow(hass, test_config_entry):
     )
 
     # Verify that the flow finishes
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "00:11:22:33:44:55:66:77"
 
     # Verify that the options were updated
