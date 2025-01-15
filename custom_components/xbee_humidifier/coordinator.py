@@ -263,10 +263,17 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
 
         async def async_data_received(data):
             if not self.last_update_success:
-                await self.async_request_refresh()
+                await self.device_reconnect()
 
         self._remove_data_received_handler = self.client.add_subscriber(
             "data_received", async_data_received
+        )
+
+        async def device_reconnect():
+            await self.async_request_refresh()
+
+        self._remove_device_reconnect_handler = self.add_subscriber(
+            "device_reconnect", device_reconnect
         )
 
         async def update_uptime(value):
@@ -282,6 +289,11 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     async def device_reset(self):
         """Run triggers on device reset."""
         for listener in self._callbacks["device_reset"]:
+            self.hass.async_create_task(listener())
+
+    async def device_reconnect(self):
+        """Run triggers on restore of a broken connection."""
+        for listener in self._callbacks["device_reconnect"]:
             self.hass.async_create_task(listener())
 
     def add_subscriber(self, name, callback):
@@ -310,6 +322,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
         if self._remove_update_uptime_handler is not None:
             self._remove_update_uptime_handler()
             self._remove_update_uptime_handler = None
+        if self._remove_device_reconnect_handler is not None:
+            self._remove_device_reconnect_handler()
+            self._remove_device_reconnect_handler = None
 
     async def async_config_entry_first_refresh(self) -> None:
         """Refresh data for the first time when a config entry is setup."""
