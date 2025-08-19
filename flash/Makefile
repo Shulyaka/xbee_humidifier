@@ -2,7 +2,7 @@
 
 MPY_CROSS := mpy-cross
 TOX := tox
-MFLAGS := -mno-unicode -msmall-int-bits=31 -O3
+MFLAGS := -msmall-int-bits=31 -O3
 
 all : lib mpy
 

@@ -121,8 +121,8 @@ def data_from_device_fixture(hass: HomeAssistant):
     cached_values.clear()
 
     commands["atcmd"].return_value = (
-        "XBee3-PRO Zigbee 3.0 TH RELE: 1010\rBuild: Aug  2 2022 14:33:22\r"
-        "HV: 4247\rBootloader: 1B2 Compiler: 8030001\rStack: 6760\rOK\x00"
+        "XBee3-PRO Zigbee 3.0 TH RELE: 1014\rBuild: Jan 15 2025 16:42:26\r"
+        "HV: 4247\rBootloader: 1B2 Compiler: 9020004\rStack: 7250\rOK\x00"
     )
     commands["sav_hum"].return_value = 35
     commands["available"].return_value = False

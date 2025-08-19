@@ -1,7 +1,7 @@
 .PHONY: all mpy
 
 MPY_CROSS := mpy-cross
-MFLAGS := -mno-unicode -msmall-int-bits=31 -O3
+MFLAGS := -msmall-int-bits=31 -O3
 
 all : mpy
 

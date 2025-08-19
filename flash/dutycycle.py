@@ -7,14 +7,6 @@ from micropython import const
 _LOGGER = logging.getLogger(__name__)
 
 
-def enumerate(seq):
-    """Backwards compatibility with micropython 1.19."""
-    i = 0
-    for x in seq:
-        yield i, x
-        i += 1
-
-
 class DutyCycle:
     """Slow PWM for humidifiers."""
 

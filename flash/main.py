@@ -2,6 +2,14 @@
 
 try:
     import bundle  # noqa: F401
+
+    # The bundle module should reset on success.
+    # If we reached here, remove the bundled code and try again.
+    import machine
+    import uos
+
+    uos.bundle(None)
+    machine.soft_reset()
 except ImportError:
     pass
 

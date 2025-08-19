@@ -8,17 +8,21 @@ from micropython import opt_level
 from xbee import atcmd
 
 _bundle_list = [
-    "lib/logging.mpy",
     "lib/core.mpy",
+    "lib/logging.mpy",
     "lib/mainloop.mpy",
     "lib/xbeepin.mpy",
-    "tosr0x.mpy",
-    "humidifier.mpy",
-    "dutycycle.mpy",
+    "__init__.mpy",
     "commands.mpy",
+    "config.mpy",
+    "dutycycle.mpy",
+    "humidifier.mpy",
+    # "tost.mpy",
+    "tosr0x.mpy",
 ]
 
 atcmd("AP", 0)
+
 
 # First stage: compile files
 if any(file.endswith(".py") for file in uos.listdir() + uos.listdir("lib")):
@@ -59,14 +63,9 @@ if any(file.endswith(".py") for file in uos.listdir() + uos.listdir("lib")):
         machine.soft_reset()  # Retry or continue after reboot
 
 # Second stage: bundle
-if "bundle" in uos.bundle():
-
-    def _unbundle():
-        uos.bundle(None)
-        machine.soft_reset()
-
-    _unbundle()
-uos.remove("bundle.mpy")
-uos.sync()
-collect()
-uos.bundle(*_bundle_list)
+if "bundle" not in uos.bundle():
+    uos.remove("bundle.mpy")
+    uos.sync()
+    collect()
+    uos.bundle(*_bundle_list)
+    machine.soft_reset()
