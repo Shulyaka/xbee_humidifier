@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def setup(debug):
+    """Initialize the application."""
     zone = [Switch() for x in range(3)]
     sensor = [Sensor() for x in range(3)]
     available = [Switch() for x in range(3)]
