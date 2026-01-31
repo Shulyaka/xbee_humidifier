@@ -56,6 +56,7 @@ class Loop:
         """Init the class."""
         self._last_run = None
         self._tasks = []
+        self._atexit = []
         self._stop = False
         self._task_scheduled = False
 
@@ -77,7 +78,20 @@ class Loop:
     def reset(self):
         """Remove all tasks."""
         self._tasks.clear()
+        self._atexit.clear()
         collect()
+
+    def atexit(self, callback):
+        """Register a callback to be called on system shutdown."""
+        self._atexit.append(callback)
+        collect()
+        return callback
+
+    def remove_atexit(self, callback):
+        """Remove a registered atexit callback."""
+        if callback in self._atexit:
+            self._atexit.remove(callback)
+            collect()
 
     def run_once(self):
         """Run one iteration and return the time of next execution."""
@@ -111,17 +125,31 @@ class Loop:
     def run(self):
         """Run the loop continuously."""
         collect()
-        self._stop = False
-        while not self._stop:
-            next_time = self.run_once()
+        try:
+            self._stop = False
+            while not self._stop:
+                next_time = self.run_once()
+                now = ticks_ms()
+                if next_time is None:
+                    if self._stop:
+                        return None
+                    raise RuntimeError("No tasks")
+                diff = ticks_diff(next_time, now)
+                if diff > 0 and not self._stop:
+                    sleep_ms(diff)
+        except SystemExit as e:
+            _LOGGER.info("mainloop: SystemExit: {}".format(e))
+            self._tasks.clear()
+            for c in self._atexit:
+                self.schedule_task(c)
+            self._atexit.clear()
             now = ticks_ms()
-            if next_time is None:
-                if self._stop:
-                    return None
-                raise RuntimeError("No tasks")
-            diff = ticks_diff(next_time, now)
-            if diff > 0 and not self._stop:
-                sleep_ms(diff)
+            next_time = now
+            while next_time is not None and ticks_diff(next_time, now) <= 0:
+                next_time = self.run_once()
+            self._tasks.clear()
+            collect()
+            raise
         collect()
         return next_time
 
@@ -144,7 +172,7 @@ class Loop:
         return next_time
 
     def stop(self):
-        """Exit the loop after current iteration."""
+        """Stop the loop after current iteration."""
         self._stop = True
 
 

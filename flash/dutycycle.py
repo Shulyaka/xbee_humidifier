@@ -71,10 +71,13 @@ class DutyCycle:
                 zone.subscribe((lambda n: lambda x: self._zone_changed(n, x))(number))
             )
 
+        self._atexit = main_loop.atexit(lambda: self.stop_cycle())
+
         self.start_cycle()
 
     def __del__(self):
         """Cancel callbacks."""
+        main_loop.remove_atexit(self._atexit)
         self.stop_cycle()
         main_loop.remove_task(self._loop_schedule)
         main_loop.remove_task(self._pump_timeout)

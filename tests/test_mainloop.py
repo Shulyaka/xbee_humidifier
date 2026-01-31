@@ -166,3 +166,26 @@ def test_loop():
     loop.schedule_task(callback)
     assert loop.run_once() is None
     assert callback.call_count == 1
+
+
+def test_systemexit():
+    """Test SystemExit exception handling."""
+    callback = mock.MagicMock(side_effect=SystemExit)
+    callback2 = mock.MagicMock()
+    callback_atexit = mock.MagicMock()
+    callback2_atexit = mock.MagicMock()
+
+    loop = mainloop.Loop()
+    loop.schedule_task(callback)
+    loop.schedule_task(callback2)
+    loop.atexit(callback_atexit)
+    loop.atexit(callback2_atexit)
+    loop.remove_atexit(callback2_atexit)
+
+    with pytest.raises(SystemExit):
+        loop.run()
+
+    callback.assert_called_once_with()
+    callback2.assert_not_called()
+    callback_atexit.assert_called_once_with()
+    callback2_atexit.assert_not_called()
