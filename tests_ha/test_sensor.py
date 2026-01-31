@@ -1,4 +1,5 @@
 """Test xbee_humidifier sensors."""
+
 import datetime as dt
 
 import pytest

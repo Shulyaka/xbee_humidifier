@@ -1,4 +1,5 @@
 """Test xbee_humidifier config flow."""
+
 from unittest.mock import patch
 
 import pytest

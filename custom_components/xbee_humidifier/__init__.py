@@ -30,9 +30,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = XBeeHumidifierApiClient(
         hass=hass, device_ieee=entry.data[CONF_DEVICE_IEEE]
     )
-    hass.data[DOMAIN][
-        entry.entry_id
-    ] = coordinator = XBeeHumidifierDataUpdateCoordinator(hass=hass, client=client)
+    hass.data[DOMAIN][entry.entry_id] = coordinator = (
+        XBeeHumidifierDataUpdateCoordinator(hass=hass, client=client)
+    )
 
     entry.async_on_unload(lambda: coordinator.stop())
 

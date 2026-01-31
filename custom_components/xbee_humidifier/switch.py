@@ -1,4 +1,5 @@
 """xbee_humidifier pump controls and other switches."""
+
 from __future__ import annotations
 
 from homeassistant.components.switch import (

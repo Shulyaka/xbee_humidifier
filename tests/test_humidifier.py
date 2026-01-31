@@ -1,4 +1,5 @@
 """The tests for the Humidifier class."""
+
 from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 

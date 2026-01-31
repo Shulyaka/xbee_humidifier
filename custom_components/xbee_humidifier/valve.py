@@ -1,4 +1,5 @@
 """xbee_humidifier valves."""
+
 from __future__ import annotations
 
 from homeassistant.components.valve import (

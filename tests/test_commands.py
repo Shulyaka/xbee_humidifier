@@ -85,9 +85,11 @@ def test_commands():
             "broadcast": False,
             "dest_ep": 232,
             "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
-            "payload": '{"cmd": "' + cmd + '"}'
-            if args is None
-            else '{"cmd": "' + cmd + '", "args": ' + str(args) + "}",
+            "payload": (
+                '{"cmd": "' + cmd + '"}'
+                if args is None
+                else '{"cmd": "' + cmd + '", "args": ' + str(args) + "}"
+            ),
             "sender_nwk": 0,
             "source_ep": 232,
             "profile": 49413,

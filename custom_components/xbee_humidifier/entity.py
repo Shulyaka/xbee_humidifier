@@ -1,4 +1,5 @@
 """XBeeHumidifierEntity class."""
+
 from __future__ import annotations
 
 from homeassistant.components.zha import DOMAIN as ZHA_DOMAIN

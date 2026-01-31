@@ -1,4 +1,5 @@
 """Constants for xbee_humidifier tests."""
+
 from custom_components.xbee_humidifier import (
     CONF_AWAY_HUMIDITY,
     CONF_DEVICE_IEEE,

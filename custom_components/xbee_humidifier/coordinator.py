@@ -1,4 +1,5 @@
 """DataUpdateCoordinator for xbee_humidifier."""
+
 from __future__ import annotations
 
 import asyncio
@@ -369,9 +370,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
                 data["humidifier"][number]["sav_hum"] = await self.client.async_command(
                     "sav_hum", number
                 )
-                data["humidifier"][number][
-                    "available"
-                ] = await self.client.async_command("available", number)
+                data["humidifier"][number]["available"] = (
+                    await self.client.async_command("available", number)
+                )
                 data["humidifier"][number]["working"] = await self.client.async_command(
                     "zone", number
                 )
@@ -381,9 +382,9 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
                 data["humidifier"][number]["cur_hum"] = await self.client.async_command(
                     "cur_hum", number
                 )
-                data["humidifier"][number][
-                    "target_hum"
-                ] = await self.client.async_command("target_hum", number)
+                data["humidifier"][number]["target_hum"] = (
+                    await self.client.async_command("target_hum", number)
+                )
                 data["humidifier"][number]["mode"] = await self.client.async_command(
                     "mode", number
                 )

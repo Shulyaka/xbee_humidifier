@@ -1,4 +1,5 @@
 """Test xbee_humidifier."""
+
 from unittest.mock import patch
 
 from homeassistant.components.humidifier import (

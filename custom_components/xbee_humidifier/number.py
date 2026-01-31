@@ -1,4 +1,5 @@
 """xbee_humidifier pump speed controls."""
+
 from __future__ import annotations
 
 from homeassistant.components.number import (

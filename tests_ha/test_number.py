@@ -1,4 +1,5 @@
 """Test xbee_humidifier number."""
+
 from homeassistant.components.number import (
     ATTR_VALUE,
     DOMAIN as NUMBER,

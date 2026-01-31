@@ -1,0 +1,30 @@
+import sys
+import gc
+import pytest
+
+
+class recursionlimit:
+    def __init__(self, limit):
+        self.limit = limit
+
+    def __enter__(self):
+        self.old_limit = sys.getrecursionlimit()
+
+        def remaining_depth(n=1):
+            try:
+                return remaining_depth(n+1)
+            except:
+                return n
+
+        sys.setrecursionlimit(sys.getrecursionlimit() - remaining_depth() - 2 + self.limit)
+
+    def __exit__(self, type, value, tb):
+        sys.setrecursionlimit(self.old_limit)
+
+@pytest.fixture(scope="session", autouse=True)
+def my_setup(request):
+    def fin():
+        import orig_gc
+        sys.modules.pop('flash')
+        orig_gc.collect()
+    request.addfinalizer(fin)

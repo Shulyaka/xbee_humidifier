@@ -1,4 +1,5 @@
 """Test xbee_humidifier."""
+
 import asyncio
 import json
 import threading
