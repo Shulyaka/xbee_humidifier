@@ -16,22 +16,22 @@ collect()
 _LOGGER = logging.getLogger(__name__)
 
 
-def _setup(debug):
-    _zone = [Switch() for x in range(3)]
-    _sensor = [Sensor() for x in range(3)]
-    _available = [Switch() for x in range(3)]
+def setup(debug):
+    zone = [Switch() for x in range(3)]
+    sensor = [Sensor() for x in range(3)]
+    available = [Switch() for x in range(3)]
 
     if debug:
         print("\nTOSR0X not detected, enabling emulation")
 
         for x in range(3):
-            _zone[x].subscribe(
+            zone[x].subscribe(
                 (lambda n: lambda v: print("ZONE{} = {}".format(n, v)))(x)
             )
-            _sensor[x].subscribe(
+            sensor[x].subscribe(
                 (lambda n: lambda v: print("SENSOR{} = {}".format(n, v)))(x)
             )
-            _available[x].subscribe(
+            available[x].subscribe(
                 (lambda n: lambda v: print("AVAILABLE{} = {}".format(n, v)))(x)
             )
 
@@ -41,19 +41,19 @@ def _setup(debug):
                 (lambda n: lambda v: print("VALVE{} = {}".format(n, v)))(x)
             )
 
-        def _stats():
+        def stats():
             """Print mem stats."""
             alloc = mem_alloc()
             print("MEM {:.2%}".format(alloc / (alloc + mem_free())))
 
-        main_loop.schedule_task(_stats, period=1000)
+        main_loop.schedule_task(stats, period=1000)
         collect()
 
-    _humidifier = [
+    humidifier = [
         Humidifier(
-            switch=_zone[x],
-            sensor=_sensor[x],
-            available_sensor=_available[x],
+            switch=zone[x],
+            sensor=sensor[x],
+            available_sensor=available[x],
             target_humidity=50,
             dry_tolerance=3,
             wet_tolerance=0,
@@ -64,24 +64,24 @@ def _setup(debug):
     ]
     collect()
 
-    _pump_block = Switch()
+    pump_block = Switch()
     collect()
 
     if debug:
         for x in range(3):
-            _humidifier[x].subscribe(
+            humidifier[x].subscribe(
                 (lambda n: lambda v: print("HUMIDIFIER{} = {}".format(n, v)))(x)
             )
 
-        _pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))
+        pump_block.subscribe(lambda v: print("PUMP_BLOCK = {}".format(v)))
         collect()
 
     DutyCycle(
         config.pump,
-        _humidifier,
-        _zone,
+        humidifier,
+        zone,
         config.valve_switch,
-        _pump_block,
+        pump_block,
         config.pump_on_timeout,
         config.pressure_drop_delay,
         config.pressure_drop_time,
@@ -90,11 +90,11 @@ def _setup(debug):
     collect()
 
     HumidifierCommands(
-        _humidifier,
-        _sensor,
-        _available,
-        _zone,
-        _pump_block,
+        humidifier,
+        sensor,
+        available,
+        zone,
+        pump_block,
     )
     collect()
 
@@ -103,11 +103,11 @@ def _setup(debug):
     if not debug:
         from machine import WDT
 
-        _wdt = WDT(timeout=30000)
-        main_loop.schedule_task(lambda: _wdt.feed(), period=1000)
+        wdt = WDT(timeout=30000)
+        main_loop.schedule_task(lambda: wdt.feed(), period=1000)
         kbd_intr(-1)
 
 
-_setup(config.debug)
-_setup = None
+setup(config.debug)
+del setup
 collect()
