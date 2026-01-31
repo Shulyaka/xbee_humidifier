@@ -104,10 +104,6 @@ class XBeeHumidifierOptionsFlowHandler(
 ):
     """Options flow for XBee Humidifier."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
@@ -158,7 +154,7 @@ class XBeeHumidifierConfigFlowHandler(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
-        return XBeeHumidifierOptionsFlowHandler(config_entry)
+        return XBeeHumidifierOptionsFlowHandler()
 
     async def async_step_user(
         self,
