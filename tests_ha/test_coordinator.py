@@ -156,6 +156,12 @@ async def test_subscribers(hass, caplog, data_from_device):
     assert listener_all.await_args_list[1][0][0] == {"test_data2": "test_value2"}
     assert "No callback for {'test_data2': 'test_value2'}" in caplog.text
 
+    data_from_device(
+        hass, IEEE, {"log": {"sev": 20, "msg": "A log message"}, "nonce": 1}
+    )
+    await hass.async_block_till_done()
+    assert "A log message" in caplog.text
+
 
 @patch("custom_components.xbee_humidifier.coordinator.XBeeHumidifierApiClient._cmd")
 async def test_timeout(cmd_mock, hass):

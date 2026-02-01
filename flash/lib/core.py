@@ -160,7 +160,7 @@ class Commands:
             #    "broadcast": False,
             #    "dest_ep": 232,
             #    "sender_eui64": b"\x00\x13\xa2\x00A\xa0n`",
-            #    "payload": b'{"command": "test"}',
+            #    "payload": b'{"cmd": "test"}',
             #    "sender_nwk": 0,
             #    "source_ep": 232,
             #    "profile": 49413,

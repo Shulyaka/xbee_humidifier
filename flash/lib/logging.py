@@ -19,6 +19,7 @@ class Logger:
         """Init the class."""
         self._target = ADDR_COORDINATOR
         self._level = DEBUG
+        self.nonce = 0
 
     def setTarget(self, target=ADDR_COORDINATOR):
         """Update target device eui64."""
@@ -36,7 +37,8 @@ class Logger:
         """Format the record."""
         if args:
             msg = msg % args
-        return json_dumps({"log": {"sev": level, "msg": msg}})
+        self.nonce += 1
+        return json_dumps({"log": {"sev": level, "msg": msg}, "nonce": self.nonce})
 
     def log(self, level, msg, *args, **kwargs):
         """Write logs."""

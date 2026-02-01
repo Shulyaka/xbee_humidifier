@@ -18,7 +18,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 10, "msg": "Test debug message, 123"}
+        "log": {"sev": 10, "msg": "Test debug message, 123"},
+        "nonce": 1,
     }
 
     mock_transmit.reset_mock()
@@ -26,7 +27,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 20, "msg": "Test info message, 123"}
+        "log": {"sev": 20, "msg": "Test info message, 123"},
+        "nonce": 2,
     }
 
     mock_transmit.reset_mock()
@@ -34,7 +36,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 30, "msg": "Test warning message, (123,)"}
+        "log": {"sev": 30, "msg": "Test warning message, (123,)"},
+        "nonce": 3,
     }
 
     mock_transmit.reset_mock()
@@ -42,7 +45,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 40, "msg": "Test error message, {1: 23}"}
+        "log": {"sev": 40, "msg": "Test error message, {1: 23}"},
+        "nonce": 4,
     }
 
     mock_transmit.reset_mock()
@@ -50,7 +54,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 50, "msg": "Test critical message, True, False"}
+        "log": {"sev": 50, "msg": "Test critical message, True, False"},
+        "nonce": 5,
     }
 
     mock_transmit.reset_mock()
@@ -59,7 +64,8 @@ def test_logging():
     assert mock_transmit.call_count == 1
     assert mock_transmit.call_args[0][0] == b"\x01\x23\x45\x67\x89\xab\xcd\xef"
     assert json_loads(mock_transmit.call_args[0][1]) == {
-        "log": {"sev": 10, "msg": "Test debug message, [1, 2, 3]"}
+        "log": {"sev": 10, "msg": "Test debug message, [1, 2, 3]"},
+        "nonce": 6,
     }
 
     logger2 = logging.getLogger("tests")
