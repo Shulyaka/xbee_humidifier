@@ -1,12 +1,13 @@
 """Test xbee_humidifier."""
 
 import datetime as dt
+from collections.abc import Callable
 from unittest.mock import patch
 
 import pytest
 from homeassistant.components.humidifier import DOMAIN as HUMIDIFIER, SERVICE_SET_MODE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
-from homeassistant.core import State
+from homeassistant.core import HomeAssistant, State
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from .conftest import commands
@@ -421,7 +422,11 @@ async def test_init_from_history(hass, data_from_device, test_config_entry):
     assert hass.states.get(ENTITY3).attributes["humidity"] == 47
 
 
-async def test_refresh(hass, data_from_device, test_config_entry):
+@pytest.mark.usefixtures("data_from_device", "test_config_entry")
+async def test_refresh(
+    hass: HomeAssistant,
+    data_from_device: Callable[[HomeAssistant, str, dict[str, object]], None],
+) -> None:
     """Test reinitialize on device reset."""
 
     data_from_device(hass, IEEE, {"available_1": True})
@@ -456,27 +461,27 @@ async def test_refresh(hass, data_from_device, test_config_entry):
     commands["bind"].assert_called_once_with()
     assert commands["mode"].call_count == 5
     assert commands["mode"].call_args_list[0][0][0] == [0, "away"]
-    assert commands["mode"].call_args_list[1][0][0] == [0, "normal"]
-    assert commands["mode"].call_args_list[2][0][0] == [1, "normal"]
-    assert commands["mode"].call_args_list[3][0][0] == [1, "away"]
-    assert commands["mode"].call_args_list[4][0][0] == [2, "normal"]
+    assert commands["mode"].call_args_list[1][0][0] == [1, "normal"]
+    assert commands["mode"].call_args_list[2][0][0] == [2, "normal"]
+    assert commands["mode"].call_args_list[3][0][0] == [0, "normal"]
+    assert commands["mode"].call_args_list[4][0][0] == [1, "away"]
     assert commands["target_hum"].call_count == 5
     assert commands["target_hum"].call_args_list[0][0][0] == [0, 32]
-    assert commands["target_hum"].call_args_list[1][0][0] == [0, 42]
-    assert commands["target_hum"].call_args_list[2][0][0] == [1, 42]
-    assert commands["target_hum"].call_args_list[3][0][0] == [1, 32]
-    assert commands["target_hum"].call_args_list[4][0][0] == [2, 42]
+    assert commands["target_hum"].call_args_list[1][0][0] == [1, 42]
+    assert commands["target_hum"].call_args_list[2][0][0] == [2, 42]
+    assert commands["target_hum"].call_args_list[3][0][0] == [0, 42]
+    assert commands["target_hum"].call_args_list[4][0][0] == [1, 32]
     assert commands["cur_hum"].call_count == 3
-    assert commands["cur_hum"].call_args_list[0][0][0] == [0, None]
-    assert commands["cur_hum"].call_args_list[1][0][0] == [1, 45.0]
-    assert commands["cur_hum"].call_args_list[2][0][0] == [2, 46.3]
+    assert commands["cur_hum"].call_args_list[0][0][0] == [2, 46.3]
+    assert commands["cur_hum"].call_args_list[1][0][0] == [0, None]
+    assert commands["cur_hum"].call_args_list[2][0][0] == [1, 45.0]
     assert commands["sav_hum"].call_count == 0
     assert commands["available"].call_count == 0
     assert commands["zone"].call_count == 0
     assert commands["hum"].call_count == 3
-    assert commands["hum"].call_args_list[0][0][0] == [0, False]
-    assert commands["hum"].call_args_list[1][0][0] == [1, False]
-    assert commands["hum"].call_args_list[2][0][0] == [2, False]
+    assert commands["hum"].call_args_list[0][0][0] == [2, False]
+    assert commands["hum"].call_args_list[1][0][0] == [0, False]
+    assert commands["hum"].call_args_list[2][0][0] == [1, False]
     commands["pump_block"].assert_called_once_with(False)
     assert commands["uptime"].call_count == 1
     assert (

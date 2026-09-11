@@ -227,6 +227,8 @@ class XBeeHumidifierDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from XBeeHumidifier."""
 
     config_entry: ConfigEntry
+    device_id: str
+    zha_device_id: str
 
     def __init__(
         self,

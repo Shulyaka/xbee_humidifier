@@ -2,16 +2,34 @@
 
 import json
 import logging
+from collections.abc import Iterator
 from functools import partial
 from unittest.mock import DEFAULT, MagicMock, patch
 
 import pytest
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.xbee_humidifier.const import DOMAIN
 
-from .const import MOCK_CONFIG, MOCK_OPTIONS
+from .const import IEEE, MOCK_CONFIG, MOCK_OPTIONS
+
+
+@pytest.fixture(autouse=True)
+def zha_device(
+    hass: HomeAssistant, device_registry: dr.DeviceRegistry
+) -> Iterator[dr.DeviceEntry]:
+    """Provide the physical XBee device owned by a loaded ZHA config entry."""
+    entry = MockConfigEntry(
+        domain="zha", entry_id="test_zha", state=ConfigEntryState.LOADED
+    )
+    entry.add_to_hass(hass)
+    yield device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={("zha", IEEE)}, name="XBee"
+    )
+    entry.mock_state(hass, ConfigEntryState.NOT_LOADED)
 
 
 # This fixture enables loading custom integrations in all tests.
