@@ -54,6 +54,7 @@ class XBeeHumidifierApiClient:
         self.hass = hass
         self.device_ieee = device_ieee
         self._cmd_lock = {}
+        self._command_tasks: set[asyncio.Task[object]] = set()
         self._cmd_resp_lock = asyncio.Lock()
         self._awaiting = {}
         self._callbacks = {}
@@ -85,10 +86,12 @@ class XBeeHumidifierApiClient:
         )
 
     def stop(self):
-        """Unsubscribe events."""
+        """Unsubscribe events and stop outstanding commands."""
         if self._remove_listener:
             self._remove_listener()
             self._remove_listener = None
+        for task in self._command_tasks:
+            task.cancel()
 
     def add_subscriber(self, name, callback):
         """Register listener."""
@@ -135,6 +138,17 @@ class XBeeHumidifierApiClient:
 
         _LOGGER.debug("data: %s", data)
 
+        task = asyncio.create_task(self._execute_command(command, data, retry_count))
+        self._command_tasks.add(task)
+        task.add_done_callback(self._command_tasks.discard)
+        # The worker logs failures; avoid shield logging them again after cancellation.
+        await asyncio.shield(asyncio.gather(task, return_exceptions=True))
+        return task.result()
+
+    async def _execute_command(
+        self, command: str, data: str, retry_count: int
+    ) -> object:
+        """Keep the lock and timeout active independently of the caller."""
         if command not in self._cmd_lock:
             self._cmd_lock[command] = asyncio.Lock()
 
@@ -150,10 +164,6 @@ class XBeeHumidifierApiClient:
                     )
                 except TimeoutError:
                     _LOGGER.error(f"No response to {command} command")
-                    try:
-                        del self._awaiting[command]
-                    except KeyError:
-                        pass
                     e = TimeoutError(f"No response to {command} command")
                 except Exception as exp:
                     _LOGGER.error(
@@ -185,12 +195,14 @@ class XBeeHumidifierApiClient:
             await self.hass.services.async_call(
                 ZHA_DOMAIN, SERVICE_ISSUE_ZIGBEE_CLUSTER_COMMAND, data, True
             )
-        except Exception as e:
-            _LOGGER.error(e)
-            future.set_exception(e)
-            del self._awaiting[command]
-
-        return await future
+            return await future
+        finally:
+            if self._awaiting.get(command) is future:
+                del self._awaiting[command]
+            if not future.done():
+                future.cancel()
+            elif not future.cancelled():
+                future.exception()
 
     async def _async_data_received(self, data):
         data = json.loads(data)
@@ -203,6 +215,8 @@ class XBeeHumidifierApiClient:
                     if command not in self._awaiting:
                         continue
                     future = self._awaiting.pop(command)
+                    if future.done():
+                        continue
                     if isinstance(value, dict) and "err" in value:
                         future.set_exception(
                             RuntimeError(f"Command response: {value['err']}")

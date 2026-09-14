@@ -8,7 +8,10 @@ import pytest
 from homeassistant.components.humidifier import DOMAIN as HUMIDIFIER, SERVICE_SET_MODE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
 from homeassistant.core import HomeAssistant, State
-from pytest_homeassistant_custom_component.common import mock_restore_cache
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    mock_restore_cache,
+)
 
 from .conftest import commands
 from .const import IEEE
@@ -599,7 +602,10 @@ async def test_coordinator_update(hass, data_from_device, test_config_entry):
     assert commands["mode"].call_args_list[2][0][0] == 2
 
 
-async def test_device_reset(hass, data_from_device, test_config_entry):
+@pytest.mark.usefixtures("data_from_device")
+async def test_device_reset(
+    hass: HomeAssistant, test_config_entry: MockConfigEntry
+) -> None:
     """Test device reset identified during coordinator data update."""
 
     commands["bind"].reset_mock()
@@ -633,25 +639,25 @@ async def test_device_reset(hass, data_from_device, test_config_entry):
     assert commands["available"].call_count == 0
     assert commands["zone"].call_count == 0
     assert commands["hum"].call_count == 3
-    assert commands["hum"].call_args_list[0][0][0] == [0, False]
-    assert commands["hum"].call_args_list[1][0][0] == [1, False]
-    assert commands["hum"].call_args_list[2][0][0] == [2, False]
+    assert commands["hum"].call_args_list[0][0][0] == [2, False]
+    assert commands["hum"].call_args_list[1][0][0] == [0, False]
+    assert commands["hum"].call_args_list[2][0][0] == [1, False]
     assert commands["cur_hum"].call_count == 3
-    assert commands["cur_hum"].call_args_list[0][0][0] == [0, None]
-    assert commands["cur_hum"].call_args_list[1][0][0] == [1, None]
-    assert commands["cur_hum"].call_args_list[2][0][0] == [2, None]
+    assert commands["cur_hum"].call_args_list[0][0][0] == [2, None]
+    assert commands["cur_hum"].call_args_list[1][0][0] == [0, None]
+    assert commands["cur_hum"].call_args_list[2][0][0] == [1, None]
     assert commands["target_hum"].call_count == 5
     assert commands["target_hum"].call_args_list[0][0][0] == [0, 32]
-    assert commands["target_hum"].call_args_list[1][0][0] == [0, 42]
-    assert commands["target_hum"].call_args_list[2][0][0] == [1, 32]
-    assert commands["target_hum"].call_args_list[3][0][0] == [1, 42]
-    assert commands["target_hum"].call_args_list[4][0][0] == [2, 42]
+    assert commands["target_hum"].call_args_list[1][0][0] == [1, 32]
+    assert commands["target_hum"].call_args_list[2][0][0] == [2, 42]
+    assert commands["target_hum"].call_args_list[3][0][0] == [0, 42]
+    assert commands["target_hum"].call_args_list[4][0][0] == [1, 42]
     assert commands["mode"].call_count == 5
     assert commands["mode"].call_args_list[0][0][0] == [0, "away"]
-    assert commands["mode"].call_args_list[1][0][0] == [0, "normal"]
-    assert commands["mode"].call_args_list[2][0][0] == [1, "away"]
-    assert commands["mode"].call_args_list[3][0][0] == [1, "normal"]
-    assert commands["mode"].call_args_list[4][0][0] == [2, "normal"]
+    assert commands["mode"].call_args_list[1][0][0] == [1, "away"]
+    assert commands["mode"].call_args_list[2][0][0] == [2, "normal"]
+    assert commands["mode"].call_args_list[3][0][0] == [0, "normal"]
+    assert commands["mode"].call_args_list[4][0][0] == [1, "normal"]
 
 
 async def test_connection_recovery(hass, data_from_device, test_config_entry):
