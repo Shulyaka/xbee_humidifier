@@ -1,12 +1,20 @@
 """The tests for the Humidifier class."""
 
-from time import sleep as mock_sleep
 from unittest.mock import MagicMock
 
 import pytest
-from humidifier import _MODE_AWAY as MODE_AWAY, _MODE_NORMAL as MODE_NORMAL, Humidifier
-from lib.core import Sensor, Switch
-from lib.mainloop import main_loop
+from mock_time import sleep as mock_sleep
+
+from tests import mock_micropython
+
+with mock_micropython():
+    from humidifier import (
+        _MODE_AWAY as MODE_AWAY,
+        _MODE_NORMAL as MODE_NORMAL,
+        Humidifier,
+    )
+    from lib.core import Sensor, Switch
+    from lib.mainloop import main_loop
 
 TARGET_HUMIDITY = 42
 

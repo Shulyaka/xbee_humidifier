@@ -1,11 +1,14 @@
 """Test duty cycle."""
 
-from time import sleep as mock_sleep
+from mock_time import sleep as mock_sleep
 
-import dutycycle
-from humidifier import Humidifier
-from lib.core import Sensor, Switch
-from lib.mainloop import main_loop
+from tests import mock_micropython
+
+with mock_micropython():
+    import dutycycle
+    from humidifier import Humidifier
+    from lib.core import Sensor, Switch
+    from lib.mainloop import main_loop
 
 
 def test_dutycycle():

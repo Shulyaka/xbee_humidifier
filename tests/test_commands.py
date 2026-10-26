@@ -2,17 +2,21 @@
 
 import logging
 from json import loads as json_loads
-from time import sleep as mock_sleep
 from unittest.mock import patch
 
-import commands
-import config
 import pytest
-from humidifier import Humidifier
-from lib.core import Sensor, Switch
-from lib.mainloop import main_loop
 from machine import reset_cause as mock_reset_cause, soft_reset as mock_soft_reset
+from mock_time import sleep as mock_sleep
 from xbee import atcmd as mock_atcmd, receive as mock_receive, transmit as mock_transmit
+
+from tests import mock_micropython
+
+with mock_micropython():
+    import commands
+    import config
+    from humidifier import Humidifier
+    from lib.core import Sensor, Switch
+    from lib.mainloop import main_loop
 
 
 def test_commands():

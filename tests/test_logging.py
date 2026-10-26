@@ -4,7 +4,10 @@ from json import loads as json_loads
 
 from xbee import transmit as mock_transmit
 
-from flash.lib import logging
+from tests import mock_micropython
+
+with mock_micropython():
+    from flash.lib import logging
 
 
 def test_logging():

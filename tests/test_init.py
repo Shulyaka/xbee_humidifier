@@ -1,6 +1,9 @@
 """Test __init__."""
 
-import flash
+from tests import mock_micropython
+
+with mock_micropython():
+    import flash
 
 
 def test_init():

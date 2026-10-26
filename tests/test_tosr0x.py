@@ -1,11 +1,14 @@
 """Test tosr0x lib."""
 
-from time import sleep_ms
 from unittest.mock import patch
 
 import pytest
+from mock_time import sleep_ms
 
-from flash import tosr0x
+from tests import mock_micropython
+
+with mock_micropython():
+    from flash import tosr0x
 
 
 @patch("flash.tosr0x.stdout.buffer.write")

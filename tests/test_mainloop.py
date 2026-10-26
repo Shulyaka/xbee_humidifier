@@ -1,10 +1,14 @@
 """Test mainloop lib."""
 
-from time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms
 from unittest import mock
 
 import pytest
-from lib import mainloop
+from mock_time import sleep_ms as mock_sleep_ms, ticks_ms as mock_ticks_ms
+
+from tests import mock_micropython
+
+with mock_micropython():
+    from lib import mainloop
 
 
 def test_task():

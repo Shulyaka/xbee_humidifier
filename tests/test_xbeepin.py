@@ -1,11 +1,15 @@
 """Test xbeepin lib."""
 
-from time import sleep_ms
 from unittest import mock
 
-from lib import xbeepin
-from lib.mainloop import main_loop
 from machine import ADC as mock_ADC, PWM as mock_PWM, Pin as mock_Pin
+from mock_time import sleep_ms
+
+from tests import mock_micropython
+
+with mock_micropython():
+    from lib import xbeepin
+    from lib.mainloop import main_loop
 
 
 def test_digital_output():

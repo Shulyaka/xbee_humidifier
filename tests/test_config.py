@@ -2,11 +2,14 @@
 
 import importlib
 
-import config
-from lib.core import Sensor, Switch
-from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
-from tosr import TosrSwitch, TosrTemp
-from tosr0x import tosr0x_version as mock_tosr0x_version
+from tests import mock_micropython
+
+with mock_micropython():
+    import config
+    from lib.core import Sensor, Switch
+    from lib.xbeepin import AnalogInput, AnalogOutput, DigitalInput, DigitalOutput
+    from tosr import TosrSwitch, TosrTemp
+    from tosr0x import tosr0x_version as mock_tosr0x_version
 
 
 def _test_config_base(config):
@@ -40,7 +43,8 @@ def test_config_production():
     """Test config."""
     mock_tosr0x_version.return_value = 10
     mock_tosr0x_version.reset_mock()
-    importlib.reload(config)
+    with mock_micropython():
+        importlib.reload(config)
     mock_tosr0x_version.assert_called_once_with()
     assert not config.debug
     _test_config_base(config)
@@ -61,7 +65,8 @@ def test_config_simulation():
     """Test config."""
     mock_tosr0x_version.return_value = None
     mock_tosr0x_version.reset_mock()
-    importlib.reload(config)
+    with mock_micropython():
+        importlib.reload(config)
     mock_tosr0x_version.assert_called_once_with()
     assert config.debug
     _test_config_base(config)

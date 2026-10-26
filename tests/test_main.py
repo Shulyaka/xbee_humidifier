@@ -3,7 +3,11 @@
 from unittest import mock
 
 import pytest
-from lib import mainloop
+
+from tests import mock_micropython
+
+with mock_micropython():
+    from lib import mainloop
 
 
 def test_main(caplog):
@@ -12,6 +16,7 @@ def test_main(caplog):
         side_effect=RuntimeError("Test mainloop exception")
     )
     with (
+        mock_micropython(),
         mock.patch.dict("sys.modules", {"bundle": None}),
         pytest.raises(RuntimeError) as excinfo,
     ):

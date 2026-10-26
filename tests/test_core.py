@@ -3,7 +3,11 @@
 from unittest import mock
 
 import pytest
-from lib import core
+
+from tests import mock_micropython
+
+with mock_micropython():
+    from lib import core
 
 
 def test_subscription(caplog):
