@@ -12,8 +12,7 @@ valves, pump/fan controls, and diagnostics as HA entities.
 
 ## Architecture
 - **Transport / API client**: `coordinator.py` implements
-  `XBeeHumidifierApiClient` using ZHA WebSocket service
-  `zha.issue_zigbee_cluster_command`.
+  `XBeeHumidifierApiClient` using `zha.issue_zigbee_cluster_command` service.
   - Cluster: `0x11`, endpoint: `0xE8`, command: `0x0000`.
   - Payloads are JSON `{"cmd": "...", "args": ...}`.
   - Responses are JSON with `*_resp` keys and a `nonce` value.

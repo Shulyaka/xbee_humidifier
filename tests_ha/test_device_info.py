@@ -102,7 +102,9 @@ async def test_device_and_entity_ids_survive_reload(
     test_config_entry: MockConfigEntry,
 ) -> None:
     """Registration on reload preserves registry identities and user names."""
-    humidifier = entity_registry.async_get("humidifier.xbee_humidifier_1_humidifier")
+    humidifier = entity_registry.async_get(
+        "humidifier.xbee_humidifier_main_unit_xbee_humidifier_1_humidifier"
+    )
     assert humidifier is not None
     entity_registry.async_update_entity(
         humidifier.entity_id, new_entity_id="humidifier.living_room"
@@ -192,7 +194,12 @@ async def test_device_and_entity_ids_survive_reload(
         )
     } == children_before
     assert hass.states.get("humidifier.living_room") is not None
-    assert hass.states.get("humidifier.xbee_humidifier_1_humidifier") is None
+    assert (
+        hass.states.get(
+            "humidifier.xbee_humidifier_main_unit_xbee_humidifier_1_humidifier"
+        )
+        is None
+    )
 
 
 async def test_existing_zones_become_child_devices(
@@ -390,16 +397,30 @@ async def test_each_humidifier_tracks_its_sensor(
         await hass.async_block_till_done()
 
     assert (
-        hass.states.get("humidifier.xbee_humidifier_1_humidifier").state
+        hass.states.get(
+            "humidifier.xbee_humidifier_main_unit_xbee_humidifier_1_humidifier"
+        ).state
         == "unavailable"
     )
-    assert hass.states.get("humidifier.xbee_humidifier_2_humidifier").state == "off"
-    assert hass.states.get("humidifier.xbee_humidifier_3_humidifier").state == "off"
+    assert (
+        hass.states.get(
+            "humidifier.xbee_humidifier_main_unit_xbee_humidifier_2_humidifier"
+        ).state
+        == "off"
+    )
+    assert (
+        hass.states.get(
+            "humidifier.xbee_humidifier_main_unit_xbee_humidifier_3_humidifier"
+        ).state
+        == "off"
+    )
 
     data_from_device(hass, IEEE, {"available_0": True})
     await hass.async_block_till_done()
     for number, humidity in enumerate((31, 42, 53), start=1):
-        state = hass.states.get(f"humidifier.xbee_humidifier_{number}_humidifier")
+        state = hass.states.get(
+            f"humidifier.xbee_humidifier_main_unit_xbee_humidifier_{number}_humidifier"
+        )
         assert state is not None
         assert state.attributes["current_humidity"] == humidity
 

@@ -26,9 +26,11 @@ def zha_device(
         domain="zha", entry_id="test_zha", state=ConfigEntryState.LOADED
     )
     entry.add_to_hass(hass)
-    yield device_registry.async_get_or_create(
-        config_entry_id=entry.entry_id, identifiers={("zha", IEEE)}, name="XBee"
-    )
+    # ZHA setup must not replace our simulated command service with a real gateway.
+    with patch("homeassistant.components.zha.async_setup", return_value=True):
+        yield device_registry.async_get_or_create(
+            config_entry_id=entry.entry_id, identifiers={("zha", IEEE)}, name="XBee"
+        )
     entry.mock_state(hass, ConfigEntryState.NOT_LOADED)
 
 

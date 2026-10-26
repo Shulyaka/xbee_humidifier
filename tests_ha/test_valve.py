@@ -13,9 +13,9 @@ from homeassistant.const import ATTR_ENTITY_ID
 from .conftest import commands
 from .const import IEEE
 
-ENT_VALVE1 = "valve.xbee_humidifier_1_valve"
-ENT_VALVE2 = "valve.xbee_humidifier_2_valve"
-ENT_VALVE3 = "valve.xbee_humidifier_3_valve"
+ENT_VALVE1 = "valve.xbee_humidifier_main_unit_xbee_humidifier_1_valve"
+ENT_VALVE2 = "valve.xbee_humidifier_main_unit_xbee_humidifier_2_valve"
+ENT_VALVE3 = "valve.xbee_humidifier_main_unit_xbee_humidifier_3_valve"
 ENT_VALVE4 = "valve.xbee_humidifier_main_unit_pressure_drop_valve"
 
 

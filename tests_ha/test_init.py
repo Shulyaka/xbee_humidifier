@@ -16,9 +16,9 @@ from pytest_homeassistant_custom_component.common import (
 from .conftest import commands
 from .const import IEEE
 
-ENTITY1 = "humidifier.xbee_humidifier_1_humidifier"
-ENTITY2 = "humidifier.xbee_humidifier_2_humidifier"
-ENTITY3 = "humidifier.xbee_humidifier_3_humidifier"
+ENTITY1 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_1_humidifier"
+ENTITY2 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_2_humidifier"
+ENTITY3 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_3_humidifier"
 
 
 def test_test(hass):

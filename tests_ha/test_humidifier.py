@@ -18,9 +18,9 @@ from homeassistant.core import State
 from .conftest import calls, commands
 from .const import IEEE
 
-ENTITY1 = "humidifier.xbee_humidifier_1_humidifier"
-ENTITY2 = "humidifier.xbee_humidifier_2_humidifier"
-ENTITY3 = "humidifier.xbee_humidifier_3_humidifier"
+ENTITY1 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_1_humidifier"
+ENTITY2 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_2_humidifier"
+ENTITY3 = "humidifier.xbee_humidifier_main_unit_xbee_humidifier_3_humidifier"
 ENT_SENSOR = "sensor.test2"
 ATTR_SAVED_HUMIDITY = "saved_humidity"
 
